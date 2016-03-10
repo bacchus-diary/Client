@@ -1,0 +1,19 @@
+<ion-navbar *navbar>
+    <button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Your Journal</ion-title>
+</ion-navbar>
+
+<ion-content padding class="reports_list">
+    <ion-list>
+        <button ion-item *ngFor="#item of reports" (click)="goReport($event, item)">
+            <div class="item-desc" item-right>
+                {{ item.leaves[0].description }}
+            </div>
+            <div class="item-note" item-right>
+                {{ item.note }}
+            </div>
+        </button>
+    </ion-list>
+</ion-content>

@@ -1,0 +1,18 @@
+
+<ion-navbar *navbar>
+  <button menuToggle>
+    <ion-icon name="menu"></ion-icon>
+  </button>
+  <ion-title>Photo</ion-title>
+</ion-navbar>
+
+
+<ion-content padding class="photo">
+
+  <h3>Getting Photo</h3>
+  <p>
+    <button primary (click)="takePhoto(true)">Take photo</button>
+  </p>
+  <img *ngIf="photoUrl != null" src="{{ photoUrl }}">
+
+</ion-content>
