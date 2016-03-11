@@ -39,7 +39,7 @@ module Fastlane
         dir = File.join('resources')
         src = File.join(dir, "#{prefix}-#{ENV["FASTLANE_PLATFORM_NAME"]}.png")
         if File.exist?(src) then
-          FileUtils.copy(src, File.join(dir, "#{prefix}.png")
+          FileUtils.copy(src, File.join(dir, "#{prefix}.png"))
         end
       end
 
