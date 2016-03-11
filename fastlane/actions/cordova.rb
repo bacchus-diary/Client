@@ -9,6 +9,7 @@ module Fastlane
       def self.cordova(plugins)
         puts "Checking Cordova ..."
         system('cordova -v')
+
         dirs = ['plugins', File.join('platforms', ENV["FASTLANE_PLATFORM_NAME"])]
         if !dirs.all? { |x| File.exist? x } then
           dirs.each do |dir|
@@ -28,7 +29,18 @@ module Fastlane
       def self.ionic
         puts "Checking ionic ..."
         system('ionic -v')
+
+        use_png('icon')
+        use_png('splash')
         system("ionic resources")
+      end
+
+      def self.use_png(prefix)
+        dir = File.join('resources')
+        src = File.join(dir, "#{prefix}-#{ENV["FASTLANE_PLATFORM_NAME"]}.png")
+        if File.exist?(src) then
+          FileUtils.copy(src, File.join(dir, "#{prefix}.png")
+        end
       end
 
       #####################################################
