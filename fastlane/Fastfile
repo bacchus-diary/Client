@@ -14,8 +14,16 @@ def into_platform &block
   end
 end
 
+def adjust_buildnum(offset)
+  src = ENV['BUILD_NUM'] || '0'
+  ENV['BUILD_NUM'] = "#{Integer(src) + offset}"
+  puts "Adjusted BuildNum: #{ENV['BUILD_NUM']}"
+end
+
 before_all do
   into_mode
+
+  adjust_buildnum(2000)
 
   write_settings
 
