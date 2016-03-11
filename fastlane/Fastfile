@@ -23,7 +23,12 @@ before_all do
   end
   File.rename(icon(ENV["FASTLANE_PLATFORM_NAME"]), icon())
 
-  dart
+  write_settings
+
+  Dir.chdir('..') do
+    sh("gulp build")
+  end
+
   cordova(plugins: [
     'cordova-plugin-crosswalk-webview@~1.4.0',
     'cordova-plugin-device@~1.1.0',
