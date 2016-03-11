@@ -2,12 +2,13 @@ module Fastlane
   module Actions
     class CordovaAction < Action
       def self.run(params)
-        node_modules
         cordova(params[:plugins] || [])
         ionic
       end
 
       def self.cordova(plugins)
+        puts "Checking Cordova ..."
+        system('cordova -v')
         dirs = ['plugins', File.join('platforms', ENV["FASTLANE_PLATFORM_NAME"])]
         if !dirs.all? { |x| File.exist? x } then
           dirs.each do |dir|
@@ -25,38 +26,9 @@ module Fastlane
       end
 
       def self.ionic
-        system("ionic resources")
-      end
-
-      def self.node_modules
-        if !ENV['PATH'].include?('node_modules/.bin') then
-          ENV['PATH'] = "#{Dir.pwd}/node_modules/.bin:#{ENV['PATH']}"
-        end
-        with_cache('node_modules') do
-          system('npm install')
-        end
-        puts "Checking Cordova ..."
-        system('cordova -v')
         puts "Checking ionic ..."
         system('ionic -v')
-      end
-
-      def self.with_cache(name, &block)
-        remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{name}.tar.bz2"
-        if !File.exist?(name) then
-          begin
-            puts "Loading #{name}"
-            system("aws s3 cp #{remotename} - | tar jxf -")
-          rescue
-            Dir.mkdir(name)
-          end
-        end
-        begin
-          block.call
-        ensure
-          pid = Process.spawn("tar jcf - #{name}  | aws s3 cp - #{remotename}")
-          puts "Saving #{name} (on pid:#{pid})"
-        end
+        system("ionic resources")
       end
 
       #####################################################
