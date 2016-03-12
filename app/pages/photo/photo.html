@@ -13,6 +13,7 @@
   <p>
     <button primary (click)="takePhoto(true)">Take photo</button>
   </p>
-  <img *ngIf="photoUrl != null" src="{{ photoUrl }}">
-
+  <div *ngIf="photoUrl">
+    <img [src]="photoUrl" width="200" height="200" />
+  </div>
 </ion-content>

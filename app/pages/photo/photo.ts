@@ -7,9 +7,13 @@ import {photo, makeUrl, decodeBase64} from '../../service/photo_shop.ts';
 export class PhotoPage {
     photoUrl: string;
     
-    async takePhoto(take) {
-        let data = await photo(take);
-        this.photoUrl = makeUrl(decodeBase64(data));
-        console.log("Photo URL: " + this.photoUrl);
+    takePhoto(take) {
+        let data = photo(take, (data) => {
+            this.photoUrl = makeUrl(decodeBase64(data));
+            console.log("Photo URL: " + this.photoUrl);
+        },
+        (error) => {
+            console.log("Failed to take a photo: " + error);
+        });
     }
 }
