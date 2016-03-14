@@ -26,9 +26,8 @@ before_install:
 install:
   - gem install bundler --no-document
   - bundle install
-  - brew update || brew update
   - (npm install || npm install) && export PATH="$(pwd)/node_modules/.bin:$PATH"
-  - test "$PLATFORM" != "android" || (brew install android && export ANDROID_HOME=$(brew --prefix android))
+  - test "$PLATFORM" != "android" || (brew update || brew update) && brew install android && export ANDROID_HOME=$(brew --prefix android)
 
 script:
   - fastlane enable_crash_reporting
