@@ -165,7 +165,6 @@ platform :android do
         release_note
 
         into_platform do
-          sh('unzip -t ../build/outputs/apk/android-release.apk')
           crashlytics(
           apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
           api_token: ENV["FABRIC_API_KEY"],
