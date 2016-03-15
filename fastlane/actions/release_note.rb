@@ -29,7 +29,17 @@ module Fastlane
       end
 
       def self.last_tag
-        sh("git fetch")
+        retry_count = 3
+        begin
+          sh("git fetch")
+        rescue
+          retry_count -= 1
+          if 0 < retry_count then
+            retry
+          else
+            raise
+          end
+        end
         prefix = "deployed/#{ENV['FASTLANE_PLATFORM_NAME']}/#{ENV['BUILD_MODE']}/"
         sh("git tag -l | grep '#{prefix}' || echo").split("\n").sort.last
       end
