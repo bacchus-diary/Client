@@ -2,20 +2,19 @@ module Fastlane
   module Actions
     class CacheIndexAction < Action
       def self.run(params)
-        Dir.chdir('www') do
-          rewrite('index.html')
+        Dir.chdir(params[:rootDir] || 'www') do
+          rewrite('index.html', params[:cacheDir] || 'cache')
         end
       end
 
-      def self.rewrite(*path)
+      def self.rewrite(target, cacheDir)
         require 'nokogiri'
-        target = File.join(*path)
         doc = File.open(target) do |file|
           Nokogiri::HTML(file)
         end
 
-        fonts(doc, 'cache', 'fonts')
-        js(doc, 'cache', 'js')
+        fonts(doc, cacheDir, 'fonts')
+        js(doc, cacheDir, 'js')
 
         puts "Rewriting #{target}"
         File.write(target, doc.to_html)
@@ -96,7 +95,18 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(key: :rootDir,
+          description: "Root directory (default: 'www')",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :cacheDir,
+          description: "Name of directory for cache (default: 'cache')",
+          optional: true,
+          is_string: true
+          )
+        ]
       end
 
       def self.authors
