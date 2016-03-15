@@ -29,6 +29,7 @@ before_all do
   cache_index
 
   Dir.chdir('..') do
+    sh("typings install")
     sh("gulp build")
   end
 
