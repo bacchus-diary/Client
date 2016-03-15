@@ -26,7 +26,7 @@ module Fastlane
           href = css['href']
           if /^https:\/\/fonts.googleapis.com\/css\?.*$/.match href then
             dir = File.join(*path)
-            filename = cache_digest.call(href, dir)
+            filename = cache_digest(href, dir)
 
             File.open(File.join(dir, filename), 'r+') do |file|
               lines = file.readlines
@@ -35,7 +35,7 @@ module Fastlane
               lines.each do |line|
                 m = /(^.*url\()(https:[^\)]+)(\).*)/.match line
                 if m != nil then
-                  loaded = cache_digest.call(m[2], dir)
+                  loaded = cache_digest(m[2], dir)
                   line = "#{m[1]}#{loaded}#{m[3]}"
                 end
                 file.puts line
@@ -54,7 +54,7 @@ module Fastlane
           href = js['src']
           if /^https:\/\/.*\.js$/.match(href) then
             dir = File.join(*path)
-            js['src'] = path.join('/') + '/' + cache_digest.call(href, dir)
+            js['src'] = path.join('/') + '/' + cache_digest(href, dir)
           end
         end
       end
@@ -69,7 +69,7 @@ module Fastlane
         name = "cached-#{names.join('.')}"
         target = File.join(dir, name)
         if !File.exist?(dir) then
-          Dir.mkdir(dir)
+          FileUtils.mkdir_p(dir)
         end
         retry_count = 3
         begin
