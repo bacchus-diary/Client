@@ -23,9 +23,5 @@
     "webpack": "1.12.14"
   },
   "name": "bacchus-diary",
-  "description": "Bacchus Diary: An Ionic project",
-  "cordovaPlatforms": [
-    "ios@4.0.1",
-    "android@5.1.1"
-  ]
+  "description": "Bacchus Diary: An Ionic project"
 }
