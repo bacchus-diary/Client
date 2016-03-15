@@ -3,6 +3,13 @@
   "devDependencies": {},
   "ambientDependencies": {
     "es6-shim": "github:DefinitelyTyped/DefinitelyTyped/es6-shim/es6-shim.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-camera": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Camera.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c"
+    "cordova-plugin-camera": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Camera.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "cordova-plugin-device": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Device.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "cordova-plugin-splashscreen": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Splashscreen.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "cordova-plugin-statusbar": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/StatusBar.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "cordova-plugin-dialogs": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Dialogs.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "cordova-plugin-globalization": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Globalization.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "cordova-plugin-inappbrowser": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/InAppBrowser.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "cordova-plugin-push": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Push.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c"
   }
 }
