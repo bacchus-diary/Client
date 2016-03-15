@@ -33,20 +33,20 @@ before_all do
   end
 
   cordova(plugins: [
-    'cordova-plugin-crosswalk-webview@~1.4.0',
-    'cordova-plugin-device@~1.1.0',
-    'cordova-plugin-console@~1.0.1',
-    'cordova-plugin-camera@~2.0.0',
-    'cordova-plugin-splashscreen@~3.0.0',
-    'cordova-plugin-statusbar@~2.0.0',
-    'cordova-plugin-geolocation@~2.0.0',
-    'cordova-plugin-whitelist@~1.2.0',
+    'cordova-plugin-crosswalk-webview@~1.6.0',
+    'cordova-plugin-device@~1.1.1',
+    'cordova-plugin-console@~1.0.2',
+    'cordova-plugin-camera@~2.1.0',
+    'cordova-plugin-splashscreen@~3.1.0',
+    'cordova-plugin-statusbar@~2.1.0',
+    'cordova-plugin-geolocation@~2.1.0',
+    'cordova-plugin-whitelist@~1.2.1',
     'cordova-plugin-dialogs@~1.2.0',
-    'cordova-plugin-country',
-    'cordova-plugin-globalization',
-    'cordova-plugin-inappbrowser',
+    'cordova-plugin-country@~1.0.2',
+    'cordova-plugin-globalization@~1.0.2',
+    'cordova-plugin-inappbrowser@@~1.2.0',
+    'cordova.plugins.diagnostic@~2.3.11',
     'phonegap-plugin-push@~1.4.0',
-    'cordova.plugins.diagnostic',
     "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
     "https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}"
   ])
