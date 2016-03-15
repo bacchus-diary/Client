@@ -26,6 +26,7 @@ before_all do
   adjust_buildnum(2000)
 
   write_settings
+  cache_index
 
   Dir.chdir('..') do
     sh("gulp build")
