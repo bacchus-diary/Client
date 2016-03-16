@@ -1,19 +1,20 @@
 import {Page} from 'ionic-angular';
-import {photo, makeUrl, decodeBase64} from '../../service/photo_shop.ts';
+import * as ps from "../../service/photo_shop";
 
 @Page({
-  templateUrl: 'build/pages/photo/photo.html'
+    templateUrl: 'build/pages/photo/photo.html'
 })
 export class PhotoPage {
     photoUrl: string;
-    
+
     takePhoto(take) {
-        let data = photo(take, (data) => {
-            this.photoUrl = makeUrl(decodeBase64(data));
-            console.log("Photo URL: " + this.photoUrl);
-        },
-        (error) => {
-            console.log("Failed to take a photo: " + error);
-        });
+        let data = ps.photo(take,
+            (data) => {
+                this.photoUrl = ps.makeUrl(ps.decodeBase64(data));
+                console.log("Photo URL: " + this.photoUrl);
+            },
+            (error) => {
+                console.log("Failed to take a photo: " + error);
+            });
     }
 }
