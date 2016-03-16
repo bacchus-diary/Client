@@ -1,20 +1,29 @@
 import {Page, NavController} from 'ionic-angular';
-import {Http} from 'angular2/http';
+import {Http, Jsonp, JSONP_PROVIDERS} from 'angular2/http';
 import {Observable} from 'rxjs/Rx';
 
+import {Logger} from '../../providers/logging';
 import {ListPage} from '../list/list';
 
+const logger = new Logger(AcceptancePage);
+
 @Page({
-    templateUrl: 'build/pages/acceptance/acceptance.html'
+    templateUrl: 'build/pages/acceptance/acceptance.html',
+    providers: [JSONP_PROVIDERS]
 })
 export class AcceptancePage {
+    public static isAccepted(): boolean { return window.localStorage['acceptance']; }
+    private static accepted() { window.localStorage['acceptance'] = 'true'; }
 
     private gistId = '23ac8b82bab0b512f8a4';
     private host = 'https://gist.github.com';
-    private callbackId = 'gistCallback';
 
-    constructor(private nav: NavController, private http: Http) {
-        document.body.querySelector('script');
+    constructor(private nav: NavController, private http: Http, jsonp: Jsonp) {
+        const url = `${this.host}/${this.gistId}.json?callback=JSONP_CALLBACK`;
+        logger.info(() => "Requesting JSONP: " + url);
+        jsonp.get(url).subscribe((res) => {
+            this.gistCallback(res.json());
+        });
     }
 
     gistCallback(res) {
@@ -42,6 +51,7 @@ export class AcceptancePage {
 
     showGist(div: HTMLDivElement, styleHref: string) {
         const base = document.getElementById('gist');
+        logger.info(() => `Append gist to ${base}`);
 
         const meta = div.querySelector('.gist-meta')
         if (meta != null) meta.remove();
@@ -64,7 +74,7 @@ export class AcceptancePage {
     }
 
     accept() {
-        window.localStorage['acceptance'] = 'true';
+        AcceptancePage.accepted();
         this.nav.setRoot(ListPage);
     }
 }
