@@ -1,5 +1,5 @@
 import {Page} from 'ionic-angular';
-import * as ps from "../../service/photo_shop";
+import {PhotoShop as ps} from "../../providers/photo_shop";
 
 @Page({
     templateUrl: 'build/pages/photo/photo.html'
