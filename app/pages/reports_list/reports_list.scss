@@ -1,9 +1,11 @@
 .reports_list {
-
-  p {
-    margin: 20px 0;
-    line-height: 22px;
-    font-size: 16px;
-  }
-
+    ion-item {
+        ion-thumbnail img {
+            max-width: 12rem;
+            max-height: 12rem;
+        }
+        .item-desc {
+            margin-top: 1rem;
+        }
+    }
 }
