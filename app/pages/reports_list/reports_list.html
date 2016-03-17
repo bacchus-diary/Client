@@ -6,14 +6,23 @@
 </ion-navbar>
 
 <ion-content padding class="reports_list">
+    <ion-refresher (refresh)="doRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
     <ion-list>
-        <button ion-item *ngFor="#item of reports" (click)="goReport($event, item)">
-            <div class="item-desc" item-right>
+        <ion-item *ngFor="#item of reports" (click)="goReport(item)">
+            <ion-thumbnail item-left class="item-image">
+                <img [src]="item.leaves[0].photo.original.url" />
+            </ion-thumbnail>
+            <p class="item-desc">
                 {{ item.leaves[0].description }}
-            </div>
-            <div class="item-note" item-right>
-                {{ item.note }}
-            </div>
-        </button>
+            </p>
+            <p class="item-note">
+                {{ item.comment }}
+            </p>
+        </ion-item>
     </ion-list>
+    <ion-infinite-scroll (infinite)="doInfinite($event)">
+        <ion-infinite-scroll-content></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
 </ion-content>
