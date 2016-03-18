@@ -4,8 +4,17 @@
             max-width: 12rem;
             max-height: 12rem;
         }
-        .item-desc {
-            margin-top: 1rem;
+        .item-inner {
+            align-items: flex-start;
+            .item-comment {
+                margin-top: 1rem;
+            }
+            .item-desc {
+                margin-top: 1rem;
+            }
+            p.long {
+                @include multilineEllipsis($lineCount: 3);
+            }
         }
     }
 }
