@@ -1,7 +1,7 @@
 .fathens-showcase {
     display: block;
     ion-slide {
-        margin-bottom: 3rem;
+        margin-top: 20px;
         &.leaves {
             img {
                 max-width: 100vw;
@@ -21,5 +21,9 @@
                 }
             }
         }
+    }
+    .swiper-pagination {
+        top: 0;
+        bottom: auto;
     }
 }
