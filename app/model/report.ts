@@ -25,5 +25,5 @@ export class Report {
 
 class Leaf {
     photo: Photo = new Photo();
-    description: string = "The bottle";
+    description: string = "Bombay Sapphire LONDON DRY GIN INFUSED INFUSE 750ml 40% alc./vol Bottled in London";
 }
