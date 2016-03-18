@@ -3,7 +3,18 @@
         <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title>Add Journal</ion-title>
+    <ion-buttons end>
+        <button class="submit" (click)="submit()">
+            <ion-icon name="checkmark"></ion-icon>
+        </button>
+    </ion-buttons>
 </ion-navbar>
 
 <ion-content padding class="add_report">
+    <fathens-rating [value]="report.rating" (changed)="report.rating = $event"></fathens-rating>
+    <ion-item>
+        <ion-label floating>Impressions..</ion-label>
+        <ion-textarea [(ngModel)]="report.comment"></ion-textarea>
+    </ion-item>
+    <fathens-showcase [leaves]="report.leaves"></fathens-showcase>
 </ion-content>

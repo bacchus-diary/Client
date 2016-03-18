@@ -12,4 +12,5 @@ const logger = new Logger(AddReportPage);
     directives: [RatingComponent]
 })
 export class AddReportPage {
+    report = new Report("newOne");
 }
