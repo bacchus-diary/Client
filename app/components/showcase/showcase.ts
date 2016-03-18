@@ -24,4 +24,8 @@ export class ShowcaseComponent {
             this.leaves.push(leaf);
         });
     }
+
+    deletePhoto(index: number) {
+        logger.debug(() => `Deleting photo: ${index}`);s
+    }
 }
