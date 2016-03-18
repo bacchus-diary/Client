@@ -1,7 +1,6 @@
 import {App, IonicApp, Platform} from 'ionic-angular';
 
 import {ReportsListPage} from './pages/reports_list/reports_list';
-import {PhotoPage} from './pages/photo/photo';
 import {AcceptancePage} from './pages/acceptance/acceptance';
 
 @App({
@@ -17,8 +16,7 @@ class MyApp {
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Reports List', component: ReportsListPage },
-      { title: 'Photo', component: PhotoPage }
+      { title: 'Reports List', component: ReportsListPage }
     ];
 
   }
