@@ -10,5 +10,5 @@ class ReducedImages {
 }
 
 class Image {
-    url: string = 'http://www.lcbo.com/content/dam/lcbo/products/316844.jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg';
+    url: string = 'http://www.ginfoundry.com/wp-content/uploads/2013/10/lavender-sapphire-collins-770x1024-min.jpg';
 }
