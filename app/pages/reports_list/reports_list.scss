@@ -12,7 +12,7 @@
             }
             .item-desc {
                 margin-top: 1rem;
-                @include multilineEllipsis($lineCount: 1);
+                @include multilineEllipsis($lineCount: 2);
             }
         }
     }
