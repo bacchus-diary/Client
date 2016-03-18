@@ -3,7 +3,7 @@ import {Http, Jsonp, JSONP_PROVIDERS} from 'angular2/http';
 import {Observable} from 'rxjs/Rx';
 
 import {Logger} from '../../providers/logging';
-import {ListPage} from '../list/list';
+import {ReportsListPage} from '../reports_list/reports_list';
 
 const logger = new Logger(AcceptancePage);
 
@@ -83,6 +83,6 @@ export class AcceptancePage {
 
     accept() {
         AcceptancePage.accepted();
-        this.nav.setRoot(ListPage);
+        this.nav.setRoot(ReportsListPage);
     }
 }
