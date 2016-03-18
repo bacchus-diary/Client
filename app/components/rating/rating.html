@@ -1,3 +1,7 @@
 <div class="fathens-rating">
-    <ion-icon name="star" *ngRepeat="#i in stars"></ion-icon>
+    <ion-icon name="star"
+        *ngFor="#v of stars"
+        [ngClass]="{selected: (v < value)}"
+        (click)="changeValue(v)">
+    </ion-icon>
 </div>

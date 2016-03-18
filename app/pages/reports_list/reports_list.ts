@@ -1,13 +1,15 @@
 import {Page} from 'ionic-angular';
 import {Observable} from 'rxjs/Rx';
 
+import {RatingComponent} from '../../components/rating/rating';
 import {Report} from '../../model/report';
 import {Logger} from '../../providers/logging';
 
 const logger = new Logger(ReportsListPage);
 
 @Page({
-    templateUrl: 'build/pages/reports_list/reports_list.html'
+    templateUrl: 'build/pages/reports_list/reports_list.html',
+    directives: [RatingComponent]
 })
 export class ReportsListPage {
     constructor() {

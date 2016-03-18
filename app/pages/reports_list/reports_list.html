@@ -14,6 +14,7 @@
             <ion-thumbnail item-left>
                 <img [src]="item.leaves[0].photo.original.url" />
             </ion-thumbnail>
+            <fathens-rating [value]="item.rating"></fathens-rating>
             <p class="item-comment">{{ item.comment }}</p>
             <h3 class="item-desc">{{ item.leaves[0].description }}</h3>
         </ion-item>

@@ -1,3 +1,11 @@
 .fathens-rating {
-    
+    display: flex;
+    flex-direction: row;
+
+    ion-icon {
+        color: gray;
+        &.selected {
+            color: yellow;
+        }
+    }
 }
