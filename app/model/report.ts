@@ -6,7 +6,7 @@ const logger = new Logger(Report);
 
 export class Report {
     leaves: Array<Leaf> = [new Leaf()];
-    comment: string = `Good one ${this._id} This is a very nice one !! And you can drink now and everyday. We get you !`
+    comment: string = `Good one ${this._id} This is a very nice one !! And you can drink now and everyday. Every night drink drink drink again. We get you happy ! Don't miss it ! `
     rating: number = 3;
     dateAt: Date = new Date();
 
