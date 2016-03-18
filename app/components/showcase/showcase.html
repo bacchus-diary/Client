@@ -5,12 +5,10 @@
             <p>{{ leaf.description }}</p>
         </ion-slide>
         <ion-slide class="empty">
-            <div class="center">
-                <button round large (click)="addPhoto()">
-                    <ion-icon name="add"></ion-icon>
-                    PHOTO
-                </button>
-            </div>
+            <button favorite round large (click)="addPhoto()">
+                <ion-icon name="add"></ion-icon>
+                PHOTO
+            </button>
         </ion-slide>
     </ion-slides>
 </div>

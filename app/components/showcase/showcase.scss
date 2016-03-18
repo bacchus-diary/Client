@@ -9,17 +9,12 @@
             }
         }
         &.empty {
-            .center {
-                height: 100vw;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                background-color: lightgray;
-                button {
-                    background-color: red;
-                }
-            }
+            height: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: lightgray;
         }
     }
     .swiper-pagination {
