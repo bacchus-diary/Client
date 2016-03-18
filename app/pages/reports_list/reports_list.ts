@@ -1,7 +1,8 @@
-import {Page} from 'ionic-angular';
+import {Page, NavController} from 'ionic-angular';
 import {Observable} from 'rxjs/Rx';
 
 import {RatingComponent} from '../../components/rating/rating';
+import {AddReportPage} from '../add_report/add_report';
 import {Report} from '../../model/report';
 import {Logger} from '../../providers/logging';
 
@@ -12,7 +13,7 @@ const logger = new Logger(ReportsListPage);
     directives: [RatingComponent]
 })
 export class ReportsListPage {
-    constructor() {
+    constructor(private nav: NavController) {
         logger.info(() => "Creating ReportsListPage");
         this.doRefresh();
     }
@@ -50,5 +51,9 @@ export class ReportsListPage {
 
     goReport(report: Report) {
         logger.info(() => `Opening detail: ${report}`);
+    }
+
+    addNew() {
+        this.nav.push(AddReportPage);
     }
 }
