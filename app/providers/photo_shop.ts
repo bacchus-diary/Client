@@ -1,3 +1,5 @@
+import {Observable} from 'rxjs/Rx';
+
 export class PhotoShop {
     public static CONTENT_TYPE = "image/jpeg";
 
@@ -11,12 +13,14 @@ export class PhotoShop {
         return new Blob([data], { type: PhotoShop.CONTENT_TYPE });
     }
 
-    public static photo(take: boolean, resolve, reject) {
-        let params = {
-            correctOrientation: true,
-            destinationType: Camera.DestinationType.DATA_URL,
-            sourceType: take ? Camera.PictureSourceType.CAMERA : Camera.PictureSourceType.PHOTOLIBRARY
-        };
-        navigator.camera.getPicture(resolve, reject, params);
+    public static photo(take: boolean): Observable<string> {
+        return Observable.fromPromise(new Promise((resolve, reject) => {
+            let params = {
+                correctOrientation: true,
+                destinationType: Camera.DestinationType.DATA_URL,
+                sourceType: take ? Camera.PictureSourceType.CAMERA : Camera.PictureSourceType.PHOTOLIBRARY
+            };
+            navigator.camera.getPicture(resolve, reject, params);
+        }));
     }
 }
