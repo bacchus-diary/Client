@@ -1,3 +1,25 @@
 .fathens-showcase {
-    
+    display: block;
+    ion-slide {
+        margin-bottom: 3rem;
+        &.leaves {
+            img {
+                max-width: 100vw;
+                max-height: 100vw;
+            }
+        }
+        &.empty {
+            .center {
+                height: 100vw;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                background-color: lightgray;
+                button {
+                    background-color: red;
+                }
+            }
+        }
+    }
 }

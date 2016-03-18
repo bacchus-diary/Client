@@ -1,3 +1,16 @@
 <div class="fathens-showcase">
-    
+    <ion-slides pager>
+        <ion-slide class="leaves" *ngFor="#leaf of leaves">
+            <img [src]="leaf.photo.reduced.mainview.url" />
+            <p>{{ leaf.description }}</p>
+        </ion-slide>
+        <ion-slide class="empty">
+            <div class="center">
+                <button round large>
+                    <ion-icon name="add"></ion-icon>
+                    PHOTO
+                </button>
+            </div>
+        </ion-slide>
+    </ion-slides>
 </div>
