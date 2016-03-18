@@ -8,12 +8,11 @@
             align-items: flex-start;
             .item-comment {
                 margin-top: 1rem;
+                @include multilineEllipsis($lineCount: 3);
             }
             .item-desc {
                 margin-top: 1rem;
-            }
-            p.long {
-                @include multilineEllipsis($lineCount: 3);
+                @include multilineEllipsis($lineCount: 1);
             }
         }
     }
