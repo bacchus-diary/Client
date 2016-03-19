@@ -15,14 +15,14 @@
         <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
     <ion-list>
-        <ion-item *ngFor="#item of reports" (click)="goReport(item)">
+        <button ion-item class="item" *ngFor="#item of reports" (click)="goReport(item)">
             <ion-thumbnail item-left>
                 <img [src]="item.leaves[0].photo.reduced.thumbnail.url" />
             </ion-thumbnail>
             <fathens-rating [value]="item.rating"></fathens-rating>
             <p class="item-comment">{{ item.comment }}</p>
             <h3 class="item-desc">{{ item.leaves[0].description }}</h3>
-        </ion-item>
+        </button>
     </ion-list>
     <ion-infinite-scroll (infinite)="doInfinite($event)">
         <ion-infinite-scroll-content></ion-infinite-scroll-content>
