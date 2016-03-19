@@ -14,12 +14,13 @@ const logger = new Logger(ReportsListPage);
     directives: [RatingComponent]
 })
 export class ReportsListPage {
-    constructor(private nav: NavController) {
-        logger.info(() => "Creating ReportsListPage");
-        this.doRefresh();
-    }
+    constructor(private nav: NavController) { }
 
     reports: Array<Report>;
+
+    onPageWillEnter() {
+        this.doRefresh();
+    }
 
     doRefresh(event?) {
         logger.info(() => `Refreshing reports list...`);
@@ -52,7 +53,7 @@ export class ReportsListPage {
 
     goReport(report: Report) {
         logger.info(() => `Opening detail: ${report}`);
-        this.nav.push(ReportDetailPage, {report: report});
+        this.nav.push(ReportDetailPage, { report: report });
     }
 
     addNew() {
