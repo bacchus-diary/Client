@@ -1,4 +1,4 @@
-import {Page, NavController, NavParams} from 'ionic-angular';
+import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
 import {Observable} from 'rxjs/Rx';
 
 import {RatingComponent} from '../../components/rating/rating';
@@ -15,11 +15,40 @@ const logger = new Logger(ReportDetailPage);
 export class ReportDetailPage {
     constructor(private nav: NavController, private params: NavParams) {
         this.report = params.get('report');
+        logger.debug(() => `Detail of report: ${this.report}`);
     }
 
     report: Report;
 
     showMore() {
+        this.nav.present(ActionSheet.create({
+            title: 'MORE ACTIONS',
+            buttons: [
+                {
+                    text: 'Publish to Facebook',
+                    icon: 'share',
+                    cssClass: 'publish',
+                    handler: () => {
+                        this.publish();
+                    }
+                },
+                {
+                    text: 'Delete',
+                    icon: 'trash',
+                    cssClass: 'delete',
+                    handler: () => {
+                        this.delete();
+                    }
+                }
+            ]
+        }));
+    }
 
+    private delete() {
+        logger.debug(() => `Deleting report: ${this.report}`);
+    }
+
+    private publish() {
+        logger.debug(() => `Publishing report: ${this.report}`);
     }
 }

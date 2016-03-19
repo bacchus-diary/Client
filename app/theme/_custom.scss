@@ -8,3 +8,12 @@
     overflow-wrap: break-word;
     white-space: normal;
 }
+
+.action-sheet-button {
+    &.publish {
+        color: blue;
+    }
+    &.delete {
+        color: red;
+    }
+}
