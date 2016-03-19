@@ -12,25 +12,32 @@ const logger = new Logger(AcceptancePage);
     providers: [JSONP_PROVIDERS]
 })
 export class AcceptancePage {
+    constructor(
+        private nav: NavController,
+        private menu: MenuController,
+        private http: Http,
+        private jsonp: Jsonp
+    ) { }
+
     public static isAccepted(): boolean { return window.localStorage['acceptance']; }
     private static accepted() { window.localStorage['acceptance'] = 'true'; }
 
     private gistId = '23ac8b82bab0b512f8a4';
     private host = 'https://gist.github.com';
 
-    constructor(private nav: NavController, private menu: MenuController, private http: Http, jsonp: Jsonp) {
+    isReady = false;
+
+    onPageWillEnter() {
+        this.menu.enable(false);
         const url = `${this.host}/${this.gistId}.json?callback=JSONP_CALLBACK`;
         logger.info(() => "Requesting JSONP: " + url);
-        jsonp.get(url).subscribe((res) => {
+        this.jsonp.get(url).subscribe((res) => {
             this.gistCallback(res.json());
+            this.isReady = true;
         });
     }
 
-    onPageDidEnter() {
-        this.menu.enable(false);
-    }
-
-    onPageDidLeave() {
+    onPageWillLeave() {
         this.menu.enable(true);
     }
 

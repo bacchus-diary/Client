@@ -1,7 +1,10 @@
-<ion-content>
+<ion-content class="acceptance">
     <div id="gist">
     </div>
-    <div class="buttons">
-        <button light full (click)="accept()">ACCEPT</button>
+    <div class="buttons" *ngIf="isReady">
+        <button primary full (click)="accept()">ACCEPT</button>
+    </div>
+    <div class="spinner" *ngIf="!isReady">
+        <ion-spinner></ion-spinner>
     </div>
 </ion-content>

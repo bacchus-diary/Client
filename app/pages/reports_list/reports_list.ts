@@ -18,17 +18,21 @@ export class ReportsListPage {
 
     reports: Array<Report>;
 
-    onPageWillEnter() {
-        this.doRefresh();
-    }
+    isReady = false;
 
-    doRefresh(event?) {
-        logger.info(() => `Refreshing reports list...`);
+    onPageWillEnter() {
         this.reports = [];
         this.more().subscribe((x) => {
+            logger.debug(() => `Loaded initial reports: ${x}`)
+            this.isReady = true;
+        });
+    }
+
+    doRefresh(event) {
+        this.more().subscribe((x) => {
             logger.debug(() => `Refreshed reports: ${x}`)
-            if (event) event.complete();
-        })
+            event.complete();
+        });
     }
 
     doInfinite(event) {
@@ -40,11 +44,12 @@ export class ReportsListPage {
     }
 
     private more(): Observable<any> {
+        logger.info(() => `Getting reports list...`);
         return Observable.fromPromise(new Promise((resolve, reject) => {
             setTimeout(() => {
                 logger.debug(() => `Generating reports`)
                 for (var i = 0; i < 10; i++) {
-                    this.reports.push(new Report(`id:${this.reports.length}`));
+                    // this.reports.push(new Report(`id:${this.reports.length}`));
                 }
                 resolve(this.reports.length);
             }, 3000);
