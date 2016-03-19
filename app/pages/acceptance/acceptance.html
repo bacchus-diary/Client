@@ -1,7 +1,10 @@
 <ion-content>
     <div id="gist">
     </div>
-    <div class="buttons">
+    <div class="buttons" *ngIf="isReady">
         <button light full (click)="accept()">ACCEPT</button>
+    </div>
+    <div class="spinner" *ngIf="!isReady">
+        <ion-spinner></ion-spinner>
     </div>
 </ion-content>
