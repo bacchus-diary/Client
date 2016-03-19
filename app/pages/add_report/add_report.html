@@ -13,8 +13,7 @@
 <ion-content padding class="add_report">
     <fathens-rating [value]="report.rating" (changed)="report.rating = $event"></fathens-rating>
     <ion-item>
-        <ion-label floating>Impressions..</ion-label>
-        <ion-textarea [(ngModel)]="report.comment"></ion-textarea>
+        <ion-textarea placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
     </ion-item>
     <fathens-showcase [leaves]="report.leaves" [confirmDelete]="false"></fathens-showcase>
 </ion-content>
