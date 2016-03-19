@@ -3,6 +3,7 @@ import {Observable} from 'rxjs/Rx';
 
 import {RatingComponent} from '../../components/rating/rating';
 import {AddReportPage} from '../add_report/add_report';
+import {ReportDetailPage} from '../report_detail/report_detail';
 import {Report} from '../../model/report';
 import {Logger} from '../../providers/logging';
 
@@ -51,6 +52,7 @@ export class ReportsListPage {
 
     goReport(report: Report) {
         logger.info(() => `Opening detail: ${report}`);
+        this.nav.push(ReportDetailPage, {report: report});
     }
 
     addNew() {
