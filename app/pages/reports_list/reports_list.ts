@@ -49,7 +49,7 @@ export class ReportsListPage {
             setTimeout(() => {
                 logger.debug(() => `Generating reports`)
                 for (var i = 0; i < 10; i++) {
-                    this.reports.push(new Report(`id:${this.reports.length}`));
+                    // this.reports.push(new Report(`id:${this.reports.length}`));
                 }
                 resolve(this.reports.length);
             }, 3000);
