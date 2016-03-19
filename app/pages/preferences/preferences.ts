@@ -1,4 +1,4 @@
-import {Page} from 'ionic-angular';
+import {Page, Storage, SqlStorage} from 'ionic-angular';
 import {Observable} from 'rxjs/Rx';
 
 import {Logger} from '../../providers/logging';
@@ -9,17 +9,28 @@ const logger = new Logger(PreferencesPage);
     templateUrl: 'build/pages/preferences/preferences.html'
 })
 export class PreferencesPage {
-    facebook: boolean;
+    private key = 'preferences';
+    private storage = new Storage(SqlStorage);
 
-    alwaysTake: boolean;
+    pref: any;
 
     onPageWillEnter() {
-        this.facebook = true;
-        this.alwaysTake = false;
-        logger.debug(() => `Loaded values`);
+        this.storage.getJson(this.key).then((json) => {
+            logger.debug(() => `Loaded initial value: ${JSON.stringify(json)}`);
+            this.pref = (json != null) ? json : {
+                social: {
+                    facebook: false
+                },
+                photo: {
+                    alwaysTake: false
+                }
+            };
+            logger.debug(() => `Loaded values: ${JSON.stringify(this.pref)}`);
+        });
     }
 
     onPageWillLeave() {
-        logger.debug(() => `Saving values`);
+        logger.debug(() => `Saving values: ${JSON.stringify(this.pref)}`);
+        this.storage.setJson(this.key, this.pref);
     }
 }
