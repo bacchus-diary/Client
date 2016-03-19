@@ -9,4 +9,17 @@ const logger = new Logger(PreferencesPage);
     templateUrl: 'build/pages/preferences/preferences.html'
 })
 export class PreferencesPage {
+    facebook: boolean;
+
+    alwaysTake: boolean;
+
+    onPageWillEnter() {
+        this.facebook = true;
+        this.alwaysTake = false;
+        logger.debug(() => `Loaded values`);
+    }
+
+    onPageWillLeave() {
+        logger.debug(() => `Saving values`);
+    }
 }
