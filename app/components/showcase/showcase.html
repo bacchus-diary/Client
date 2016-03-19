@@ -12,7 +12,9 @@
             </div>
             <div class="deletable">
                 <img [src]="leaf.photo.reduced.mainview.url" />
-                <p>{{ leaf.description }}</p>
+                <ion-item>
+                    <ion-textarea placeholder="NO TEXT" [(ngModel)]="leaf.description"></ion-textarea>
+                </ion-item>
             </div>
         </ion-slide>
         <ion-slide class="empty">
