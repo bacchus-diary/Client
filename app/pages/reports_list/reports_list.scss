@@ -1,4 +1,8 @@
 .reports_list {
+    .spinner {
+        display: flex;
+        justify-content: center;
+    }
     .item {
         ion-thumbnail img {
             max-width: 12rem;
