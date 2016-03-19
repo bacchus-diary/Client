@@ -16,7 +16,7 @@ class MyApp {
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Reports List', component: ReportsListPage }
+      { title: 'Journal', component: ReportsListPage }
     ];
 
   }
