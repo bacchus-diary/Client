@@ -1,6 +1,7 @@
-import {IONIC_DIRECTIVES} from 'ionic-angular';
+import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, ElementRef} from 'angular2/core';
+import {Observable} from 'rxjs/Rx';
 
 import {Leaf} from '../../model/report';
 import {PhotoShop} from '../../providers/photo_shop';
@@ -14,12 +15,13 @@ const logger = new Logger(ShowcaseComponent);
     directives: [IONIC_DIRECTIVES]
 })
 export class ShowcaseComponent {
-    constructor(private ab: AnimationBuilder) { }
+    constructor(private nav: NavController, private ab: AnimationBuilder) { }
 
     @Input() leaves: Array<Leaf>;
     @Input() slideSpeed: number = 300;
+    @Input() confirmDelete: boolean = true;
 
-    swiper: Swiper;
+    private swiper: Swiper;
     swiperOptions = {
         speed: this.slideSpeed,
         onInit: (s) => {
@@ -37,6 +39,38 @@ export class ShowcaseComponent {
     }
 
     deletePhoto(index: number) {
+        this.confirmDeletion().subscribe((ok) => {
+            if (ok) this.doDeletePhoto(index);
+        });
+    }
+
+    private confirmDeletion(): Observable<boolean> {
+        return Observable.fromPromise(new Promise((resolve, reject) => {
+            if (this.confirmDelete) {
+                this.nav.present(Alert.create({
+                    title: 'Remove Photo',
+                    message: 'Are you sure to remove this photo ?',
+                    buttons: [
+                        {
+                            text: 'Cancel',
+                            role: 'cancel',
+                            handler: () => {
+                                resolve(false);
+                            }
+                        },
+                        {
+                            text: 'Delete',
+                            handler: () => {
+                                resolve(true);
+                            }
+                        }
+                    ]
+                }));
+            } else resolve(true);
+        }));
+    }
+
+    private doDeletePhoto(index: number) {
         logger.debug(() => `Deleting photo: ${index}`);
 
         const getChild = (className: string) => {
