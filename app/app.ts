@@ -26,6 +26,7 @@ class MyApp {
     initializeApp() {
         this.platform.ready().then(() => {
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
+            navigator.splashscreen.hide();
         });
     }
 
