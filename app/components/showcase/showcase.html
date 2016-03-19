@@ -1,16 +1,26 @@
 <div class="fathens-showcase">
-    <ion-slides pager>
+    <ion-slides [options]="swiperOptions">
         <ion-slide class="leaves" *ngFor="#leaf of leaves; #i = index">
-            <button danger fab (click)="deletePhoto(i)" *ngIf="i != deletingIndex">
-                <ion-icon name="close"></ion-icon>
-            </button>
-            <div class="deletable index-{{i}}">
+            <div class="floating">
+                <button danger fab class="delete" (click)="deletePhoto(i)">
+                    <ion-icon name="close"></ion-icon>
+                </button>
+                <button clear class="arrow swiper-button-prev" (click)="slidePrev()" *ngIf="i > 0">
+                </button>
+                <button clear class="arrow swiper-button-next" (click)="slideNext()">
+                </button>
+            </div>
+            <div class="deletable">
                 <img [src]="leaf.photo.reduced.mainview.url" />
                 <p>{{ leaf.description }}</p>
             </div>
         </ion-slide>
         <ion-slide class="empty">
-            <button favorite round large (click)="addPhoto()">
+            <div class="floating">
+                <button clear class="arrow swiper-button-prev" (click)="slidePrev()" *ngIf="leaves.length > 0">
+                </button>
+            </div>
+            <button favorite round large class="photo" (click)="addPhoto()">
                 <ion-icon name="add"></ion-icon>
                 PHOTO
             </button>
