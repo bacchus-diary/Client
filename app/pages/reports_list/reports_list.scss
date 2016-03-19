@@ -3,6 +3,26 @@
         display: flex;
         justify-content: center;
     }
+    .empty {
+        margin-top: 20vh;
+        display: flex;
+        justify-content: center;
+
+        transition: all 200ms linear;
+        &.ng-enter {
+            opacity: 0;
+            transform: translateY(-20vh);
+        }
+        &.ng-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        &.ng-leave-active {
+            opacity: 0;
+            transform: translateY(-20vh);
+        }
+    }
+
     .item {
         ion-thumbnail img {
             max-width: 12rem;

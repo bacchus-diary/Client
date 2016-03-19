@@ -15,6 +15,11 @@
     <div class="spinner" *ngIf="!isReady">
         <ion-spinner></ion-spinner>
     </div>
+    <div class="ng-animate empty" *ngIf="isReady && reports.length < 1">
+        <button favorite large round (click)="addNew()">
+            Add first journal now !
+        </button>
+    </div>
 
     <ion-refresher (refresh)="doRefresh($event)">
         <ion-refresher-content></ion-refresher-content>
