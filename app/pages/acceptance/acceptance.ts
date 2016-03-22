@@ -2,7 +2,7 @@ import {Page, NavController, MenuController} from 'ionic-angular';
 import {Http, Jsonp, JSONP_PROVIDERS} from 'angular2/http';
 import {Observable} from 'rxjs/Rx';
 
-import {Logger} from '../../providers/logging';
+import {Logger} from '../../util/logging';
 import {ReportsListPage} from '../reports_list/reports_list';
 
 const logger = new Logger(AcceptancePage);

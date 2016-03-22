@@ -5,7 +5,7 @@ import {RatingComponent} from '../../components/rating/rating';
 import {AddReportPage} from '../add_report/add_report';
 import {ReportDetailPage} from '../report_detail/report_detail';
 import {Report} from '../../model/report';
-import {Logger} from '../../providers/logging';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportsListPage);
 

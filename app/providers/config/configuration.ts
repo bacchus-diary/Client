@@ -4,7 +4,7 @@ import * as yaml from 'js-yaml';
 
 import {BootSettings} from './boot_settings';
 import {S3File} from '../aws/s3file';
-import {Logger} from '../logging';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(Configuration);
 

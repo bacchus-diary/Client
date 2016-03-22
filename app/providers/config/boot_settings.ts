@@ -3,7 +3,7 @@ import {Http} from 'angular2/http';
 import {Observable} from 'rxjs/Rx';
 import * as yaml from 'js-yaml';
 
-import {Logger} from '../logging';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(BootSettings);
 

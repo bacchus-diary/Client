@@ -1,6 +1,6 @@
 import {Photo} from './photo';
 
-import {Logger} from '../providers/logging';
+import {Logger} from '../util/logging';
 
 const logger = new Logger(Report);
 

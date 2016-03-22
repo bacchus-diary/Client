@@ -1,7 +1,7 @@
 import {Page, Storage, SqlStorage} from 'ionic-angular';
 import {Observable} from 'rxjs/Rx';
 
-import {Logger} from '../../providers/logging';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(PreferencesPage);
 

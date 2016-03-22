@@ -4,8 +4,8 @@ import {Component, Input, ElementRef} from 'angular2/core';
 import {Observable} from 'rxjs/Rx';
 
 import {Leaf} from '../../model/report';
-import {PhotoShop} from '../../providers/photo_shop';
-import {Logger} from '../../providers/logging';
+import {PhotoShop} from '../../util/photo_shop';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
 
