@@ -1,7 +1,10 @@
 {
-  "dependencies": {},
+  "dependencies": {
+    "aws": "file:app/providers/aws/aws.d.ts"
+  },
   "devDependencies": {},
   "ambientDependencies": {
+    "aws-sdk": "registry:dt/aws-sdk#0.0.0+20160316155526",
     "js-yaml": "registry:dt/js-yaml#3.5.2+20160316171810",
     "lodash": "registry:dt/lodash#3.10.0+20160319050323"
   }

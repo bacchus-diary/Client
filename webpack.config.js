@@ -28,6 +28,7 @@ module.exports = {
       }
     ],
     noParse: [
+      /aws-sdk/,
       /reflect-metadata/,
       /zone\.js(\/|\\)dist(\/|\\)zone-microtask/
     ]
@@ -35,6 +36,7 @@ module.exports = {
   resolve: {
     root: ['app'],
     alias: {
+      'aws-sdk': path.resolve('node_modules/aws-sdk/dist/aws-sdk'),
       'angular2': path.resolve('node_modules/angular2')
     },
     extensions: ["", ".js", ".ts"]
