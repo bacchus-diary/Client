@@ -1,3 +1,4 @@
+import {Camera} from 'ionic-native';
 import {Observable} from 'rxjs/Rx';
 
 export class PhotoShop {
@@ -14,13 +15,10 @@ export class PhotoShop {
     }
 
     public static photo(take: boolean): Observable<string> {
-        return Observable.fromPromise(new Promise((resolve, reject) => {
-            let params = {
-                correctOrientation: true,
-                destinationType: Camera.DestinationType.DATA_URL,
-                sourceType: take ? Camera.PictureSourceType.CAMERA : Camera.PictureSourceType.PHOTOLIBRARY
-            };
-            navigator.camera.getPicture(resolve, reject, params);
+        return Observable.fromPromise(Camera.getPicture({
+            correctOrientation: true,
+            destinationType: 0, // DATA_URL
+            sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
         }));
     }
 }

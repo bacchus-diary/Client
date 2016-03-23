@@ -1,3 +1,4 @@
+import {Device} from 'ionic-native';
 import {Injectable} from 'angular2/core';
 import {Observable} from 'rxjs/Rx';
 import * as yaml from 'js-yaml';
@@ -45,7 +46,7 @@ class Unauthorized {
     }
 
     get snsPlatformArn(): string {
-        const s = navigator.platform == "Android" ? 'google' : 'apple';
+        const s = Device.device.platform == "Android" ? 'google' : 'apple';
         return this.src['snsPlatformArn'][s];
     }
 

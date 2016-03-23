@@ -2,15 +2,7 @@
   "dependencies": {},
   "devDependencies": {},
   "ambientDependencies": {
-    "js-yaml": "github:DefinitelyTyped/DefinitelyTyped/js-yaml/js-yaml.d.ts#c4309e0e646ec024537c0806c6a31d199aa68df6",
-    "es6-shim": "github:DefinitelyTyped/DefinitelyTyped/es6-shim/es6-shim.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-camera": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Camera.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-device": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Device.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-splashscreen": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Splashscreen.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-statusbar": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/StatusBar.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-dialogs": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Dialogs.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-globalization": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Globalization.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-inappbrowser": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/InAppBrowser.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
-    "cordova-plugin-push": "github:DefinitelyTyped/DefinitelyTyped/cordova/plugins/Push.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c"
+    "js-yaml": "registry:dt/js-yaml#3.5.2+20160316171810",
+    "lodash": "registry:dt/lodash#3.10.0+20160319050323"
   }
 }
