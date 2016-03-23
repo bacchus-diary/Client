@@ -1,6 +1,5 @@
 import {Device} from 'ionic-native';
 import {Injectable} from 'angular2/core';
-import {Observable} from 'rxjs/Rx';
 import * as yaml from 'js-yaml';
 
 import {BootSettings} from './boot_settings';
@@ -13,20 +12,18 @@ const logger = new Logger(Configuration);
 export class Configuration {
     constructor(boot: BootSettings, private s3: S3File) { }
 
-    private loadS3(path: string): Observable<Map<string, any>> {
-        return this.s3.read(path).map(yaml.load);
+    private async loadS3(path: string): Promise<Map<string, any>> {
+        return yaml.load(await this.s3.read(path));
     }
 
-    get server(): Observable<Unauthorized> {
-        return this.loadS3('unauthorized/client.yaml').map((m) => {
-            return new Unauthorized(m);
-        });
+    async server(): Promise<Unauthorized> {
+        const m = await this.loadS3('unauthorized/client.yaml');
+        return new Unauthorized(m);
     }
 
-    get authorized(): Observable<Authorized> {
-        return this.loadS3('authorized/settings.yaml').map((m) => {
-            return new Authorized(m);
-        });
+    async authorized(): Promise<Authorized> {
+        const m = await this.loadS3('authorized/settings.yaml');
+        return new Authorized(m);
     }
 }
 

@@ -3,7 +3,7 @@ var path = require('path');
 
 module.exports = {
   entry: [
-    path.normalize('es6-shim/es6-shim.min'),
+    'babel-polyfill',
     'reflect-metadata',
     path.normalize('zone.js/dist/zone-microtask'),
     path.resolve('app/app')
@@ -17,12 +17,7 @@ module.exports = {
     loaders: [
       {
         test: /\.ts$/,
-        loader: 'awesome-typescript',
-        query: {
-          doTypeCheck: true,
-          resolveGlobs: false,
-          externals: ['typings/browser.d.ts']
-        },
+        loader: 'babel-loader?presets[]=es2015,presets[]=stage-0!ts-loader',
         include: path.resolve('app'),
         exclude: /node_modules/
       },
@@ -33,7 +28,6 @@ module.exports = {
       }
     ],
     noParse: [
-      /es6-shim/,
       /reflect-metadata/,
       /zone\.js(\/|\\)dist(\/|\\)zone-microtask/
     ]

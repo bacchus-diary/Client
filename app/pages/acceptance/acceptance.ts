@@ -1,9 +1,9 @@
 import {Page, NavController, MenuController} from 'ionic-angular';
-import {Http, Jsonp, JSONP_PROVIDERS} from 'angular2/http';
-import {Observable} from 'rxjs/Rx';
+import {Http, Response, Jsonp, JSONP_PROVIDERS} from 'angular2/http';
 
-import {Logger} from '../../util/logging';
 import {ReportsListPage} from '../reports_list/reports_list';
+import {toPromise} from '../../util/promising';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(AcceptancePage);
 
@@ -27,14 +27,13 @@ export class AcceptancePage {
 
     isReady = false;
 
-    onPageWillEnter() {
+    async onPageWillEnter() {
         this.menu.enable(false);
         const url = `${this.host}/${this.gistId}.json?callback=JSONP_CALLBACK`;
         logger.info(() => "Requesting JSONP: " + url);
-        this.jsonp.get(url).subscribe((res) => {
-            this.gistCallback(res.json());
-            this.isReady = true;
-        });
+        const res = await toPromise(this.jsonp.get(url));
+        this.gistCallback(res.json());
+        this.isReady = true;
     }
 
     onPageWillLeave() {
@@ -64,28 +63,28 @@ export class AcceptancePage {
         return hrefString;
     }
 
-    showGist(div: HTMLDivElement, styleHref: string) {
+    async showGist(div: HTMLDivElement, styleHref: string) {
         const base = document.getElementById('gist');
         logger.info(() => `Append gist to ${base}`);
 
         const meta = div.querySelector('.gist-meta')
         if (meta != null) meta.remove();
 
-        this.getStyle(styleHref).subscribe(css => {
-            if (css != null) {
-                const style = document.createElement('style');
-                style.textContent = css;
-                base.appendChild(style);
-            }
-            base.appendChild(div);
-        });
+        const css = await this.getStyle(styleHref);
+        if (css != null) {
+            const style = document.createElement('style');
+            style.textContent = css;
+            base.appendChild(style);
+        }
+        base.appendChild(div);
     }
 
-    getStyle(href): Observable<string> {
+    async getStyle(href): Promise<string> {
         if (href == null) {
-            return new Observable(null);
+            return null;
         }
-        return this.http.get(href).map(res => res.text());
+        const res = await toPromise(this.http.get(href));
+        return res.text();
     }
 
     accept() {

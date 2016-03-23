@@ -1,5 +1,4 @@
 import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
-import {Observable} from 'rxjs/Rx';
 
 import {RatingComponent} from '../../components/rating/rating';
 import {ShowcaseComponent} from '../../components/showcase/showcase';

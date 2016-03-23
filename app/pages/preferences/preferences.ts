@@ -1,5 +1,4 @@
 import {Page, Storage, SqlStorage} from 'ionic-angular';
-import {Observable} from 'rxjs/Rx';
 
 import {Logger} from '../../util/logging';
 

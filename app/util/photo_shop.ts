@@ -1,5 +1,4 @@
 import {Camera} from 'ionic-native';
-import {Observable} from 'rxjs/Rx';
 
 export class PhotoShop {
     public static CONTENT_TYPE = "image/jpeg";
@@ -14,11 +13,11 @@ export class PhotoShop {
         return new Blob([data], { type: PhotoShop.CONTENT_TYPE });
     }
 
-    public static photo(take: boolean): Observable<string> {
-        return Observable.fromPromise(Camera.getPicture({
+    public static photo(take: boolean): Promise<string> {
+        return Camera.getPicture({
             correctOrientation: true,
             destinationType: 0, // DATA_URL
             sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
-        }));
+        });
     }
 }
