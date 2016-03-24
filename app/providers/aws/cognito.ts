@@ -31,7 +31,7 @@ interface CognitoIdentityCredentials {
 
 @Injectable()
 export class Cognito {
-    private static initialized: Promise<any> = null;
+    private static initialized: Promise<void> = null;
     private static refreshing: Promise<CognitoIdentity> = null;
 
     private static changedHooks: Array<ChangedCognitoIdHook> = new Array();
@@ -61,6 +61,7 @@ export class Cognito {
             try {
                 await this.refresh();
             } catch (ex) {
+                logger.warn(() => `Retry to initialize cognito by clearing identityId...`);
                 getCredentials().params.IdentityId = null;
                 await this.refresh();
             }
@@ -69,7 +70,7 @@ export class Cognito {
     }
 
     private async refresh(): Promise<CognitoIdentity> {
-        const oldId = (Cognito.refreshing == null) ? null : await Cognito.refreshing;
+        const oldId = (Cognito.refreshing == null) ? null : await Cognito.refreshing.catch((_) => null);
 
         return Cognito.refreshing = new Promise<CognitoIdentity>((resolve, reject) => {
             logger.info(() => `Refreshing cognito identity... (old = ${oldId})`);
@@ -80,13 +81,20 @@ export class Cognito {
                     reject(err);
                 } else {
                     logger.info(() => `Cognito refresh success`);
-                    const newId = new CognitoIdentity();
-                    logger.debug(() => `Created CognitoIdentity: ${newId}`);
-                    if (oldId != null) {
-                        await Promise.all(Cognito.changedHooks.map((hook) =>
-                            hook(oldId.identityId, newId.identityId)));
+                    try {
+                        const newId = new CognitoIdentity();
+                        logger.debug(() => `Created CognitoIdentity: ${newId}`);
+                        if (oldId != null) {
+                            await Promise.all(Cognito.changedHooks.map((hook) =>
+                                hook(oldId.identityId, newId.identityId))).catch((ex) => {
+                                    logger.warn(() => `Error on hook: ${ex}`);
+                                });
+                        }
+                        resolve(newId);
+                    } catch (ex) {
+                        logger.warn(() => `Failed to process changing CognitoIdentity: ${ex}`);
+                        reject(ex);
                     }
-                    resolve(newId);
                 }
             });
         });
@@ -118,24 +126,15 @@ export class Cognito {
     }
 }
 
-declare type ChangedCognitoIdHook = (oldId: string, newId: string) => Promise<any>;
-
-function copyList<T>(src: Array<T>): Array<T> {
-    const dst = new Array<T>();
-    if (src) src.forEach((v) => dst.push(v));
-    return dst;
-}
-
-function copyMap<V>(src: Map<string, V>): Map<string, V> {
-    const dst = new Map<string, V>();
-    if (src) src.forEach((value, key) => dst[key] = value);
-    return dst;
-}
+declare type ChangedCognitoIdHook = (oldId: string, newId: string) => Promise<void>;
 
 class CognitoIdentity {
     constructor() {
         this.id = getCredentials().identityId;
-        this.map = copyMap(getCredentials().params.Logins);
+        const dst = new Map<string, string>();
+        const src = getCredentials().params.Logins;
+        if (src) src.forEach((value, key) => dst[key] = value);
+        this.map = dst;
     }
 
     toString(): string {
