@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "aws": "file:app/providers/aws/aws.d.ts"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "ambientDependencies": {
     "aws-sdk": "registry:dt/aws-sdk#0.0.0+20160316155526",
