@@ -4,16 +4,19 @@ import {Splashscreen} from 'ionic-native';
 import {AcceptancePage} from './pages/acceptance/acceptance';
 import {ReportsListPage} from './pages/reports_list/reports_list';
 import {PreferencesPage} from './pages/preferences/preferences';
+import {FATHENS} from './providers/all';
+import {Cognito} from './providers/aws/cognito';
 
 @App({
     templateUrl: 'build/app.html',
+    providers: [FATHENS],
     config: {} // http://ionicframework.com/docs/v2/api/config/Config/
 })
 class MyApp {
     rootPage: any;
     pages: Array<{ title: string, component: any }>
 
-    constructor(private app: IonicApp, private platform: Platform) {
+    constructor(private app: IonicApp, private platform: Platform, private cognito: Cognito) {
         this.initializeApp();
 
         // used for an example of ngFor and navigation
