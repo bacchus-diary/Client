@@ -9,17 +9,18 @@ const logger = new Logger(BootSettings);
 
 @Injectable()
 export class BootSettings {
+    private static src: Map<string, string> = null;
+
     constructor(private http: Http) { }
 
-    private src: Map<string, string> = null;
     private async get(key: string): Promise<string> {
         logger.debug(() => `Getting: ${key}`);
-        if (this.src == null) {
+        if (BootSettings.src == null) {
             logger.debug(() => `Loading settings.yaml ...`);
             const res = await toPromise(this.http.get('settings.yaml'));
-            this.src = yaml.load(res.text());
+            BootSettings.src = yaml.load(res.text());
         }
-        return this.src[key];
+        return BootSettings.src[key];
     }
 
     get awsRegion(): Promise<string> {

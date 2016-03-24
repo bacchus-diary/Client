@@ -10,20 +10,29 @@ const logger = new Logger(Configuration);
 
 @Injectable()
 export class Configuration {
+    private static unauthorized: Promise<Unauthorized> = null;
+    private static authorized: Promise<Authorized> = null;
+
     constructor(boot: BootSettings, private s3: S3File) { }
 
     private async loadS3(path: string): Promise<Map<string, any>> {
         return yaml.load(await this.s3.read(path));
     }
 
-    async server(): Promise<Unauthorized> {
-        const m = await this.loadS3('unauthorized/client.yaml');
-        return new Unauthorized(m);
+    get server(): Promise<Unauthorized> {
+        if (Configuration.unauthorized == null) {
+            const p = this.loadS3('unauthorized/client.yaml');
+            Configuration.unauthorized = p.then((m) => new Unauthorized(m));
+        }
+        return Configuration.unauthorized;
     }
 
-    async authorized(): Promise<Authorized> {
-        const m = await this.loadS3('authorized/settings.yaml');
-        return new Authorized(m);
+    get authorized(): Promise<Authorized> {
+        if (Configuration.authorized == null) {
+            const p = this.loadS3('authorized/settings.yaml');
+            Configuration.authorized = p.then((m) => new Authorized(m));
+        }
+        return Configuration.authorized;
     }
 }
 
