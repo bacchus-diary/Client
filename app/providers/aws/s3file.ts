@@ -1,10 +1,11 @@
 import {Injectable} from 'angular2/core';
 import {Http} from 'angular2/http';
-import SDK = require('aws-sdk');
-const AWS = window.AWS;
 
 import {BootSettings} from '../config/boot_settings';
 import {Logger} from '../../util/logging';
+
+import {S3} from 'aws-sdk';
+import {AWS} from './load_aws';
 
 const logger = new Logger(S3File);
 
@@ -14,9 +15,8 @@ export class S3File {
 
     async read(path: string): Promise<string> {
         const bucketName = await this.settings.s3Bucket;
-        logger.debug(() => `Reading test file: ${bucketName}:${path}`);
-        logger.debug(() => `AWS = ${AWS}, S3 = ${AWS.S3},${SDK.S3}`);
-        const s3: SDK.S3 = new AWS.S3();
+        logger.debug(() => `Reading test file: ${bucketName}:${path} by ${S3}`);
+        const s3: S3 = new AWS.S3();
         logger.debug(() => `s3: ${s3}`);
         return new Promise<string>((resolve, reject) => {
             s3.getObject({
