@@ -2,13 +2,14 @@ import {Storage, SqlStorage} from 'ionic-angular';
 import {Injectable} from 'angular2/core';
 
 import {BootSettings} from '../config/boot_settings';
+import {FBConnect} from '../facebook/fb_connect';
 import {Logger} from '../../util/logging';
 
 import {AWS, ClientConfig} from './aws';
 
 const logger = new Logger(Cognito);
 
-export const PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
+const PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 
 function setupCredentials(poolId: string): CognitoIdentityCredentials {
     return AWS.config.credentials = new AWS.CognitoIdentityCredentials({
@@ -38,7 +39,7 @@ export class Cognito {
         this.changedHooks.push(hook);
     }
 
-    constructor(private settings: BootSettings) {
+    constructor(private settings: BootSettings, private facebook: FBConnect) {
         if (Cognito.initialized == null) {
             Cognito.initialized = this.initialize();
         }
@@ -55,7 +56,7 @@ export class Cognito {
         logger.debug(() => `Refreshing credential: ${cred}`);
 
         if (await ConnectedServices.get(PROVIDER_KEY_FACEBOOK)) {
-            // FBConnect.login();
+            await this.joinFacebook();
         } else {
             try {
                 await this.refresh();
@@ -99,7 +100,16 @@ export class Cognito {
         });
     }
 
-    async setToken(service: string, token: string): Promise<void> {
+    async joinFacebook() {
+        const token = await this.facebook.login();
+        await this.setToken(PROVIDER_KEY_FACEBOOK, token);
+    }
+
+    async dropFacebook() {
+        await this.removeToken(PROVIDER_KEY_FACEBOOK);
+    }
+
+    private async setToken(service: string, token: string): Promise<void> {
         logger.info(() => `SignIn: ${service}`);
         const p = getCredentials().params;
         if (p.Logins && hasKey(p.Logins, service)) {
@@ -113,18 +123,22 @@ export class Cognito {
                 p.Logins = m;
             }
             p.IdentityId = null;
-            await this.refresh();
-            // FabricAnswers.eventLogin(method: service);
+            const id = await this.refresh();
+            await ConnectedServices.set(service, id.isJoin(service));
+            if (id.isJoinFacebook()) {
+                // FabricAnswers.eventLogin(method: service);
+            }
         }
     }
 
-    async removeToken(service: string): Promise<void> {
+    private async removeToken(service: string): Promise<void> {
         logger.info(() => `SignOut: ${service}`);
         const p = getCredentials().params;
         if (hasKey(p.Logins, service)) {
             p.Logins.delete(service);
             p.IdentityId = null;
-            await this.refresh();
+            const id = await this.refresh();
+            await ConnectedServices.set(service, id.isJoin(service));
         } else {
             logger.info(() => `Nothing to do, since not signed in: ${service}`);
         }
