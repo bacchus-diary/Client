@@ -1,10 +1,9 @@
 import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
-import {Observable} from 'rxjs/Rx';
 
 import {RatingComponent} from '../../components/rating/rating';
 import {ShowcaseComponent} from '../../components/showcase/showcase';
 import {Report} from '../../model/report';
-import {Logger} from '../../providers/logging';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportDetailPage);
 

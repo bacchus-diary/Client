@@ -1,11 +1,12 @@
 import {Page, NavController} from 'ionic-angular';
-import {Observable} from 'rxjs/Rx';
 
 import {RatingComponent} from '../../components/rating/rating';
 import {AddReportPage} from '../add_report/add_report';
 import {ReportDetailPage} from '../report_detail/report_detail';
 import {Report} from '../../model/report';
-import {Logger} from '../../providers/logging';
+import {FATHENS} from '../../providers/all';
+import {Configuration} from '../../providers/config/configuration';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportsListPage);
 
@@ -20,32 +21,29 @@ export class ReportsListPage {
 
     isReady = false;
 
-    onPageWillEnter() {
+    async onPageWillEnter() {
         this.reports = [];
-        this.more().subscribe((x) => {
-            logger.debug(() => `Loaded initial reports: ${x}`)
-            this.isReady = true;
-        });
+        const x = await this.more();
+        logger.debug(() => `Loaded initial reports: ${x}`)
+        this.isReady = true;
     }
 
-    doRefresh(event) {
-        this.more().subscribe((x) => {
-            logger.debug(() => `Refreshed reports: ${x}`)
-            event.complete();
-        });
+    async doRefresh(event) {
+        const x = await this.more();
+        logger.debug(() => `Refreshed reports: ${x}`)
+        event.complete();
     }
 
-    doInfinite(event) {
+    async doInfinite(event) {
         logger.debug(() => `Getting more reports: ${event}`);
-        this.more().subscribe((x) => {
-            logger.debug(() => `Generated reports: ${x}`)
-            event.complete();
-        });
+        const x = await this.more();
+        logger.debug(() => `Generated reports: ${x}`)
+        event.complete();
     }
 
-    private more(): Observable<any> {
+    private more(): Promise<any> {
         logger.info(() => `Getting reports list...`);
-        return Observable.fromPromise(new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             setTimeout(() => {
                 logger.debug(() => `Generating reports`)
                 for (var i = 0; i < 10; i++) {
@@ -53,7 +51,7 @@ export class ReportsListPage {
                 }
                 resolve(this.reports.length);
             }, 3000);
-        }));
+        });
     }
 
     goReport(report: Report) {

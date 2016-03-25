@@ -1,11 +1,10 @@
 import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, ElementRef} from 'angular2/core';
-import {Observable} from 'rxjs/Rx';
 
 import {Leaf} from '../../model/report';
-import {PhotoShop} from '../../providers/photo_shop';
-import {Logger} from '../../providers/logging';
+import {PhotoShop} from '../../util/photo_shop';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
 
@@ -29,23 +28,21 @@ export class ShowcaseComponent {
         }
     }
 
-    addPhoto() {
-        PhotoShop.photo(true).subscribe((dataString) => {
-            const leaf = new Leaf();
-            const url = PhotoShop.makeUrl(PhotoShop.decodeBase64(dataString));
-            logger.debug(() => `Photo URL: ${url}`);
-            this.leaves.push(leaf);
-        });
+    async addPhoto() {
+        const dataString = await PhotoShop.photo(true);
+        const leaf = new Leaf();
+        const url = PhotoShop.makeUrl(PhotoShop.decodeBase64(dataString));
+        logger.debug(() => `Photo URL: ${url}`);
+        this.leaves.push(leaf);
     }
 
-    deletePhoto(index: number) {
-        this.confirmDeletion().subscribe((ok) => {
-            if (ok) this.doDeletePhoto(index);
-        });
+    async deletePhoto(index: number) {
+        const ok = await this.confirmDeletion();
+        if (ok) this.doDeletePhoto(index);
     }
 
-    private confirmDeletion(): Observable<boolean> {
-        return Observable.fromPromise(new Promise((resolve, reject) => {
+    private confirmDeletion(): Promise<boolean> {
+        return new Promise((resolve, reject) => {
             if (this.confirmDelete) {
                 this.nav.present(Alert.create({
                     title: 'Remove Photo',
@@ -67,7 +64,7 @@ export class ShowcaseComponent {
                     ]
                 }));
             } else resolve(true);
-        }));
+        });
     }
 
     private doDeletePhoto(index: number) {

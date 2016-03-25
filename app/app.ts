@@ -1,4 +1,5 @@
 import {App, IonicApp, Platform} from 'ionic-angular';
+import {Splashscreen} from 'ionic-native';
 
 import {AcceptancePage} from './pages/acceptance/acceptance';
 import {ReportsListPage} from './pages/reports_list/reports_list';
@@ -26,7 +27,7 @@ class MyApp {
     initializeApp() {
         this.platform.ready().then(() => {
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
-            if (navigator.splashscreen) navigator.splashscreen.hide();
+            Splashscreen.hide();
         });
     }
 

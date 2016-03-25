@@ -1,7 +1,7 @@
 import {IONIC_DIRECTIVES} from 'ionic-angular';
 import {Component, Input, Output, EventEmitter} from 'angular2/core';
 
-import {Logger} from '../../providers/logging';
+import {Logger} from '../../util/logging';
 
 const logger = new Logger(RatingComponent);
 
