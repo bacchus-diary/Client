@@ -11,18 +11,16 @@ const logger = new Logger(S3File);
 
 @Injectable()
 export class S3File {
-    constructor(private settings: BootSettings, private cognito: Cognito) { }
-
-    private async ready(): Promise<void> {
-        await this.cognito.identity;
+    constructor(private settings: BootSettings, cognito: Cognito) {
+        this.client = cognito.identity.then((x) => new AWS.S3());
     }
 
-    async read(path: string): Promise<string> {
-        await this.ready();
+    private client: Promise<S3>;
 
+    async read(path: string): Promise<string> {
+        const s3 = await this.client;
         const bucketName = await this.settings.s3Bucket;
         logger.debug(() => `Reading test file: ${bucketName}:${path}`);
-        const s3: S3 = new AWS.S3();
         return new Promise<string>((resolve, reject) => {
             s3.getObject({
                 Bucket: bucketName,
