@@ -102,10 +102,16 @@ export class Cognito {
     async setToken(service: string, token: string): Promise<void> {
         logger.info(() => `SignIn: ${service}`);
         const p = getCredentials().params;
-        if (p.Logins.has(service)) {
+        if (p.Logins && hasKey(p.Logins, service)) {
             logger.info(() => `Nothing to do, since already signed in: ${service}`);
         } else {
-            p.Logins[service] = token;
+            if (p.Logins) {
+                p.Logins[service] = token;
+            } else {
+                const m = new Map<string, string>();
+                m[service] = token;
+                p.Logins = m;
+            }
             p.IdentityId = null;
             await this.refresh();
             // FabricAnswers.eventLogin(method: service);
@@ -115,7 +121,7 @@ export class Cognito {
     async removeToken(service: string): Promise<void> {
         logger.info(() => `SignOut: ${service}`);
         const p = getCredentials().params;
-        if (p.Logins.has(service)) {
+        if (hasKey(p.Logins, service)) {
             p.Logins.delete(service);
             p.IdentityId = null;
             await this.refresh();
@@ -125,6 +131,10 @@ export class Cognito {
     }
 }
 
+function hasKey<V>(map: Map<string, V>, key: string): boolean {
+    return Object.keys(map).indexOf(key) >= 0;
+}
+
 declare type ChangedCognitoIdHook = (oldId: string, newId: string) => Promise<void>;
 
 class CognitoIdentity {
@@ -132,12 +142,14 @@ class CognitoIdentity {
         this.id = getCredentials().identityId;
         const dst = new Map<string, string>();
         const src = getCredentials().params.Logins;
-        if (src) src.forEach((value, key) => dst[key] = value);
+        if (src) {
+            for (var key in src) { dst[key] = src[key]; }
+        }
         this.map = dst;
     }
 
     toString(): string {
-        return `Cognito(identityId: ${this.id}, services: [${Array.from(this.map.keys()).join(', ')}])`;
+        return `Cognito(identityId: ${this.id}, services: [${Object.keys(this.map).join(', ')}])`;
     }
 
     private id: string;
@@ -147,11 +159,11 @@ class CognitoIdentity {
         return this.id;
     }
 
-    isJoin(name: string) {
-        return this.map.has(name);
+    isJoin(name: string): boolean {
+        return hasKey(this.map, name);
     }
 
-    isJoinFacebook() {
+    isJoinFacebook(): boolean {
         return this.isJoin(PROVIDER_KEY_FACEBOOK);
     }
 }
