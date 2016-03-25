@@ -160,21 +160,22 @@ class ConnectedServices {
     private static key = 'logins';
     private static storage = new Storage(SqlStorage);
 
-    static async getMap(): Promise<Map<string, boolean>> {
+    static async getMap(): Promise<any> {
         const json = await this.storage.getJson(this.key);
-        logger.debug(() => `Connected services: ${json}`);
-        return (json != null) ? json : new Map();
+        logger.debug(() => `Connected services: ${json ? JSON.stringify(json) : null}`);
+        return (json != null) ? json : {};
     }
 
     static async get(name: string): Promise<boolean> {
         logger.debug(() => `Asking connected service: ${name}`);
         const logins = await this.getMap();
-        return logins.has(name) ? logins[name] : false;
+        return hasKey(logins, name) ? logins[name] : false;
     }
 
     static async set(name: string, v: boolean) {
-        const logins = await ConnectedServices.getMap();
+        const logins = await this.getMap();
         logins[name] = v;
-        this.storage.setJson(this.key, logins);
+        logger.debug(() => `Set connected service: ${name}=${v}`);
+        await this.storage.setJson(this.key, logins);
     }
 }
