@@ -135,7 +135,7 @@ export class Cognito {
         logger.info(() => `SignOut: ${service}`);
         const p = getCredentials().params;
         if (hasKey(p.Logins, service)) {
-            p.Logins.delete(service);
+            delete p.Logins[service];
             p.IdentityId = null;
             const id = await this.refresh();
             await ConnectedServices.set(service, id.isJoin(service));
