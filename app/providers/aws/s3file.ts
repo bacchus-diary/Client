@@ -5,8 +5,7 @@ import {BootSettings} from '../config/boot_settings';
 import {Logger} from '../../util/logging';
 import {Cognito} from './cognito';
 
-import {S3} from 'aws-sdk';
-import {AWS} from './aws';
+import {AWS, S3} from './aws';
 
 const logger = new Logger(S3File);
 

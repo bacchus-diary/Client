@@ -4,8 +4,7 @@ import {Injectable} from 'angular2/core';
 import {BootSettings} from '../config/boot_settings';
 import {Logger} from '../../util/logging';
 
-import {ClientConfig} from 'aws-sdk';
-import {AWS} from './aws';
+import {AWS, ClientConfig} from './aws';
 
 const logger = new Logger(Cognito);
 
