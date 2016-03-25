@@ -21,9 +21,8 @@ export class S3File {
         await this.ready();
 
         const bucketName = await this.settings.s3Bucket;
-        logger.debug(() => `Reading test file: ${bucketName}:${path} by ${S3}`);
+        logger.debug(() => `Reading test file: ${bucketName}:${path}`);
         const s3: S3 = new AWS.S3();
-        logger.debug(() => `s3: ${s3}`);
         return new Promise<string>((resolve, reject) => {
             s3.getObject({
                 Bucket: bucketName,
