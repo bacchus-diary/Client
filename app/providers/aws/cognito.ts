@@ -112,7 +112,7 @@ export class Cognito {
     private async setToken(service: string, token: string): Promise<void> {
         logger.info(() => `SignIn: ${service}`);
         const p = getCredentials().params;
-        if (p.Logins && hasKey(p.Logins, service)) {
+        if (hasKey(p.Logins, service)) {
             logger.info(() => `Nothing to do, since already signed in: ${service}`);
         } else {
             if (p.Logins) {
@@ -146,7 +146,7 @@ export class Cognito {
 }
 
 function hasKey<V>(map: Map<string, V>, key: string): boolean {
-    return Object.keys(map).indexOf(key) >= 0;
+    return map && Object.keys(map).indexOf(key) >= 0;
 }
 
 declare type ChangedCognitoIdHook = (oldId: string, newId: string) => Promise<void>;
