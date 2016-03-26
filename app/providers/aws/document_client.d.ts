@@ -1,11 +1,11 @@
 
-type ClientCallback<T> = (err, data: T) => void;
+export type ClientCallback<T> = (err, data: T) => void;
 
-interface AWSRequest<T> {
+export interface AWSRequest<T> {
     send(callback: ClientCallback<T>): void;
 }
 
-interface DocumentClient {
+export interface DocumentClient {
     batchGet(params, callback?: ClientCallback<any>): AWSRequest<any>;
     batchWrite(params, callback?: ClientCallback<any>): AWSRequest<any>;
     createSet(list: Array<any>, params?: { validate: boolean }): any;
@@ -21,7 +21,7 @@ interface DocumentClient {
 // For delete
 ////////////////////////////////////////////////////////////////
 
-type DeleteParams = {
+export type DeleteParams = {
     Key: any,
     TableName: string,
     ConditionExpression?: string,
@@ -34,7 +34,7 @@ type DeleteParams = {
     ReturnValues?: ReturnValues
 };
 
-type DeleteResult = {
+export type DeleteResult = {
     Attributes: Item,
     ConsumedCapacity: ConsumedCapacity,
     ItemCollectionMetrics: ItemCollectionMetrics
@@ -44,7 +44,7 @@ type DeleteResult = {
 // For get
 ////////////////////////////////////////////////////////////////
 
-type GetParams = {
+export type GetParams = {
     Key: Key,
     TableName: string,
     AttributesToGet?: string[],
@@ -54,7 +54,7 @@ type GetParams = {
     ReturnConsumedCapacity?: ReturnConsumedCapacity
 }
 
-type GetResult = {
+export type GetResult = {
     Item: Item,
     ConsumedCapacity: ConsumedCapacity,
 }
@@ -63,7 +63,7 @@ type GetResult = {
 // For put
 ////////////////////////////////////////////////////////////////
 
-type PutParams = {
+export type PutParams = {
     Item: Key,
     TableName: string,
     ConditionExpression?: string,
@@ -76,7 +76,7 @@ type PutParams = {
     ReturnValues?: ReturnValues
 }
 
-type PutResult = {
+export type PutResult = {
     Attributes: Item,
     ConsumedCapacity: ConsumedCapacity,
     ItemCollectionMetrics: ItemCollectionMetrics
@@ -86,7 +86,7 @@ type PutResult = {
 // For query
 ////////////////////////////////////////////////////////////////
 
-type QueryParams = {
+export type QueryParams = {
     TableName: string,
     AttributesToGet?: string[],
     ConditionalOperator?: ConditionalOperator,
@@ -106,7 +106,7 @@ type QueryParams = {
     Select?: Select
 }
 
-type QueryResult = {
+export type QueryResult = {
     Items: Item[],
     Count: number,
     ScannedCount: number,
@@ -118,26 +118,26 @@ type QueryResult = {
 // For scan
 ////////////////////////////////////////////////////////////////
 
-type ScanParams = {
-  TableName: string,
-  AttributesToGet?: string[],
-  ConditionalOperator?: ConditionalOperator,
-  ConsistentRead?: boolean,
-  ExclusiveStartKey?: Key,
-  ExpressionAttributeNames?: ExpressionAttributeNames,
-  ExpressionAttributeValues?: ExpressionAttributeValues,
-  FilterExpression?: string,
-  IndexName?: string,
-  Limit?: number,
-  ProjectionExpression?: string,
-  ReturnConsumedCapacity?: ReturnConsumedCapacity,
-  ScanFilter?: Filter,
-  Segment?: number,
-  Select?: Select,
-  TotalSegments?: number
+export type ScanParams = {
+    TableName: string,
+    AttributesToGet?: string[],
+    ConditionalOperator?: ConditionalOperator,
+    ConsistentRead?: boolean,
+    ExclusiveStartKey?: Key,
+    ExpressionAttributeNames?: ExpressionAttributeNames,
+    ExpressionAttributeValues?: ExpressionAttributeValues,
+    FilterExpression?: string,
+    IndexName?: string,
+    Limit?: number,
+    ProjectionExpression?: string,
+    ReturnConsumedCapacity?: ReturnConsumedCapacity,
+    ScanFilter?: Filter,
+    Segment?: number,
+    Select?: Select,
+    TotalSegments?: number
 }
 
-type ScanResult = {
+export type ScanResult = {
     Items: Item[],
     Count: number,
     ScannedCount: number,
@@ -149,22 +149,22 @@ type ScanResult = {
 // For update
 ////////////////////////////////////////////////////////////////
 
-type UpdateParams = {
-  Key: Key,
-  TableName: string,
-  AttributeUpdates?: AttributeUpdates,
-  ConditionExpression?: string,
-  ConditionalOperator?: ConditionalOperator,
-  Expected?: Expected,
-  ExpressionAttributeNames?: ExpressionAttributeNames,
-  ExpressionAttributeValues?: ExpressionAttributeValues,
-  ReturnConsumedCapacity?: ReturnConsumedCapacity,
-  ReturnItemCollectionMetrics?: ReturnItemCollectionMetrics,
-  ReturnValues?: ReturnValues,
-  UpdateExpression?: string
+export type UpdateParams = {
+    Key: Key,
+    TableName: string,
+    AttributeUpdates?: AttributeUpdates,
+    ConditionExpression?: string,
+    ConditionalOperator?: ConditionalOperator,
+    Expected?: Expected,
+    ExpressionAttributeNames?: ExpressionAttributeNames,
+    ExpressionAttributeValues?: ExpressionAttributeValues,
+    ReturnConsumedCapacity?: ReturnConsumedCapacity,
+    ReturnItemCollectionMetrics?: ReturnItemCollectionMetrics,
+    ReturnValues?: ReturnValues,
+    UpdateExpression?: string
 }
 
-type UpdateResult = {
+export type UpdateResult = {
     Attributes: Item,
     ConsumedCapacity: ConsumedCapacity,
     ItemCollectionMetrics: ItemCollectionMetrics
@@ -177,7 +177,7 @@ type UpdateResult = {
 ////////////////////////////////////////////////////////////////
 
 
-type ReturnConsumedCapacity = 'INDEXES' | 'TOTAL' | 'NONE';
+export type ReturnConsumedCapacity = 'INDEXES' | 'TOTAL' | 'NONE';
 
 /**
  * (map)
@@ -190,20 +190,20 @@ type ReturnConsumedCapacity = 'INDEXES' | 'TOTAL' | 'NONE';
  * GlobalSecondaryIndexes — (map<map>)
  *     CapacityUnits — (Float)
  */
-type ConsumedCapacity = any;
+export type ConsumedCapacity = any;
 
 /**
  * (map)
  * ItemCollectionKey — (map<map>) — a serializable JavaScript object. For information about the supported types see the DynamoDB Data Model
  * SizeEstimateRangeGB — (Array<Float>)
  */
-type ItemCollectionMetrics = any;
+export type ItemCollectionMetrics = any;
 
 /**
  * (map<map>) — a serializable JavaScript object. For information about the supported types see the DynamoDB Data Model
  * (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DataModel.html)
  */
-type Item = any;
+export type Item = any;
 
 /**
  * map {
@@ -211,7 +211,7 @@ type Item = any;
  *    anotherKey: ...
  *}
  */
-type Key = any;
+export type Key = any;
 
 /**
  * map {
@@ -219,7 +219,7 @@ type Key = any;
  *    anotherKey: ...
  * }
  */
-type ExpressionAttributeNames = any;
+export type ExpressionAttributeNames = any;
 
 /**
  * map {
@@ -227,9 +227,9 @@ type ExpressionAttributeNames = any;
  *    anotherKey: ...
  * }
  */
-type ExpressionAttributeValues = any;
+export type ExpressionAttributeValues = any;
 
-type ConditionalOperator = 'AND' | 'OR';
+export type ConditionalOperator = 'AND' | 'OR';
 
 /*{
     someKey: {
@@ -243,13 +243,13 @@ type ConditionalOperator = 'AND' | 'OR';
     },
     anotherKey: ...
 }*/
-type Expected = any;
+export type Expected = any;
 
-type ReturnItemCollectionMetrics = 'SIZE' | 'NONE';
+export type ReturnItemCollectionMetrics = 'SIZE' | 'NONE';
 
-type ReturnValues = 'NONE' | 'ALL_OLD' | 'UPDATED_OLD' | 'ALL_NEW' | 'UPDATED_NEW';
+export type ReturnValues = 'NONE' | 'ALL_OLD' | 'UPDATED_OLD' | 'ALL_NEW' | 'UPDATED_NEW';
 
-type Select = 'ALL_ATTRIBUTES' | 'ALL_PROJECTED_ATTRIBUTES' | 'SPECIFIC_ATTRIBUTES' | 'COUNT';
+export type Select = 'ALL_ATTRIBUTES' | 'ALL_PROJECTED_ATTRIBUTES' | 'SPECIFIC_ATTRIBUTES' | 'COUNT';
 
 /**
  * {
@@ -263,7 +263,7 @@ type Select = 'ALL_ATTRIBUTES' | 'ALL_PROJECTED_ATTRIBUTES' | 'SPECIFIC_ATTRIBUT
  *   // anotherKey: ...
  * }
  */
-type Filter = any;
+export type Filter = any;
 
 /**
  * {
@@ -274,4 +274,4 @@ type Filter = any;
  *   // anotherKey: ...
 }
 */
-type AttributeUpdates = any;
+export type AttributeUpdates = any;
