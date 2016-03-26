@@ -8,7 +8,7 @@ interface AWSRequest<T> {
 interface DocumentClient {
     batchGet(params, callback?: ClientCallback<any>): AWSRequest<any>;
     batchWrite(params, callback?: ClientCallback<any>): AWSRequest<any>;
-    createSet(list: Array<any>, params: { validate: boolean }): any;
+    createSet(list: Array<any>, params?: { validate: boolean }): any;
     delete(params: DeleteParams, callback?: ClientCallback<DeleteResult>): AWSRequest<DeleteResult>;
     get(params: GetParams, callback?: ClientCallback<GetResult>): AWSRequest<GetResult>;
     put(params: PutParams, callback?: ClientCallback<PutResult>): AWSRequest<PutResult>;
@@ -23,15 +23,15 @@ interface DocumentClient {
 
 type DeleteParams = {
     Key: any,
-    TableName: string, // required
-    ConditionExpression: string,
-    ConditionalOperator: ConditionalOperator,
-    Expected: Expected,
-    ExpressionAttributeNames: ExpressionAttributeNames,
-    ExpressionAttributeValues: ExpressionAttributeValues,
-    ReturnConsumedCapacity: ReturnConsumedCapacity,
-    ReturnItemCollectionMetrics: ReturnItemCollectionMetrics,
-    ReturnValues: ReturnValues
+    TableName: string,
+    ConditionExpression?: string,
+    ConditionalOperator?: ConditionalOperator,
+    Expected?: Expected,
+    ExpressionAttributeNames?: ExpressionAttributeNames,
+    ExpressionAttributeValues?: ExpressionAttributeValues,
+    ReturnConsumedCapacity?: ReturnConsumedCapacity,
+    ReturnItemCollectionMetrics?: ReturnItemCollectionMetrics,
+    ReturnValues?: ReturnValues
 };
 
 type DeleteResult = {
@@ -45,13 +45,13 @@ type DeleteResult = {
 ////////////////////////////////////////////////////////////////
 
 type GetParams = {
-    Key: Key, // required
-    TableName: string, // required
-    AttributesToGet: string[],
-    ConsistentRead: boolean,
-    ExpressionAttributeNames: ExpressionAttributeNames,
-    ProjectionExpression: string,
-    ReturnConsumedCapacity: ReturnConsumedCapacity
+    Key: Key,
+    TableName: string,
+    AttributesToGet?: string[],
+    ConsistentRead?: boolean,
+    ExpressionAttributeNames?: ExpressionAttributeNames,
+    ProjectionExpression?: string,
+    ReturnConsumedCapacity?: ReturnConsumedCapacity
 }
 
 type GetResult = {
@@ -64,16 +64,16 @@ type GetResult = {
 ////////////////////////////////////////////////////////////////
 
 type PutParams = {
-    Item: Key, // required
-    TableName: string, // required
-    ConditionExpression: string,
-    ConditionalOperator: ConditionalOperator,
-    Expected: Expected,
-    ExpressionAttributeNames: ExpressionAttributeNames,
-    ExpressionAttributeValues: ExpressionAttributeValues,
-    ReturnConsumedCapacity: ReturnConsumedCapacity,
-    ReturnItemCollectionMetrics: ReturnItemCollectionMetrics,
-    ReturnValues: ReturnValues
+    Item: Key,
+    TableName: string,
+    ConditionExpression?: string,
+    ConditionalOperator?: ConditionalOperator,
+    Expected?: Expected,
+    ExpressionAttributeNames?: ExpressionAttributeNames,
+    ExpressionAttributeValues?: ExpressionAttributeValues,
+    ReturnConsumedCapacity?: ReturnConsumedCapacity,
+    ReturnItemCollectionMetrics?: ReturnItemCollectionMetrics,
+    ReturnValues?: ReturnValues
 }
 
 type PutResult = {
@@ -87,23 +87,23 @@ type PutResult = {
 ////////////////////////////////////////////////////////////////
 
 type QueryParams = {
-    TableName: string, // required
-    AttributesToGet: string[],
-    ConditionalOperator: ConditionalOperator,
-    ConsistentRead: boolean,
-    ExclusiveStartKey: Key,
-    ExpressionAttributeNames: ExpressionAttributeNames,
-    ExpressionAttributeValues: ExpressionAttributeValues,
-    FilterExpression: string,
-    IndexName: string,
-    KeyConditionExpression: string,
-    KeyConditions: Filter,
-    Limit: number,
-    ProjectionExpression: string,
-    QueryFilter: Filter,
-    ReturnConsumedCapacity: ReturnConsumedCapacity,
-    ScanIndexForward: boolean,
-    Select: Select
+    TableName: string,
+    AttributesToGet?: string[],
+    ConditionalOperator?: ConditionalOperator,
+    ConsistentRead?: boolean,
+    ExclusiveStartKey?: Key,
+    ExpressionAttributeNames?: ExpressionAttributeNames,
+    ExpressionAttributeValues?: ExpressionAttributeValues,
+    FilterExpression?: string,
+    IndexName?: string,
+    KeyConditionExpression?: string,
+    KeyConditions?: Filter,
+    Limit?: number,
+    ProjectionExpression?: string,
+    QueryFilter?: Filter,
+    ReturnConsumedCapacity?: ReturnConsumedCapacity,
+    ScanIndexForward?: boolean,
+    Select?: Select
 }
 
 type QueryResult = {
@@ -119,22 +119,22 @@ type QueryResult = {
 ////////////////////////////////////////////////////////////////
 
 type ScanParams = {
-  TableName: string, // required
-  AttributesToGet: string[],
-  ConditionalOperator: ConditionalOperator,
-  ConsistentRead: boolean,
-  ExclusiveStartKey: Key,
-  ExpressionAttributeNames: ExpressionAttributeNames,
-  ExpressionAttributeValues: ExpressionAttributeValues,
-  FilterExpression: string,
-  IndexName: string,
-  Limit: number,
-  ProjectionExpression: string,
-  ReturnConsumedCapacity: ReturnConsumedCapacity,
-  ScanFilter: Filter,
-  Segment: number,
-  Select: Select,
-  TotalSegments: number
+  TableName: string,
+  AttributesToGet?: string[],
+  ConditionalOperator?: ConditionalOperator,
+  ConsistentRead?: boolean,
+  ExclusiveStartKey?: Key,
+  ExpressionAttributeNames?: ExpressionAttributeNames,
+  ExpressionAttributeValues?: ExpressionAttributeValues,
+  FilterExpression?: string,
+  IndexName?: string,
+  Limit?: number,
+  ProjectionExpression?: string,
+  ReturnConsumedCapacity?: ReturnConsumedCapacity,
+  ScanFilter?: Filter,
+  Segment?: number,
+  Select?: Select,
+  TotalSegments?: number
 }
 
 type ScanResult = {
@@ -151,17 +151,17 @@ type ScanResult = {
 
 type UpdateParams = {
   Key: Key,
-  TableName: string, // required
-  AttributeUpdates: AttributeUpdates,
-  ConditionExpression: string,
-  ConditionalOperator: ConditionalOperator,
-  Expected: Expected,
-  ExpressionAttributeNames: ExpressionAttributeNames,
-  ExpressionAttributeValues: ExpressionAttributeValues,
-  ReturnConsumedCapacity: ReturnConsumedCapacity,
-  ReturnItemCollectionMetrics: ReturnItemCollectionMetrics,
-  ReturnValues: ReturnValues,
-  UpdateExpression: string
+  TableName: string,
+  AttributeUpdates?: AttributeUpdates,
+  ConditionExpression?: string,
+  ConditionalOperator?: ConditionalOperator,
+  Expected?: Expected,
+  ExpressionAttributeNames?: ExpressionAttributeNames,
+  ExpressionAttributeValues?: ExpressionAttributeValues,
+  ReturnConsumedCapacity?: ReturnConsumedCapacity,
+  ReturnItemCollectionMetrics?: ReturnItemCollectionMetrics,
+  ReturnValues?: ReturnValues,
+  UpdateExpression?: string
 }
 
 type UpdateResult = {
