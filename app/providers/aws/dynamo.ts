@@ -3,23 +3,24 @@ import * as _ from 'lodash';
 
 import {Logger} from '../../util/logging';
 
-import {AWS, DynamoDB} from './aws';
+import {AWS} from './aws';
+import * as DC from './document_client.d';
 import {Cognito} from './cognito';
 
 const logger = new Logger(Dynamo);
 
 const CONTENT = "CONTENT";
-const COGNITO_ID = "COGNITO_ID";
+const COGNITO_ID_COLUMN = "COGNITO_ID";
 
 @Injectable()
 export class Dynamo {
 
     constructor(private cognito: Cognito) {
         this.client = cognito.identity.then((x) =>
-            new AWS.DynamoDB({ dynamoDbCrc32: false }));
+            new AWS.DynamoDB.DocumentClient({ dynamoDbCrc32: false }));
     }
 
-    private client: Promise<DynamoDB>;
+    private client: Promise<DC.DocumentClient>;
 
     async createTable<T extends DBRecord<T>>(
         name: string,
@@ -38,7 +39,7 @@ function createRandomKey() {
 }
 
 export interface DBRecord<T> {
-    readonly id: String;
+    id(): string;
 
     toMap(): Object;
 
@@ -47,13 +48,27 @@ export interface DBRecord<T> {
     clone(): T;
 }
 
-type RecordReader<T extends DBRecord<T>> = (src: Map<string, any>) => T;
-type RecordWriter<T extends DBRecord<T>> = (obj: T) => Map<string, any>;
+type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => T;
+type RecordWriter<T extends DBRecord<T>> = (obj: T) => DC.Item;
+
+async function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
+    return new Promise<R>((resolve, reject) => {
+        request.send((err, data) => {
+            if (err) {
+                logger.warn(() => `Failed to call DynamoDB: ${err}`);
+                reject(err);
+            } else {
+                logger.debug(() => `DynamoDB Result: ${JSON.stringify(data)}`);
+                resolve(data);
+            }
+        });
+    });
+}
 
 class DynamoTable<T extends DBRecord<T>> {
     constructor(
         private cognito: Cognito,
-        private client: DynamoDB,
+        private client: DC.DocumentClient,
         private tableName: string,
         private ID_COLUMN: string,
         private reader: RecordReader<T>,
@@ -68,28 +83,56 @@ class DynamoTable<T extends DBRecord<T>> {
         return `DynamoTable[${this.tableName}]`;
     }
 
-    private async invoke<T>(proc: (callback: (err, data: T) => void) => void): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
-            proc((err, data) => {
-                if (err) {
-                    logger.warn(() => `Failed to call DynamoDB: ${err}`);
-                    reject(err);
-                } else {
-                    logger.debug(() => `DynamoDB Result: ${JSON.stringify(data)}`);
-                    resolve(data);
-                }
-            });
-        });
-    }
-
-    private async makeKey(id: string, currentCognitoId?: string): Promise<Map<String, Map<string, string>>> {
-        const key = new Map();
-        key[COGNITO_ID] = {
-            S: currentCognitoId ? currentCognitoId : (await this.cognito.identity).identityId
-        };
+    private async makeKey(id: string, currentCognitoId?: string): Promise<Object> {
+        const key = {};
+        key[COGNITO_ID_COLUMN] = currentCognitoId ? currentCognitoId : (await this.cognito.identity).identityId;
         if (id && this.ID_COLUMN) {
-            key[this.ID_COLUMN] = { S: id };
+            key[this.ID_COLUMN] = id;
         }
         return key;
+    }
+
+    async get(id: string): Promise<T> {
+        const res = await toPromise(this.client.get({
+            TableName: this.tableName,
+            Key: await this.makeKey(id)
+        }));
+        return this.reader(res.Item);
+    }
+
+    async put(obj: T, currentCognitoId?: string) {
+        const item = this.writer(obj);
+        const key = this.makeKey(obj.id(), currentCognitoId);
+        Object.keys(key).forEach((name) => {
+            item[name] = key[name];
+        });
+        const res = await toPromise(this.client.put({
+            TableName: this.tableName,
+            Item: item
+        }));
+    }
+
+    async update(obj: T) {
+        const item = this.writer(obj);
+        delete item[COGNITO_ID_COLUMN];
+        delete item[this.ID_COLUMN];
+
+        const attrs = {};
+        Object.keys(item).forEach((name) => {
+            attrs[name] = {Action: 'PUT', Value: item[name]};
+        });
+
+        const res = await toPromise(this.client.update({
+            TableName: this.tableName,
+            Key: await this.makeKey(obj.id()),
+            AttributeUpdates: attrs
+        }))
+    }
+
+    async delete(id: string, currentCognitoId?: string) {
+        const res = toPromise(this.client.delete({
+            TableName: this.tableName,
+            Key: await this.makeKey(id)
+        }))
     }
 }
