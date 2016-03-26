@@ -8,8 +8,8 @@ export interface AWSRequest<T> {
 export type Operation<P, R> = (params: P, callback?: ClientCallback<R>) => AWSRequest<R>;
 
 export interface DocumentClient {
-    batchGet: Operation<any, any>
-    batchWrite: Operation<any, any>
+    batchGet: Operation<BatchGetParams, BatchGetResult>
+    batchWrite: Operation<BatchWriteParams, BatchWriteResult>
     createSet(list: Array<any>, params?: { validate: boolean }): any;
     delete: Operation<DeleteParams, DeleteResult>
     get: Operation<GetParams, GetResult>
@@ -17,6 +17,37 @@ export interface DocumentClient {
     query: Operation<QueryParams, QueryResult>
     scan: Operation<ScanParams, ScanResult>
     update: Operation<UpdateParams, UpdateResult>
+}
+
+////////////////////////////////////////////////////////////////
+// For batchGet
+////////////////////////////////////////////////////////////////
+
+export type BatchGetParams = {
+    RequestItems: BatchGetRequestItems;
+    ReturnConsumedCapacity?: ReturnConsumedCapacity
+}
+
+export type BatchGetResult = {
+    Responses: BatchGetResponses,
+    UnprocessedKeys: UnprocessedKeys,
+    ConsumedCapacity: ConsumedCapacity
+}
+
+////////////////////////////////////////////////////////////////
+// For batchGet
+////////////////////////////////////////////////////////////////
+
+export type BatchWriteParams = {
+    RequestItems: BatchWriteRequestItems,
+    ReturnConsumedCapacity?: ReturnConsumedCapacity,
+    ReturnItemCollectionMetrics?: ReturnItemCollectionMetrics
+}
+
+export type BatchWriteResult = {
+    UnprocessedItems: UnprocessedItems,
+    ItemCollectionMetrics: ItemCollectionMetrics,
+    ConsumedCapacity: ConsumedCapacity
 }
 
 ////////////////////////////////////////////////////////////////
@@ -274,6 +305,77 @@ export type Filter = any;
  *     Value: someValue, // "str" | 10 | true | false | null | [1, "a"] | {a: "b"}
  *   },
  *   // anotherKey: ...
-}
-*/
+ * }
+ */
 export type AttributeUpdates = any;
+
+/**
+ * {
+ *     someKey: {
+ *       Keys: [ // required
+ *         {
+ *           someKey: someValue, // "str" | 10 | true | false | null | [1, "a"] | {a: "b"}
+ *           anotherKey: ...
+ *         },
+ *         more items ...
+ *       ],
+ *       AttributesToGet: [
+ *         'STRING_VALUE',
+ *         more items ...
+ *       ],
+ *       ConsistentRead: true || false,
+ *       ExpressionAttributeNames: {
+ *         someKey: 'STRING_VALUE',
+ *         anotherKey: ...
+ *       },
+ *       ProjectionExpression: 'STRING_VALUE'
+ *     },
+ *     anotherKey: ...
+ * }
+ */
+export type BatchGetRequestItems = any;
+
+export type BatchGetResponses = Map<string, Array<Item>>;
+
+/**
+ * {
+ *   someKey: [
+ *     {
+ *       DeleteRequest: {
+ *         Key: { // required
+ *           someKey: someValue, // "str" | 10 | true | false | null | [1, "a"] | {a: "b"}
+ *           anotherKey: ...
+ *         }
+ *       },
+ *       PutRequest: {
+ *         Item: { // required
+ *           someKey: someValue, // "str" | 10 | true | false | null | [1, "a"] | {a: "b"}
+ *           anotherKey: ...
+ *         }
+ *       }
+ *     },
+ *     more items ...
+ *   ],
+ *   anotherKey: ...
+ * }
+ */
+export type BatchWriteRequestItems = any;
+
+/**
+ * (map<map>)
+ * Keys — required — (Array<map<map>>) — a serializable JavaScript object. For information about the supported types see the DynamoDB Data Model
+ * AttributesToGet — (Array<String>)
+ * ConsistentRead — (Boolean)
+ * ProjectionExpression — (String)
+ * ExpressionAttributeNames — (map<String>)
+ */
+export type UnprocessedKeys = any;
+
+/**
+ * (map<Array<map>>)
+ * PutRequest — (map)
+ *     Item — required — (map<map>) — a serializable JavaScript object. For information about the supported types see the DynamoDB Data Model
+ * DeleteRequest — (map)
+ *     Key — required — (map<map>) — a serializable JavaScript object. For information about the supported types see the DynamoDB Data Model
+ */
+export type UnprocessedItems = any;
