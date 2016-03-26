@@ -51,7 +51,7 @@ export interface DBRecord<T> {
 type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => T;
 type RecordWriter<T extends DBRecord<T>> = (obj: T) => DC.Item;
 
-async function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
+function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
     return new Promise<R>((resolve, reject) => {
         request.send((err, data) => {
             if (err) {
@@ -119,7 +119,7 @@ class DynamoTable<T extends DBRecord<T>> {
 
         const attrs = {};
         Object.keys(item).forEach((name) => {
-            attrs[name] = {Action: 'PUT', Value: item[name]};
+            attrs[name] = { Action: 'PUT', Value: item[name] };
         });
 
         const res = await toPromise(this.client.update({
@@ -134,5 +134,104 @@ class DynamoTable<T extends DBRecord<T>> {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         }))
+    }
+
+    async query(indexName: string, keys: Map<string, any>, pageSize?: number, last?: LastEvaluatedKey, isForward?: boolean): Promise<Array<T>> {
+        const exp = ExpressionMap.joinAll(keys);
+        const params: DC.QueryParams = {
+            TableName: this.tableName,
+            ScanIndexForward: isForward,
+            KeyConditionExpression: exp.express,
+            ExpressionAttributeNames: exp.keys.getNames(),
+            ExpressionAttributeValues: exp.keys.getValues()
+        }
+        if (indexName) params.IndexName = indexName;
+        if (0 < pageSize) params.Limit = pageSize;
+        if (last) params.ExclusiveStartKey = last.value;
+
+        const res = await toPromise(this.client.query(params));
+
+        if (last) res.LastEvaluatedKey = last.value;
+
+        return res.Items.map(this.reader);
+    }
+
+    async scan(expression: string, names: DC.ExpressionAttributeNames, values: DC.ExpressionAttributeValues, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
+        const params: DC.ScanParams = {
+            TableName: this.tableName
+        };
+        if (expression && expression.length > 0) params.FilterExpression = expression;
+        if (names && !isEmpty(names)) params.ExpressionAttributeNames = names;
+        if (values && !isEmpty(values)) params.ExpressionAttributeValues = values;
+        if (pageSize > 0) params.Limit = pageSize;
+        if (last) params.ExclusiveStartKey = last.value;
+
+        const res = await toPromise(this.client.scan(params));
+
+        if (last) res.LastEvaluatedKey = last.value;
+
+        return res.Items.map(this.reader);
+    }
+}
+
+function isEmpty(obj: Object): boolean {
+    return Object.keys(obj).length < 1;
+}
+
+class LastEvaluatedKey {
+    private _value: DC.Item;
+
+    get value(): DC.Item {
+        return this._value;
+    }
+
+    set value(v: DC.Item) {
+        this._value = v;
+    }
+
+    get isOver(): boolean {
+        return this._value && isEmpty(this._value);
+    }
+
+    reset() {
+        this._value = null;
+    }
+}
+
+class ExpressionMap {
+    static joinAll(pairs: Map<string, any>, join?: string, sign?: string): { express: string, keys: ExpressionMap } {
+        if (!join) join = 'AND'
+        if (!sign) sign = '=';
+        const rels = new Array<string>();
+        const result = new ExpressionMap();
+        Object.keys(pairs).forEach((n) => {
+            const name = result.addName(n);
+            const value = result.addValue(pairs[n]);
+            rels.push([name, sign, value].join(' '));
+        });
+        return { express: rels.join(` ${join} `), keys: result };
+    }
+
+    private names: Map<string, string> = new Map();
+    private values: Map<string, any> = new Map();
+
+    addName(name: string): string {
+        const key = `#N${Object.keys(this.names).length}`;
+        this.names[key] = name;
+        return key;
+    }
+
+    addValue(value: any): string {
+        const key = `:V${Object.keys(this.values).length}`;
+        this.values[key] = value;
+        return key;
+    }
+
+    getNames(): DC.ExpressionAttributeNames {
+        return this.names;
+    }
+
+    getValues(): DC.ExpressionAttributeValues {
+        return this.values;
     }
 }
