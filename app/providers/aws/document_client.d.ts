@@ -5,16 +5,18 @@ export interface AWSRequest<T> {
     send(callback: ClientCallback<T>): void;
 }
 
+export type Operation<P, R> = (params: P, callback?: ClientCallback<R>) => AWSRequest<R>;
+
 export interface DocumentClient {
-    batchGet(params, callback?: ClientCallback<any>): AWSRequest<any>;
-    batchWrite(params, callback?: ClientCallback<any>): AWSRequest<any>;
+    batchGet: Operation<any, any>
+    batchWrite: Operation<any, any>
     createSet(list: Array<any>, params?: { validate: boolean }): any;
-    delete(params: DeleteParams, callback?: ClientCallback<DeleteResult>): AWSRequest<DeleteResult>;
-    get(params: GetParams, callback?: ClientCallback<GetResult>): AWSRequest<GetResult>;
-    put(params: PutParams, callback?: ClientCallback<PutResult>): AWSRequest<PutResult>;
-    query(params: QueryParams, callback?: ClientCallback<QueryResult>): AWSRequest<QueryResult>;
-    scan(params: ScanParams, callback?: ClientCallback<ScanResult>): AWSRequest<ScanResult>;
-    update(params: UpdateParams, callback?: ClientCallback<UpdateResult>): AWSRequest<UpdateResult>;
+    delete: Operation<DeleteParams, DeleteResult>
+    get: Operation<GetParams, GetResult>
+    put: Operation<PutParams, PutResult>
+    query: Operation<QueryParams, QueryResult>
+    scan: Operation<ScanParams, ScanResult>
+    update: Operation<UpdateParams, UpdateResult>
 }
 
 ////////////////////////////////////////////////////////////////
