@@ -1,6 +1,7 @@
 import {Injectable} from 'angular2/core';
 import * as _ from 'lodash';
 
+import {Pager} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 import {AWS} from './aws';
@@ -142,8 +143,8 @@ class DynamoTable<T extends DBRecord<T>> {
             TableName: this.tableName,
             ScanIndexForward: isForward,
             KeyConditionExpression: exp.express,
-            ExpressionAttributeNames: exp.keys.getNames(),
-            ExpressionAttributeValues: exp.keys.getValues()
+            ExpressionAttributeNames: exp.keys.names,
+            ExpressionAttributeValues: exp.keys.values
         }
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
@@ -198,8 +199,16 @@ class LastEvaluatedKey {
     }
 }
 
+type Expression = {
+    express: string,
+    keys: {
+        names: DC.ExpressionAttributeNames,
+        values: DC.ExpressionAttributeValues
+    }
+};
+
 class ExpressionMap {
-    static joinAll(pairs: Map<string, any>, join?: string, sign?: string): { express: string, keys: ExpressionMap } {
+    static joinAll(pairs: Map<string, any>, join?: string, sign?: string): Expression {
         if (!join) join = 'AND'
         if (!sign) sign = '=';
         const rels = new Array<string>();
@@ -212,26 +221,88 @@ class ExpressionMap {
         return { express: rels.join(` ${join} `), keys: result };
     }
 
-    private names: Map<string, string> = new Map();
-    private values: Map<string, any> = new Map();
+    private _names: Map<string, string> = new Map();
+    private _values: Map<string, any> = new Map();
 
     addName(name: string): string {
-        const key = `#N${Object.keys(this.names).length}`;
-        this.names[key] = name;
+        const key = `#N${Object.keys(this._names).length}`;
+        this._names[key] = name;
         return key;
     }
 
     addValue(value: any): string {
-        const key = `:V${Object.keys(this.values).length}`;
-        this.values[key] = value;
+        const key = `:V${Object.keys(this._values).length}`;
+        this._values[key] = value;
         return key;
     }
 
-    getNames(): DC.ExpressionAttributeNames {
-        return this.names;
+    get names(): DC.ExpressionAttributeNames {
+        return this._names;
     }
 
-    getValues(): DC.ExpressionAttributeValues {
-        return this.values;
+    get values(): DC.ExpressionAttributeValues {
+        return this._values;
+    }
+}
+
+abstract class Paging<T extends DBRecord<T>> implements Pager<T> {
+    constructor(protected table: DynamoTable<T>) { }
+    protected last: LastEvaluatedKey = new LastEvaluatedKey();
+    private asking: Promise<Array<T>>;
+
+    hasMore(): boolean {
+        return !this.last.isOver;
+    }
+
+    reset() {
+        this.last.reset();
+    }
+
+    async more(pageSize: number): Promise<Array<T>> {
+        if (pageSize < 1 || !this.hasMore()) return [];
+        if (this.asking) await this.asking;
+        this.asking = this.doMore(pageSize);
+        return await this.asking;
+    }
+
+    protected abstract async doMore(pageSize: number): Promise<Array<T>>;
+}
+
+class PagingQuery<T extends DBRecord<T>> extends Paging<T> {
+    constructor(
+        table: DynamoTable<T>,
+        private indexName: string,
+        private hashKey: Map<string, any>,
+        private isForward: boolean
+    ) {
+        super(table);
+    }
+
+    protected async doMore(pageSize: number): Promise<Array<T>> {
+        return this.table.query(
+            this.indexName,
+            this.hashKey,
+            pageSize,
+            this.last,
+            this.isForward
+        );
+    }
+}
+
+class PagingScan<T extends DBRecord<T>> extends Paging<T> {
+    constructor(
+        table: DynamoTable<T>,
+        private exp: Expression
+    ) {
+        super(table);
+    }
+    protected async doMore(pageSize: number): Promise<Array<T>> {
+        return this.table.scan(
+            this.exp.express,
+            this.exp.keys.names,
+            this.exp.keys.values,
+            pageSize,
+            this.last
+        );
     }
 }
