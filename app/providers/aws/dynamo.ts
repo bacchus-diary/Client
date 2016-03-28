@@ -15,7 +15,6 @@ const COGNITO_ID_COLUMN = "COGNITO_ID";
 
 @Injectable()
 export class Dynamo {
-
     constructor(private cognito: Cognito) {
         this.client = cognito.identity.then((x) =>
             new AWS.DynamoDB.DocumentClient({ dynamoDbCrc32: false }));
@@ -76,7 +75,13 @@ class DynamoTable<T extends DBRecord<T>> {
         private writer: RecordWriter<T>
     ) {
         Cognito.addChangingHook(async (oldId, newId) => {
-            // change id ...
+            const m = new Map<string, string>();
+            m[COGNITO_ID_COLUMN] = oldId;
+            const items = await this.query(m);
+            await Promise.all(items.map(async (item) => {
+                await this.put(item, newId);
+                await this.delete(item.id(), oldId);
+            }));
         });
     }
 
@@ -137,14 +142,14 @@ class DynamoTable<T extends DBRecord<T>> {
         }))
     }
 
-    async query(indexName: string, keys: Map<string, any>, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
+    async query(keys: Map<string, any>, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
         const exp = ExpressionMap.joinAll(keys);
         const params: DC.QueryParams = {
             TableName: this.tableName,
-            ScanIndexForward: isForward,
             KeyConditionExpression: exp.express,
             ExpressionAttributeNames: exp.keys.names,
-            ExpressionAttributeValues: exp.keys.values
+            ExpressionAttributeValues: exp.keys.values,
+            ScanIndexForward: isForward != null ? isForward : true
         }
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
@@ -157,8 +162,8 @@ class DynamoTable<T extends DBRecord<T>> {
         return res.Items.map(this.reader);
     }
 
-    queryPager(indexName: string, hashKey: Map<string, any>, isForward?: boolean): Pager<T> {
-        return new PagingQuery<T>(this, indexName, hashKey, isForward != null ? isForward : true);
+    queryPager(hashKey: Map<string, any>, indexName?: string, isForward?: boolean): Pager<T> {
+        return new PagingQuery<T>(this, indexName, hashKey, isForward);
     }
 
     async scan(exp: Expression, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
@@ -288,8 +293,8 @@ class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
 
     protected async doMore(pageSize: number): Promise<Array<T>> {
         return this.table.query(
-            this.indexName,
             this.hashKey,
+            this.indexName,
             this.isForward,
             pageSize,
             this.last
