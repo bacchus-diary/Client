@@ -137,7 +137,7 @@ class DynamoTable<T extends DBRecord<T>> {
         }))
     }
 
-    async query(indexName: string, keys: Map<string, any>, pageSize?: number, last?: LastEvaluatedKey, isForward?: boolean): Promise<Array<T>> {
+    async query(indexName: string, keys: Map<string, any>, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
         const exp = ExpressionMap.joinAll(keys);
         const params: DC.QueryParams = {
             TableName: this.tableName,
@@ -157,13 +157,17 @@ class DynamoTable<T extends DBRecord<T>> {
         return res.Items.map(this.reader);
     }
 
-    async scan(expression: string, names: DC.ExpressionAttributeNames, values: DC.ExpressionAttributeValues, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
+    queryPager(indexName: string, hashKey: Map<string, any>, isForward?: boolean): Pager<T> {
+        return new PagingQuery<T>(this, indexName, hashKey, isForward != null ? isForward : true);
+    }
+
+    async scan(exp: Expression, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
         const params: DC.ScanParams = {
-            TableName: this.tableName
+            TableName: this.tableName,
+            FilterExpression: exp.express,
+            ExpressionAttributeNames: exp.keys.names,
+            ExpressionAttributeValues: exp.keys.values
         };
-        if (expression && expression.length > 0) params.FilterExpression = expression;
-        if (names && !isEmpty(names)) params.ExpressionAttributeNames = names;
-        if (values && !isEmpty(values)) params.ExpressionAttributeValues = values;
         if (pageSize > 0) params.Limit = pageSize;
         if (last) params.ExclusiveStartKey = last.value;
 
@@ -172,6 +176,10 @@ class DynamoTable<T extends DBRecord<T>> {
         if (last) res.LastEvaluatedKey = last.value;
 
         return res.Items.map(this.reader);
+    }
+
+    scanPager(exp: Expression): Pager<T> {
+        return new PagingScan(this, exp);
     }
 }
 
@@ -282,9 +290,9 @@ class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
         return this.table.query(
             this.indexName,
             this.hashKey,
+            this.isForward,
             pageSize,
-            this.last,
-            this.isForward
+            this.last
         );
     }
 }
@@ -298,9 +306,7 @@ class PagingScan<T extends DBRecord<T>> extends DBPager<T> {
     }
     protected async doMore(pageSize: number): Promise<Array<T>> {
         return this.table.scan(
-            this.exp.express,
-            this.exp.keys.names,
-            this.exp.keys.values,
+            this.exp,
             pageSize,
             this.last
         );
