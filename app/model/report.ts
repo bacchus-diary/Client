@@ -18,7 +18,10 @@ type ReportContent = {
     LEAF_INDEXES: string[],
     rating: number,
     comment: string,
-    comment_upper: string
+    comment_upper: string,
+    published?: {
+        facebook?: string
+    }
 };
 
 type LeafRecord = {
@@ -90,12 +93,17 @@ export class Report implements DBRecord<Report> {
         this.content.rating = v;
     }
 
-    public toString(): string {
-        return `Report: ${JSON.stringify(this.content)}`;
+    get publishedFacebook(): string {
+        return this.content.published ? this.content.published.facebook : null;
+    }
+    set publishedFacebook(v: string) {
+        this.content.published = {
+            facebook: v
+        };
     }
 
-    private get contentString(): string {
-        return JSON.stringify(this.toMap());
+    public toString(): string {
+        return `REPORT_ID: ${this.id()}, DATE_AT: ${this.dateAt}, ${JSON.stringify(this.toMap())}`;
     }
 
     id(): string {
@@ -107,12 +115,15 @@ export class Report implements DBRecord<Report> {
             rating: this.rating,
             comment: this.comment,
             comment_upper: this.comment.toUpperCase(),
-            LEAF_INDEXES: this.leaves.map((x) => x.id())
+            LEAF_INDEXES: this.leaves.map((x) => x.id()),
+            published: {
+                facebook: this.publishedFacebook
+            }
         };
     }
 
     isNeedUpdate(other: Report): boolean {
-        return this.contentString != other.contentString || this.dateAt != other.dateAt;
+        return this.toString() != other.toString();
     }
 
     clone(): Report {
@@ -177,8 +188,8 @@ export class Leaf implements DBRecord<Leaf> {
         this.content.description = v;
     }
 
-    private get contentString(): string {
-        return JSON.stringify(this.toMap());
+    toString(): string {
+        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap())}`;
     }
 
     id(): string {
@@ -194,7 +205,7 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     isNeedUpdate(other: Leaf): boolean {
-        return this.contentString != other.contentString;
+        return this.toString() != other.toString();
     }
 
     clone(): Leaf {
