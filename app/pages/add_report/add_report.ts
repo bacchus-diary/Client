@@ -12,7 +12,7 @@ const logger = new Logger(AddReportPage);
     directives: [RatingComponent, ShowcaseComponent]
 })
 export class AddReportPage {
-    report = new Report("newOne");
+    report = Report.newEmpty();
 
     submit() {
         logger.debug(() => `Submitting report`);

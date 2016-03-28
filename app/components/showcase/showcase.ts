@@ -16,6 +16,7 @@ const logger = new Logger(ShowcaseComponent);
 export class ShowcaseComponent {
     constructor(private nav: NavController, private ab: AnimationBuilder) { }
 
+    @Input() reportId: string;
     @Input() leaves: Array<Leaf>;
     @Input() slideSpeed: number = 300;
     @Input() confirmDelete: boolean = true;
@@ -30,7 +31,7 @@ export class ShowcaseComponent {
 
     async addPhoto() {
         const dataString = await PhotoShop.photo(true);
-        const leaf = new Leaf();
+        const leaf = Leaf.newEmpty(this.reportId);
         const url = PhotoShop.makeUrl(PhotoShop.decodeBase64(dataString));
         logger.debug(() => `Photo URL: ${url}`);
         this.leaves.push(leaf);

@@ -1,5 +1,7 @@
 
 export class Photo {
+    constructor(private reportId: string, private leafId: string) { }
+
     original: Image = new Image();
     reduced: ReducedImages = new ReducedImages();
 }

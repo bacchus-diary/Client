@@ -7,15 +7,15 @@ import {Logger} from '../../util/logging';
 import {AWS} from './aws';
 import * as DC from './document_client.d';
 import {Cognito} from './cognito';
+import {Configuration} from '../config/configuration';
 
 const logger = new Logger(Dynamo);
 
-const CONTENT = "CONTENT";
 const COGNITO_ID_COLUMN = "COGNITO_ID";
 
 @Injectable()
 export class Dynamo {
-    constructor(private cognito: Cognito) {
+    constructor(public cognito: Cognito, private config: Configuration) {
         this.client = cognito.identity.then((x) =>
             new AWS.DynamoDB.DocumentClient({ dynamoDbCrc32: false }));
     }
@@ -28,11 +28,11 @@ export class Dynamo {
         reader: RecordReader<T>,
         writer: RecordWriter<T>
     ): Promise<DynamoTable<T>> {
-        return new DynamoTable(this.cognito, await this.client, name, columnId, reader, writer);
+        return new DynamoTable(this.cognito, await this.client, (await this.config.server).appName, name, columnId, reader, writer);
     }
 }
 
-function createRandomKey() {
+export function createRandomKey() {
     const base = '0'.codePointAt(0);
     const char = (c: number) => String.fromCharCode(base + ((9 < c) ? c + 7 : c));
     return _.range(32).map((i) => char(_.random(0, 35))).join();
@@ -48,8 +48,8 @@ export interface DBRecord<T> {
     clone(): T;
 }
 
-type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => T;
-type RecordWriter<T extends DBRecord<T>> = (obj: T) => DC.Item;
+export type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => Promise<T>;
+export type RecordWriter<T extends DBRecord<T>> = (obj: T) => Promise<DC.Item>;
 
 function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
     return new Promise<R>((resolve, reject) => {
@@ -65,19 +65,19 @@ function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
     });
 }
 
-class DynamoTable<T extends DBRecord<T>> {
+export class DynamoTable<T extends DBRecord<T>> {
     constructor(
         private cognito: Cognito,
         private client: DC.DocumentClient,
-        private tableName: string,
+        appName: string,
+        tableName: string,
         private ID_COLUMN: string,
         private reader: RecordReader<T>,
         private writer: RecordWriter<T>
     ) {
+        this.tableName = `${appName}.${tableName}`;
         Cognito.addChangingHook(async (oldId, newId) => {
-            const m = new Map<string, string>();
-            m[COGNITO_ID_COLUMN] = oldId;
-            const items = await this.query(m);
+            const items = await this.query(toMap({ COGNITO_ID_COLUMN: oldId }));
             await Promise.all(items.map(async (item) => {
                 await this.put(item, newId);
                 await this.delete(item.id(), oldId);
@@ -85,12 +85,14 @@ class DynamoTable<T extends DBRecord<T>> {
         });
     }
 
+    private tableName: string;
+
     toString(): string {
         return `DynamoTable[${this.tableName}]`;
     }
 
-    private async makeKey(id: string, currentCognitoId?: string): Promise<Object> {
-        const key = {};
+    private async makeKey(id?: string, currentCognitoId?: string): Promise<Map<string, string>> {
+        const key = new Map<string, string>();
         key[COGNITO_ID_COLUMN] = currentCognitoId ? currentCognitoId : (await this.cognito.identity).identityId;
         if (id && this.ID_COLUMN) {
             key[this.ID_COLUMN] = id;
@@ -142,27 +144,29 @@ class DynamoTable<T extends DBRecord<T>> {
         }))
     }
 
-    async query(keys: Map<string, any>, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
-        const exp = ExpressionMap.joinAll(keys);
+    async query(keys?: Map<string, any>, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
+        logger.debug(() => `Quering ${indexName}: ${keys}`);
+        const exp = ExpressionMap.joinAll(keys ? keys : await this.makeKey());
         const params: DC.QueryParams = {
             TableName: this.tableName,
             KeyConditionExpression: exp.express,
             ExpressionAttributeNames: exp.keys.names,
             ExpressionAttributeValues: exp.keys.values,
             ScanIndexForward: isForward != null ? isForward : true
-        }
+        };
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
         if (last) params.ExclusiveStartKey = last.value;
+        logger.debug(() => `Quering: ${JSON.stringify(params)}`);
 
         const res = await toPromise(this.client.query(params));
 
         if (last) res.LastEvaluatedKey = last.value;
 
-        return res.Items.map(this.reader);
+        return _.filter(await Promise.all(res.Items.map(this.reader)));
     }
 
-    queryPager(hashKey: Map<string, any>, indexName?: string, isForward?: boolean): Pager<T> {
+    queryPager(hashKey?: Map<string, any>, indexName?: string, isForward?: boolean): Pager<T> {
         return new PagingQuery<T>(this, indexName, hashKey, isForward);
     }
 
@@ -180,7 +184,7 @@ class DynamoTable<T extends DBRecord<T>> {
 
         if (last) res.LastEvaluatedKey = last.value;
 
-        return res.Items.map(this.reader);
+        return _.filter(await Promise.all(res.Items.map(this.reader)));
     }
 
     scanPager(exp: Expression): Pager<T> {
@@ -190,6 +194,22 @@ class DynamoTable<T extends DBRecord<T>> {
 
 function isEmpty(obj: Object): boolean {
     return Object.keys(obj).length < 1;
+}
+
+function toObj(map: Map<string, any>): any {
+    const result: any = {};
+    Object.keys(map).forEach((key) => {
+        result[key] = map[key];
+    });
+    return result;
+}
+
+function toMap(obj: any): Map<string, any> {
+    const result = new Map<string, any>();
+    Object.keys(obj).forEach((key) => {
+        result[key] = obj[key];
+    });
+    return result;
 }
 
 class LastEvaluatedKey {
@@ -250,11 +270,11 @@ class ExpressionMap {
     }
 
     get names(): DC.ExpressionAttributeNames {
-        return this._names;
+        return toObj(this._names);
     }
 
     get values(): DC.ExpressionAttributeValues {
-        return this._values;
+        return toObj(this._values);
     }
 }
 
