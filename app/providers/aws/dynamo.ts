@@ -245,7 +245,7 @@ class ExpressionMap {
     }
 }
 
-abstract class Paging<T extends DBRecord<T>> implements Pager<T> {
+abstract class DBPager<T extends DBRecord<T>> implements Pager<T> {
     constructor(protected table: DynamoTable<T>) { }
     protected last: LastEvaluatedKey = new LastEvaluatedKey();
     private asking: Promise<Array<T>>;
@@ -268,7 +268,7 @@ abstract class Paging<T extends DBRecord<T>> implements Pager<T> {
     protected abstract async doMore(pageSize: number): Promise<Array<T>>;
 }
 
-class PagingQuery<T extends DBRecord<T>> extends Paging<T> {
+class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
     constructor(
         table: DynamoTable<T>,
         private indexName: string,
@@ -289,7 +289,7 @@ class PagingQuery<T extends DBRecord<T>> extends Paging<T> {
     }
 }
 
-class PagingScan<T extends DBRecord<T>> extends Paging<T> {
+class PagingScan<T extends DBRecord<T>> extends DBPager<T> {
     constructor(
         table: DynamoTable<T>,
         private exp: Expression
