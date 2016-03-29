@@ -15,7 +15,7 @@ const COGNITO_ID_COLUMN = "COGNITO_ID";
 
 @Injectable()
 export class Dynamo {
-    constructor(public cognito: Cognito, private config: Configuration) {
+    constructor(private cognito: Cognito, private config: Configuration) {
         this.client = cognito.identity.then((x) =>
             new AWS.DynamoDB.DocumentClient({ dynamoDbCrc32: false }));
     }

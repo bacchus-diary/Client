@@ -1,6 +1,7 @@
 import {Photo, Images} from '../providers/reports/photo';
 import * as _ from 'lodash';
 
+import {Cognito} from '../providers/aws/cognito';
 import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
 import * as DC from '../providers/aws/document_client.d';
 import {assert} from '../util/assertion';
@@ -39,14 +40,14 @@ type LeafContent = {
 
 export class Report implements DBRecord<Report> {
     private static table: Promise<DynamoTable<Report>>;
-    static async createTable(dynamo: Dynamo): Promise<DynamoTable<Report>> {
+    static async createTable(cognito: Cognito, dynamo: Dynamo): Promise<DynamoTable<Report>> {
         if (!this.table) {
             this.table = dynamo.createTable<Report>('REPORT', 'REPORT_ID', async (src: ReportRecord) => {
                 logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
                 if (!src) return null;
-                const leafTable = await Leaf.createTable(dynamo);
+                const leafTable = await Leaf.createTable(cognito, dynamo);
                 const keys = new Map<string, string>();
-                keys['COGNITO_ID'] = (await dynamo.cognito.identity).identityId;
+                keys['COGNITO_ID'] = (await cognito.identity).identityId;
                 keys['REPORT_ID'] = src.REPORT_ID;
                 const rels = await leafTable.query(keys, 'COGNITO_ID-REPORT_ID-index');
                 if (_.isEmpty(rels)) return null;
@@ -55,7 +56,7 @@ export class Report implements DBRecord<Report> {
                 return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);
             }, async (obj) => {
                 const m: ReportRecord = {
-                    COGNITO_ID: (await dynamo.cognito.identity).identityId,
+                    COGNITO_ID: (await cognito.identity).identityId,
                     REPORT_ID: obj.id(),
                     DATE_AT: obj.dateAt.getTime(),
                     CONTENT: obj.toMap()
@@ -162,7 +163,7 @@ export class Report implements DBRecord<Report> {
 
 export class Leaf implements DBRecord<Leaf> {
     private static table: Promise<DynamoTable<Leaf>>;
-    static async createTable(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
+    static async createTable(cognito: Cognito, dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
         if (!this.table) {
             this.table = dynamo.createTable<Leaf>('LEAF', 'LEAF_ID', async (src: LeafRecord) => {
                 logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
@@ -170,7 +171,7 @@ export class Leaf implements DBRecord<Leaf> {
                 return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT);
             }, async (obj) => {
                 return {
-                    COGNITO_ID: (await dynamo.cognito.identity).identityId,
+                    COGNITO_ID: (await cognito.identity).identityId,
                     LEAF_ID: obj.id(),
                     CONTENT: obj.toMap()
                 };
