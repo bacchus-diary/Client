@@ -13,7 +13,7 @@ export class Configuration {
     private static unauthorized: Promise<Unauthorized> = null;
     private static authorized: Promise<Authorized> = null;
 
-    constructor(boot: BootSettings, private s3: S3File) { }
+    constructor(private s3: S3File) { }
 
     private async loadS3(path: string): Promise<Map<string, any>> {
         return yaml.load(await this.s3.read(path));
