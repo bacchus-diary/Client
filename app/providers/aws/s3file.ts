@@ -5,7 +5,7 @@ import {BootSettings} from '../config/boot_settings';
 import {Logger} from '../../util/logging';
 import {Cognito} from './cognito';
 
-import {AWS, S3} from './aws';
+import {AWS, S3, AWSRequest, requestToPromise} from './aws';
 
 const logger = new Logger(S3File);
 
@@ -32,23 +32,17 @@ export class S3File {
 
     private client: Promise<S3>;
 
+    private async invoke<R>(proc: (s3client) => AWSRequest): Promise<R> {
+        return requestToPromise<R>(proc(await this.client));
+    }
+
     async read(path: string): Promise<string> {
-        const s3 = await this.client;
         const bucketName = await this.settings.s3Bucket;
-        logger.debug(() => `Reading test file: ${bucketName}:${path}`);
-        return new Promise<string>((resolve, reject) => {
-            s3.getObject({
-                Bucket: bucketName,
-                Key: path
-            }, (err: any, data: any) => {
-                if (err) {
-                    logger.warn(() => `Error on getObject: ${JSON.stringify(err)}`);
-                    reject(err);
-                } else {
-                    const body = data['Body'];
-                    resolve(String.fromCharCode.apply(null, body));
-                }
-            });
-        });
+        logger.debug(() => `Reading file: ${bucketName}:${path}`);
+        const res = await this.invoke<{ Body: number[] }>((s3) => s3.getObject({
+            Bucket: bucketName,
+            Key: path
+        }));
+        return String.fromCharCode.apply(null, res.Body);
     }
 }

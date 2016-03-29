@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import {Pager} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-import {AWS} from './aws';
+import {AWS, requestToPromise} from './aws';
 import * as DC from './document_client.d';
 import {Cognito} from './cognito';
 import {Configuration} from '../config/configuration';
@@ -52,17 +52,7 @@ export type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => Promise<T>;
 export type RecordWriter<T extends DBRecord<T>> = (obj: T) => Promise<DC.Item>;
 
 function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
-    return new Promise<R>((resolve, reject) => {
-        request.send((err, data) => {
-            if (err) {
-                logger.warn(() => `Failed to call DynamoDB: ${err}`);
-                reject(err);
-            } else {
-                logger.debug(() => `DynamoDB Result: ${JSON.stringify(data)}`);
-                resolve(data);
-            }
-        });
-    });
+    return requestToPromise<R>(request, 'DynamoDB');
 }
 
 export class DynamoTable<T extends DBRecord<T>> {
