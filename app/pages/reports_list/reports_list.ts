@@ -33,6 +33,7 @@ export class ReportsListPage {
     }
 
     async doRefresh(event) {
+        this.cachedReports.reset();
         await this.more();
         logger.debug(() => `Refreshed reports: ${this.reports}`)
         event.complete();
