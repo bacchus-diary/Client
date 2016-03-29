@@ -6,6 +6,7 @@ import {ReportDetailPage} from '../report_detail/report_detail';
 import {Report} from '../../model/report';
 import {FATHENS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
+import {Photo} from '../../providers/reports/photo';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportsListPage);
@@ -16,7 +17,10 @@ const logger = new Logger(ReportsListPage);
     providers: [FATHENS]
 })
 export class ReportsListPage {
-    constructor(private nav: NavController, private cachedReports: CachedReports) { }
+    constructor(
+        private nav: NavController,
+        private cachedReports: CachedReports,
+        public urlGenerator: Photo) { }
 
     reports: Array<Report>;
 

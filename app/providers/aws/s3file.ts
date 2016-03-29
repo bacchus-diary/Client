@@ -15,6 +15,21 @@ export class S3File {
         this.client = cognito.identity.then((x) => new AWS.S3());
     }
 
+    async url(path: string, expiresInSeconds: number): Promise<string> {
+        const s3: any = await this.client;
+        const bucketName = await this.settings.s3Bucket;
+        logger.debug(() => `Getting url of file: ${bucketName}:${path}`);
+        try {
+            return s3.getSignedUrl('getObject', {
+                Bucket: bucketName,
+                Key: path,
+                Expires: expiresInSeconds
+            });
+        } catch (ex) {
+            logger.warn(() => `Error on getting url: ${ex}`);
+        }
+    }
+
     private client: Promise<S3>;
 
     async read(path: string): Promise<string> {

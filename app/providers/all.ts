@@ -6,5 +6,6 @@ import {Dynamo} from './aws/dynamo';
 import {FBConnect} from './facebook/fb_connect';
 import {FBJSSDK} from './facebook/fb_jssdk';
 import {CachedReports} from './reports/cached_list';
+import {Photo} from './reports/photo';
 
-export const FATHENS = [BootSettings, Configuration, S3File, Cognito, Dynamo, FBConnect, FBJSSDK, CachedReports];
+export const FATHENS = [BootSettings, Configuration, S3File, Cognito, Dynamo, FBConnect, FBJSSDK, CachedReports, Photo];

@@ -1,8 +1,9 @@
-import {Photo} from './photo';
+import {Photo, Images} from '../providers/reports/photo';
 import * as _ from 'lodash';
 
 import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
 import * as DC from '../providers/aws/document_client.d';
+import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
 
 const logger = new Logger(Report);
@@ -194,12 +195,6 @@ export class Leaf implements DBRecord<Leaf> {
         assert('reportId', reportId);
         assert('id', _id);
         assert('content', content);
-        this._photo = new Photo(reportId, _id);
-    }
-
-    private _photo: Photo;
-    get photo(): Photo {
-        return this._photo;
     }
 
     get labels(): Array<string> {
@@ -240,5 +235,14 @@ export class Leaf implements DBRecord<Leaf> {
 
     clone(): Leaf {
         return new Leaf(this.reportId, this._id, this.toMap());
+    }
+
+    private _images: Images;
+
+    photo(photo: Photo): Images {
+        if (!this._images) {
+            this._images = photo.images(this.reportId, this.id())
+        }
+        return this._images;
     }
 }

@@ -2,6 +2,8 @@ import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, ElementRef} from 'angular2/core';
 
+import {Photo} from '../../providers/reports/photo';
+import {FATHENS} from '../../providers/all';
 import {Leaf} from '../../model/report';
 import {PhotoShop} from '../../util/photo_shop';
 import {Logger} from '../../util/logging';
@@ -11,10 +13,14 @@ const logger = new Logger(ShowcaseComponent);
 @Component({
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
-    directives: [IONIC_DIRECTIVES]
+    directives: [IONIC_DIRECTIVES],
+    providers: [FATHENS]
 })
 export class ShowcaseComponent {
-    constructor(private nav: NavController, private ab: AnimationBuilder) { }
+    constructor(
+        private nav: NavController,
+        private ab: AnimationBuilder,
+        public urlGenerator: Photo) { }
 
     @Input() reportId: string;
     @Input() leaves: Array<Leaf>;
@@ -34,6 +40,7 @@ export class ShowcaseComponent {
         const leaf = Leaf.newEmpty(this.reportId);
         const url = PhotoShop.makeUrl(PhotoShop.decodeBase64(dataString));
         logger.debug(() => `Photo URL: ${url}`);
+        leaf.photo(this.urlGenerator).reduced.mainview.url = url;
         this.leaves.push(leaf);
     }
 
