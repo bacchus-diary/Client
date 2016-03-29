@@ -161,7 +161,7 @@ export class DynamoTable<T extends DBRecord<T>> {
 
         const res = await toPromise(this.client.query(params));
 
-        if (last) res.LastEvaluatedKey = last.value;
+        if (last) last.value = res.LastEvaluatedKey;
 
         return _.compact(await Promise.all(res.Items.map(this.reader)));
     }
@@ -182,7 +182,7 @@ export class DynamoTable<T extends DBRecord<T>> {
 
         const res = await toPromise(this.client.scan(params));
 
-        if (last) res.LastEvaluatedKey = last.value;
+        if (last) last.value = res.LastEvaluatedKey;
 
         return _.compact(await Promise.all(res.Items.map(this.reader)));
     }
@@ -220,7 +220,8 @@ class LastEvaluatedKey {
     }
 
     set value(v: DC.Item) {
-        this._value = v;
+        logger.debug(() => `Loaded LastEvaluatedKey: ${JSON.stringify(v)}`)
+        this._value = v ? v : {};
     }
 
     get isOver(): boolean {
