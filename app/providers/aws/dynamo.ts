@@ -163,7 +163,7 @@ export class DynamoTable<T extends DBRecord<T>> {
 
         if (last) res.LastEvaluatedKey = last.value;
 
-        return _.filter(await Promise.all(res.Items.map(this.reader)));
+        return _.compact(await Promise.all(res.Items.map(this.reader)));
     }
 
     queryPager(hashKey?: Map<string, any>, indexName?: string, isForward?: boolean): Pager<T> {
@@ -184,7 +184,7 @@ export class DynamoTable<T extends DBRecord<T>> {
 
         if (last) res.LastEvaluatedKey = last.value;
 
-        return _.filter(await Promise.all(res.Items.map(this.reader)));
+        return _.compact(await Promise.all(res.Items.map(this.reader)));
     }
 
     scanPager(exp: Expression): Pager<T> {

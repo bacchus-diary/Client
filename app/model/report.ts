@@ -44,11 +44,13 @@ export class Report implements DBRecord<Report> {
                 logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
                 if (!src) return null;
                 const leafTable = await Leaf.createTable(dynamo);
-                const waits = src.CONTENT.LEAF_INDEXES.map((leafId) => {
-                    return leafTable.get(leafId);
-                });
-                const leaves = _.filter(await Promise.all(waits));
-                if (_.isEmpty(leaves)) return null;
+                const keys = new Map<string, string>();
+                keys['COGNITO_ID'] = (await dynamo.cognito.identity).identityId;
+                keys['REPORT_ID'] = src.REPORT_ID;
+                const rels = await leafTable.query(keys, 'COGNITO_ID-REPORT_ID-index');
+                if (_.isEmpty(rels)) return null;
+                const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() == leafId));
+                const leaves = _.union(_.compact(indexed), rels);
                 return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);
             }, async (obj) => {
                 const m: ReportRecord = {
