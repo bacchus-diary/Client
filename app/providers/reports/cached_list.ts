@@ -48,4 +48,16 @@ export class CachedReports {
     reset() {
         this._pagingList = null;
     }
+
+    async add(report: Report) {
+        logger.debug(() => `Adding report: ${report}`);
+    }
+
+    async update(report: Report) {
+        logger.debug(() => `Updating report: ${report}`);
+    }
+
+    async remove(report: Report) {
+        logger.debug(() => `Removing report: ${report}`);
+    }
 }
