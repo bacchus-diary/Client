@@ -74,22 +74,45 @@ export class Report implements DBRecord<Report> {
 
     constructor(
         private _id: string,
-        public dateAt: Date,
-        public leaves: Array<Leaf>,
+        private _dateAt: Date,
+        private _leaves: Array<Leaf>,
         private content: ReportContent
-    ) { }
+    ) {
+        assert('id', _id);
+        assert('dateAt', _dateAt);
+        assert('leaves', _leaves);
+        assert('content', content);
+    }
+
+    get dateAt(): Date {
+        return this._dateAt;
+    }
+    set dateAt(v: Date) {
+        assert('dateAt', v);
+        this._dateAt = v;
+    }
+
+    get leaves(): Array<Leaf> {
+        return this._leaves;
+    }
+    set leaves(v: Array<Leaf>) {
+        assert('leaves', v);
+        this._leaves = v;
+    }
 
     get comment(): string {
-        return this.content.comment;
+        return this.content.comment ? this.content.comment : "";
     }
     set comment(v: string) {
+        assert('comment', v);
         this.content.comment = v;
     }
 
     get rating(): number {
-        return this.content.rating;
+        return this.content.rating ? this.content.rating : 1;
     }
     set rating(v: number) {
+        assert('rating', v);
         this.content.rating = v;
     }
 
@@ -166,6 +189,9 @@ export class Leaf implements DBRecord<Leaf> {
         private _id: string,
         private content: LeafContent
     ) {
+        assert('reportId', reportId);
+        assert('id', _id);
+        assert('content', content);
         this._photo = new Photo(reportId, _id);
     }
 
@@ -175,16 +201,18 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     get labels(): Array<string> {
-        return this.content.labels;
+        return this.content.labels ? this.content.labels : [];
     }
     set labels(v: Array<string>) {
+        assert('labels', v);
         this.content.labels = v;
     }
 
     get description(): string {
-        return this.content.description;
+        return this.content.description ? this.content.description : "";
     }
     set description(v: string) {
+        assert('description', v);
         this.content.description = v;
     }
 
