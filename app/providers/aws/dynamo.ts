@@ -91,23 +91,27 @@ export class DynamoTable<T extends DBRecord<T>> {
     }
 
     async get(id: string): Promise<T> {
-        const res = await toPromise(this.client.get({
+        const params = {
             TableName: this.tableName,
             Key: await this.makeKey(id)
-        }));
+        };
+        logger.debug(() => `Getting: ${JSON.stringify(params)}`);
+
+        const res = await toPromise(this.client.get(params));
         return this.reader(res.Item);
     }
 
     async put(obj: T, currentCognitoId?: string) {
-        const item = this.writer(obj);
-        const key = this.makeKey(obj.id(), currentCognitoId);
-        Object.keys(key).forEach((name) => {
-            item[name] = key[name];
-        });
-        const res = await toPromise(this.client.put({
+        const params = {
             TableName: this.tableName,
-            Item: item
-        }));
+            Item: this.writer(obj)
+        };
+        _.forIn(this.makeKey(obj.id(), currentCognitoId), (key, value) => {
+            params.Item[key] = value;
+        });
+        logger.debug(() => `Putting ${JSON.stringify(params)}`);
+
+        const res = await toPromise(this.client.put(params));
     }
 
     async update(obj: T) {
@@ -115,23 +119,27 @@ export class DynamoTable<T extends DBRecord<T>> {
         delete item[COGNITO_ID_COLUMN];
         delete item[this.ID_COLUMN];
 
-        const attrs = {};
-        Object.keys(item).forEach((name) => {
-            attrs[name] = { Action: 'PUT', Value: item[name] };
-        });
-
-        const res = await toPromise(this.client.update({
+        const params = {
             TableName: this.tableName,
             Key: await this.makeKey(obj.id()),
-            AttributeUpdates: attrs
-        }))
+            AttributeUpdates: {}
+        };
+        _.forIn(item, (name, value) => {
+            params.AttributeUpdates[name] = { Action: 'PUT', Value: value };
+        });
+        logger.debug(() => `Updating ${JSON.stringify(params)}`);
+
+        const res = await toPromise(this.client.update(params))
     }
 
     async remove(id: string, currentCognitoId?: string) {
-        const res = toPromise(this.client.delete({
+        const params = {
             TableName: this.tableName,
             Key: await this.makeKey(id)
-        }))
+        };
+        logger.debug(() => `Putting ${JSON.stringify(params)}`);
+
+        const res = toPromise(this.client.delete(params));
     }
 
     async query(keys?: Map<string, any>, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
