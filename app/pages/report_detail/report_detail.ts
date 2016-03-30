@@ -16,14 +16,15 @@ const logger = new Logger(ReportDetailPage);
 })
 export class ReportDetailPage {
     constructor(private nav: NavController, private params: NavParams, private cachedReports: CachedReports) {
-        this.report = params.get('report');
+        const report: Report = params.get('report');
+        this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
     }
 
     report: Report;
 
     async onPageWillLeave() {
-        this.update();
+        await this.update();
     }
 
     showMore() {
@@ -51,7 +52,11 @@ export class ReportDetailPage {
     }
 
     private async update() {
-        await this.cachedReports.update(this.report);
+        try {
+            await this.cachedReports.update(this.report);
+        } catch (ex) {
+            logger.warn(() => `Failed to update report: ${ex}`);
+        }
     }
 
     private async remove() {
