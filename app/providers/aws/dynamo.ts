@@ -70,7 +70,7 @@ export class DynamoTable<T extends DBRecord<T>> {
             const items = await this.query(toMap({ COGNITO_ID_COLUMN: oldId }));
             await Promise.all(items.map(async (item) => {
                 await this.put(item, newId);
-                await this.delete(item.id(), oldId);
+                await this.remove(item.id(), oldId);
             }));
         });
     }
@@ -127,7 +127,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         }))
     }
 
-    async delete(id: string, currentCognitoId?: string) {
+    async remove(id: string, currentCognitoId?: string) {
         const res = toPromise(this.client.delete({
             TableName: this.tableName,
             Key: await this.makeKey(id)

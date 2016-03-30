@@ -50,7 +50,7 @@ export class ReportsListPage {
         try {
             logger.info(() => `Getting reports list...`);
             await this.cachedReports.more();
-            this.reports = await this.cachedReports.currentList();
+            this.reports = await this.cachedReports.currentList;
         } catch (ex) {
             logger.warn(() => `Failed to get reports list: ${ex}`);
         }
