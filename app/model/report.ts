@@ -1,8 +1,8 @@
 import {Photo, Images} from '../providers/reports/photo';
-import * as _ from 'lodash';
 
+import {Leaf} from './leaf';
 import {Cognito} from '../providers/aws/cognito';
-import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
+import {Dynamo, DynamoTable, DBRecord, createRandomKey, equalsTo} from '../providers/aws/dynamo';
 import * as DC from '../providers/aws/document_client.d';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
@@ -24,18 +24,6 @@ type ReportContent = {
     published?: {
         facebook?: string
     }
-};
-
-type LeafRecord = {
-    COGNITO_ID: string,
-    REPORT_ID: string,
-    LEAF_ID: string,
-    CONTENT: LeafContent
-};
-type LeafContent = {
-    labels: string[],
-    description: string,
-    description_upper: string
 };
 
 export class Report implements DBRecord<Report> {
@@ -159,97 +147,45 @@ export class Report implements DBRecord<Report> {
             this.leaves.map((x) => x.clone()),
             this.toMap());
     }
-}
 
-export class Leaf implements DBRecord<Leaf> {
-    private static table: Promise<DynamoTable<Leaf>>;
-    static async createTable(cognito: Cognito, dynamo: Dynamo, photo: Photo): Promise<DynamoTable<Leaf>> {
-        if (!this.table) {
-            this.table = dynamo.createTable<Leaf>('LEAF', 'LEAF_ID', async (src: LeafRecord) => {
-                logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
-                if (!src) return null;
-                const result = new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT);
-                if (!result.photo(photo).exists()) return null;
-                return result;
-            }, async (obj) => {
-                return {
-                    COGNITO_ID: (await cognito.identity).identityId,
-                    LEAF_ID: obj.id(),
-                    CONTENT: obj.toMap()
-                };
-            });
+    async add() {
+        const addings = this.leaves.map((leaf) => leaf.add());
+        addings.push((await Report.table).put(this));
+        await Promise.all(addings);
+    }
+
+    async remove() {
+        const removings = this.leaves.map((leaf) => leaf.remove());
+        removings.push((await Report.table).remove(this.id()));
+        await Promise.all(removings);
+    }
+
+    async update(dst: Report) {
+        const diff = this.diff(this.leaves, dst.leaves);
+        const addings = diff.onlyDst.map((x) => x.add());
+        const removings = diff.onlySrc.map((x) => x.remove());
+        const updatings = diff.common.map((p) => p.src.update(p.dst));
+        const waits = _.flatten([addings, removings, updatings]);
+
+        if (this.isNeedUpdate(dst)) {
+            waits.push((await Report.table).update(dst));
         }
-        return this.table;
+        await Promise.all(waits);
     }
 
-    static newEmpty(reportId: string): Leaf {
-        return new Leaf(reportId, createRandomKey(), {
-            labels: [],
-            description: null,
-            description_upper: null
-        });
-    }
-
-    constructor(
-        private reportId: string,
-        private _id: string,
-        private content: LeafContent
-    ) {
-        assert('reportId', reportId);
-        assert('id', _id);
-        assert('content', content);
-    }
-
-    get labels(): Array<string> {
-        return this.content.labels ? this.content.labels : [];
-    }
-    set labels(v: Array<string>) {
-        assert('labels', v);
-        this.content.labels = v;
-    }
-
-    get description(): string {
-        return this.content.description ? this.content.description : "";
-    }
-    set description(v: string) {
-        assert('description', v);
-        this.content.description = v;
-    }
-
-    toString(): string {
-        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap())}`;
-    }
-
-    id(): string {
-        return this._id;
-    }
-
-    toMap(): LeafContent {
+    private diff<X extends DBRecord<X>>(src: Array<X>, dst: Array<X>) {
+        const includedIn = (list: Array<X>) => (x: X) => _.some(list, equalsTo(x));
+        const parted = _.partition(dst, includedIn(src));
         return {
-            labels: this.labels.map(_.identity),
-            description: this.description,
-            description_upper: this.description.toUpperCase()
+            common: parted[0].map((d) => {
+                const s = _.find(src, equalsTo(d));
+                return {
+                    src: s,
+                    dst: d
+                };
+            }),
+            onlyDst: parted[1],
+            onlySrc: _.filter(src, includedIn(dst))
         };
-    }
-
-    isNeedUpdate(other: Leaf): boolean {
-        return this.toString() != other.toString();
-    }
-
-    clone(): Leaf {
-        return new Leaf(this.reportId, this._id, this.toMap());
-    }
-
-    private _images: Images;
-
-    photo(photo: Photo): Images {
-        if (!this._images) {
-            this._images = photo.images(this.reportId, this.id())
-        }
-        return this._images;
-    }
-
-    async removePhotos() {
-        if (this._images) await this._images.remove();
     }
 }

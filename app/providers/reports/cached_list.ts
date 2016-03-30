@@ -1,9 +1,10 @@
 import {Injectable} from 'angular2/core';
 
-import {Report, Leaf} from '../../model/report';
+import {Report} from '../../model/report';
+import {Leaf} from '../../model/leaf';
 import {Photo} from './photo';
 import {Cognito} from '../aws/cognito';
-import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
+import {Dynamo, DynamoTable, DBRecord, equalsTo} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
 import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
@@ -55,29 +56,20 @@ export class CachedReports {
         report = report.clone();
         logger.debug(() => `Adding report: ${report}`);
 
-        const tableLeaf = await this.tableLeaf;
-        const puttings = report.leaves.map((leaf) => tableLeaf.put(leaf));
-        puttings.push((await this.tableReport).put(report));
-
+        const puttings = report.add();
         (await this.currentList).unshift(report);
 
-        await Promise.all(puttings);
+        await puttings;
     }
 
     async remove(report: Report) {
         report = report.clone();
         logger.debug(() => `Removing report: ${report}`);
 
-        const tableLeaf = await this.tableLeaf;
-        const removings = report.leaves.map(async (leaf) => {
-            await tableLeaf.remove(leaf.id());
-            await leaf.removePhotos();
-        });
-        removings.push((await this.tableReport).remove(report.id()));
-
+        const removings = report.remove();
         _.remove(await this.currentList, equalsTo(report));
 
-        await Promise.all(removings);
+        await removings;
     }
 
     async update(report: Report) {
@@ -91,39 +83,6 @@ export class CachedReports {
         assert(`Report on current list[${originalIndex}]`, original);
         currentList[originalIndex] = report;
 
-        const tableLeaf = await this.tableLeaf;
-
-        const diff = this.diff(original.leaves, report.leaves);
-        const addings = diff.onlyDst.map((x) => tableLeaf.put(x));
-        const removings = diff.onlySrc.map((x) => tableLeaf.remove(x.id()));
-        const updatings = diff.common.map(async (p) => {
-            if (p.src.isNeedUpdate(p.dst)) await tableLeaf.update(p.dst);
-        });
-        const waits = _.flatten([addings, removings, updatings]);
-
-        if (original.isNeedUpdate(report)) {
-            waits.push((await this.tableReport).update(report));
-        }
-        await Promise.all(waits);
+        await original.update(report);
     }
-
-    private diff<X extends DBRecord<X>>(src: Array<X>, dst: Array<X>) {
-        const includedIn = (list: Array<X>) => (x: X) => _.some(list, equalsTo(x));
-        const parted = _.partition(dst, includedIn(src));
-        return {
-            common: parted[0].map((d) => {
-                const s = _.find(src, equalsTo(d));
-                return {
-                    src: s,
-                    dst: d
-                };
-            }),
-            onlyDst: parted[1],
-            onlySrc: _.filter(src, includedIn(dst))
-        };
-    }
-}
-
-function equalsTo<X extends DBRecord<X>>(x: X) {
-    return (y: X) => y.id() == x.id();
 }

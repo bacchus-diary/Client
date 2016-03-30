@@ -6,7 +6,7 @@ import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
 import {PhotoShop} from '../../providers/photo_shop';
 import {FATHENS} from '../../providers/all';
-import {Leaf} from '../../model/report';
+import {Leaf} from '../../model/leaf';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
@@ -57,7 +57,7 @@ export class ShowcaseComponent {
         if (ok) {
             await this.doDeletePhoto(index);
             const leaf = this.leaves.splice(index, 1)[0];
-            await leaf.removePhotos();
+            await leaf.remove();
         }
     }
 
