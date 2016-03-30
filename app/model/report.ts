@@ -128,8 +128,8 @@ export class Report implements DBRecord<Report> {
     toMap(): ReportContent {
         return {
             rating: this.rating,
-            comment: this.comment,
-            comment_upper: this.comment.toUpperCase(),
+            comment: this.comment.length > 0 ? this.comment : null,
+            comment_upper: this.comment.length > 0 ? this.comment.toUpperCase() : null,
             LEAF_INDEXES: this.leaves.map((x) => x.id()),
             published: {
                 facebook: this.publishedFacebook

@@ -88,8 +88,8 @@ export class Leaf implements DBRecord<Leaf> {
     toMap(): LeafContent {
         return {
             labels: this.labels.map(_.identity),
-            description: this.description,
-            description_upper: this.description.toUpperCase()
+            description: this.description.length > 0 ? this.description : null,
+            description_upper: this.description.length > 0 ? this.description.toUpperCase() : null
         };
     }
 
