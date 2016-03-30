@@ -31,11 +31,13 @@ export class Leaf implements DBRecord<Leaf> {
                 if (!result.photo(photo).exists()) return null;
                 return result;
             }, async (obj) => {
-                return {
+                const m: LeafRecord = {
                     COGNITO_ID: (await cognito.identity).identityId,
+                    REPORT_ID: obj.reportId,
                     LEAF_ID: obj.id(),
                     CONTENT: obj.toMap()
                 };
+                return m;
             });
         }
         return this.table;
