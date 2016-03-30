@@ -32,10 +32,10 @@ export class Dynamo {
     }
 }
 
-export function createRandomKey() {
+export function createRandomKey(): string {
     const base = '0'.codePointAt(0);
     const char = (c: number) => String.fromCharCode(base + ((9 < c) ? c + 7 : c));
-    return _.range(32).map((i) => char(_.random(0, 35))).join();
+    return _.range(32).map((i) => char(_.random(0, 35))).join('');
 }
 
 export interface DBRecord<T> {
@@ -91,8 +91,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         return `DynamoTable[${this.tableName}]`;
     }
 
-    private async makeKey(id?: string, currentCognitoId?: string): Promise<Map<string, string>> {
-        const key = new Map<string, string>();
+    private async makeKey(id?: string, currentCognitoId?: string): Promise<DC.Key> {
+        const key = {};
         key[COGNITO_ID_COLUMN] = currentCognitoId ? currentCognitoId : (await this.cognito.identity).identityId;
         if (id && this.ID_COLUMN) {
             key[this.ID_COLUMN] = id;
@@ -114,10 +114,11 @@ export class DynamoTable<T extends DBRecord<T>> {
     async put(obj: T, currentCognitoId?: string) {
         const params = {
             TableName: this.tableName,
-            Item: this.writer(obj)
+            Item: await this.writer(obj)
         };
-        _.forIn(this.makeKey(obj.id(), currentCognitoId), (key, value) => {
-            params.Item[key] = value;
+        const key = await this.makeKey(obj.id(), currentCognitoId);
+        Object.keys(key).forEach((name) =>{
+            params.Item[name] = key[name];
         });
         logger.debug(() => `Putting ${JSON.stringify(params)}`);
 
@@ -125,7 +126,7 @@ export class DynamoTable<T extends DBRecord<T>> {
     }
 
     async update(obj: T) {
-        const item = this.writer(obj);
+        const item = await this.writer(obj);
         delete item[COGNITO_ID_COLUMN];
         delete item[this.ID_COLUMN];
 
@@ -134,8 +135,8 @@ export class DynamoTable<T extends DBRecord<T>> {
             Key: await this.makeKey(obj.id()),
             AttributeUpdates: {}
         };
-        _.forIn(item, (name, value) => {
-            params.AttributeUpdates[name] = { Action: 'PUT', Value: value };
+        Object.keys(item).forEach((name) => {
+            params.AttributeUpdates[name] = { Action: 'PUT', Value: item[name] };
         });
         logger.debug(() => `Updating ${JSON.stringify(params)}`);
 
@@ -147,14 +148,14 @@ export class DynamoTable<T extends DBRecord<T>> {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         };
-        logger.debug(() => `Putting ${JSON.stringify(params)}`);
+        logger.debug(() => `Removing ${JSON.stringify(params)}`);
 
         const res = toPromise(this.client.delete(params));
     }
 
     async query(keys?: Map<string, any>, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
         logger.debug(() => `Quering ${indexName}: ${keys}`);
-        const exp = ExpressionMap.joinAll(keys ? keys : await this.makeKey());
+        const exp = ExpressionMap.joinAll(keys ? keys : toMap(await this.makeKey()));
         const params: DC.QueryParams = {
             TableName: this.tableName,
             KeyConditionExpression: exp.express,
