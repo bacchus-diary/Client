@@ -70,7 +70,7 @@ export class CachedReports {
         const removings = report.leaves.map((leaf) => tableLeaf.remove(leaf.id()));
         removings.push((await this.tableReport).remove(report.id()));
 
-        _.remove(await this.currentList, (x) => x.id() == report.id());
+        _.remove(await this.currentList, equalsTo(report));
 
         await Promise.all(removings);
     }
@@ -80,7 +80,7 @@ export class CachedReports {
         logger.debug(() => `Updating report: ${report}`);
 
         const currentList = await this.currentList;
-        const originalIndex = _.findIndex(currentList, (x) => x.id() == report.id());
+        const originalIndex = _.findIndex(currentList, equalsTo(report));
         assert('Report on current list', originalIndex);
         const original = currentList[originalIndex];
         currentList[originalIndex] = report;
@@ -102,11 +102,11 @@ export class CachedReports {
     }
 
     private diff<X extends DBRecord<X>>(src: Array<X>, dst: Array<X>) {
-        const includedIn = (list: Array<X>) => (x: X) => _.some(list, (y) => y.id() == x.id());
+        const includedIn = (list: Array<X>) => (x: X) => _.some(list, equalsTo(x));
         const parted = _.partition(dst, includedIn(src));
         return {
             common: parted[0].map((d) => {
-                const s = _.find(src, (x) => x.id() == d.id());
+                const s = _.find(src, equalsTo(d));
                 return {
                     src: s,
                     dst: d
@@ -116,4 +116,8 @@ export class CachedReports {
             onlySrc: _.filter(src, includedIn(dst))
         };
     }
+}
+
+function equalsTo<X extends DBRecord<X>>(x: X) {
+    return (y: X) => y.id() == x.id();
 }
