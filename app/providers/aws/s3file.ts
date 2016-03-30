@@ -31,6 +31,16 @@ export class S3File {
         return String.fromCharCode.apply(null, res.Body);
     }
 
+    async upload(path: string, blob: Blob) {
+        const bucketName = await this.settings.s3Bucket;
+        logger.debug(() => `Uploading file: ${bucketName}:${path}`);
+        await this.invoke((s3) => s3.putObject({
+            Bucket: bucketName,
+            Key: path,
+            Body: blob
+        }));
+    }
+
     async remove(path: string) {
         const bucketName = await this.settings.s3Bucket;
         logger.debug(() => `Removing file: ${bucketName}:${path}`);

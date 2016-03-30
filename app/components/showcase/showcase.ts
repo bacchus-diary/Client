@@ -2,6 +2,7 @@ import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, ElementRef} from 'angular2/core';
 
+import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
 import {PhotoShop} from '../../providers/photo_shop';
 import {FATHENS} from '../../providers/all';
@@ -20,6 +21,7 @@ export class ShowcaseComponent {
     constructor(
         private nav: NavController,
         private ab: AnimationBuilder,
+        private s3file: S3File,
         private photoShop: PhotoShop,
         public urlGenerator: Photo) { }
 
@@ -38,11 +40,16 @@ export class ShowcaseComponent {
 
     async addPhoto() {
         const dataString = await this.photoShop.photo(true);
-        const leaf = Leaf.newEmpty(this.reportId);
-        const url = this.photoShop.makeUrl(this.photoShop.decodeBase64(dataString));
+        const blob = this.photoShop.decodeBase64(dataString);
+        const url = this.photoShop.makeUrl(blob);
         logger.debug(() => `Photo URL: ${url}`);
-        leaf.photo(this.urlGenerator).reduced.mainview.url = url;
+
+        const leaf = Leaf.newEmpty(this.reportId);
+        const photo = leaf.photo(this.urlGenerator);
+        photo.reduced.mainview.url = url;
         this.leaves.push(leaf);
+
+        await this.s3file.upload(await photo.original.storagePath, blob);
     }
 
     async deletePhoto(index: number) {
