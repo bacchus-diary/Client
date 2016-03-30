@@ -4,7 +4,7 @@ import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
 import {Photo} from './photo';
 import {Cognito} from '../aws/cognito';
-import {Dynamo, DynamoTable, DBRecord, equalsTo} from '../aws/dynamo';
+import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
 import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
@@ -67,7 +67,7 @@ export class CachedReports {
         logger.debug(() => `Removing report: ${report}`);
 
         const removings = report.remove();
-        _.remove(await this.currentList, equalsTo(report));
+        _.remove(await this.currentList, (x) => x.id() == report.id());
 
         await removings;
     }
@@ -78,7 +78,7 @@ export class CachedReports {
 
         const currentList = await this.currentList;
         logger.debug(() => `Current list: ${currentList}`);
-        const originalIndex = _.findIndex(currentList, equalsTo(report));
+        const originalIndex = _.findIndex(currentList, (x) => x.id() == report.id());
         const original = currentList[originalIndex];
         assert(`Report on current list[${originalIndex}]`, original);
         currentList[originalIndex] = report;

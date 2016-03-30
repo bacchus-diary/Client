@@ -54,10 +54,6 @@ export interface DBRecord<T> {
     update(dst: T): Promise<void>
 }
 
-export function equalsTo<X extends DBRecord<X>>(x: X) {
-    return (y: X) => y.id() == x.id();
-}
-
 export type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => Promise<T>;
 export type RecordWriter<T extends DBRecord<T>> = (obj: T) => Promise<DC.Item>;
 

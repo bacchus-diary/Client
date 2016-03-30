@@ -2,7 +2,7 @@ import {Photo, Images} from '../providers/reports/photo';
 
 import {Leaf} from './leaf';
 import {Cognito} from '../providers/aws/cognito';
-import {Dynamo, DynamoTable, DBRecord, createRandomKey, equalsTo} from '../providers/aws/dynamo';
+import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
 import * as DC from '../providers/aws/document_client.d';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
@@ -174,11 +174,11 @@ export class Report implements DBRecord<Report> {
     }
 
     private diff<X extends DBRecord<X>>(src: Array<X>, dst: Array<X>) {
-        const notIncluded = (list: Array<X>) => (x: X) => !_.some(list, equalsTo(x));
+        const notIncluded = (list: Array<X>) => (x: X) => _.every(list, (y) => y.id() != x.id());
         const parted = _.partition(dst, notIncluded(src));
         return {
             common: parted[0].map((d) => {
-                const s = _.find(src, equalsTo(d));
+                const s = _.find(src, (x) => x.id() == d.id());
                 return {
                     src: s,
                     dst: d
