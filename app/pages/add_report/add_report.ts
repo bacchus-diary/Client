@@ -1,4 +1,4 @@
-import {Page} from 'ionic-angular';
+import {Page, NavController} from 'ionic-angular';
 
 import {RatingComponent} from '../../components/rating/rating';
 import {ShowcaseComponent} from '../../components/showcase/showcase';
@@ -15,12 +15,13 @@ const logger = new Logger(AddReportPage);
     providers: [FATHENS]
 })
 export class AddReportPage {
-    constructor(private cachedReports: CachedReports) { }
+    constructor(private nav: NavController, private cachedReports: CachedReports) { }
 
     report = Report.newEmpty();
 
-    submit() {
+    async submit() {
         logger.debug(() => `Submitting report`);
-        this.cachedReports.add(this.report);
+        await this.cachedReports.add(this.report);
+        this.nav.pop();
     }
 }
