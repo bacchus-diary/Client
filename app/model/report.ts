@@ -174,8 +174,8 @@ export class Report implements DBRecord<Report> {
     }
 
     private diff<X extends DBRecord<X>>(src: Array<X>, dst: Array<X>) {
-        const includedIn = (list: Array<X>) => (x: X) => _.some(list, equalsTo(x));
-        const parted = _.partition(dst, includedIn(src));
+        const notIncluded = (list: Array<X>) => (x: X) => !_.some(list, equalsTo(x));
+        const parted = _.partition(dst, notIncluded(src));
         return {
             common: parted[0].map((d) => {
                 const s = _.find(src, equalsTo(d));
@@ -185,7 +185,7 @@ export class Report implements DBRecord<Report> {
                 };
             }),
             onlyDst: parted[1],
-            onlySrc: _.filter(src, includedIn(dst))
+            onlySrc: _.filter(src, notIncluded(dst))
         };
     }
 }
