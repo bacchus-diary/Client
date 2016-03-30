@@ -3,9 +3,9 @@ import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, ElementRef} from 'angular2/core';
 
 import {Photo} from '../../providers/reports/photo';
+import {PhotoShop} from '../../providers/photo_shop';
 import {FATHENS} from '../../providers/all';
 import {Leaf} from '../../model/report';
-import {PhotoShop} from '../../util/photo_shop';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
@@ -20,6 +20,7 @@ export class ShowcaseComponent {
     constructor(
         private nav: NavController,
         private ab: AnimationBuilder,
+        private photoShop: PhotoShop,
         public urlGenerator: Photo) { }
 
     @Input() reportId: string;
@@ -36,9 +37,9 @@ export class ShowcaseComponent {
     }
 
     async addPhoto() {
-        const dataString = await PhotoShop.photo(true);
+        const dataString = await this.photoShop.photo(true);
         const leaf = Leaf.newEmpty(this.reportId);
-        const url = PhotoShop.makeUrl(PhotoShop.decodeBase64(dataString));
+        const url = this.photoShop.makeUrl(this.photoShop.decodeBase64(dataString));
         logger.debug(() => `Photo URL: ${url}`);
         leaf.photo(this.urlGenerator).reduced.mainview.url = url;
         this.leaves.push(leaf);

@@ -67,12 +67,19 @@ export class Image {
         return await this.photo.makeUrl(await this.storagePath);
     }
 
+    private makingUrl: Promise<string>;
     private _url: string;
     get url(): string {
-        this.refreshUrl();
+        if (!this.makingUrl) {
+            this.makingUrl = this.makeUrl();
+            this.makingUrl.then((v) => this.url = v);
+        }
         return this._url;
     }
     set url(v: string) {
+        if (!this.makingUrl) {
+            this.makingUrl = Promise.resolve(v);
+        }
         this._url = v;
         this.setClearTimer();
     }
@@ -85,14 +92,5 @@ export class Image {
         setTimeout(() => {
             this.makingUrl = null;
         }, dur);
-    }
-
-    private makingUrl: Promise<string>;
-
-    private async refreshUrl() {
-        if (!this.makingUrl) {
-            this.makingUrl = this.makeUrl();
-            this.url = await this.makingUrl;
-        }
     }
 }

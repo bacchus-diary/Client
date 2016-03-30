@@ -7,5 +7,6 @@ import {FBConnect} from './facebook/fb_connect';
 import {FBJSSDK} from './facebook/fb_jssdk';
 import {CachedReports} from './reports/cached_list';
 import {Photo} from './reports/photo';
+import {PhotoShop} from './photo_shop';
 
-export const FATHENS = [BootSettings, Configuration, S3File, Cognito, Dynamo, FBConnect, FBJSSDK, CachedReports, Photo];
+export const FATHENS = [BootSettings, Configuration, S3File, Cognito, Dynamo, FBConnect, FBJSSDK, CachedReports, Photo, PhotoShop];
