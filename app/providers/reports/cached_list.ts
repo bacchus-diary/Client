@@ -13,6 +13,8 @@ const PAGE_SIZE = 10;
 
 @Injectable()
 export class CachedReports {
+    private static pagingList: Promise<PagingList<Report>>;
+
     constructor(private cognito: Cognito, private dynamo: Dynamo) {
         this.tableReport = Report.createTable(cognito, dynamo);
         this.tableLeaf = Leaf.createTable(cognito, dynamo);
@@ -28,12 +30,11 @@ export class CachedReports {
     private tableReport: Promise<DynamoTable<Report>>;
     private tableLeaf: Promise<DynamoTable<Leaf>>;
 
-    private _pagingList: Promise<PagingList<Report>>;
     private get pagingList(): Promise<PagingList<Report>> {
-        if (!this._pagingList) {
-            this._pagingList = this.load();
+        if (!CachedReports.pagingList) {
+            CachedReports.pagingList = this.load();
         }
-        return this._pagingList;
+        return CachedReports.pagingList;
     }
 
     get currentList(): Promise<Array<Report>> {
@@ -46,7 +47,7 @@ export class CachedReports {
     }
 
     reset() {
-        this._pagingList = null;
+        CachedReports.pagingList = null;
     }
 
     async add(report: Report) {
@@ -80,9 +81,10 @@ export class CachedReports {
         logger.debug(() => `Updating report: ${report}`);
 
         const currentList = await this.currentList;
+        logger.debug(() => `Current list: ${currentList}`);
         const originalIndex = _.findIndex(currentList, equalsTo(report));
-        assert('Report on current list', originalIndex);
         const original = currentList[originalIndex];
+        assert(`Report on current list[${originalIndex}]`, original);
         currentList[originalIndex] = report;
 
         const tableLeaf = await this.tableLeaf;
