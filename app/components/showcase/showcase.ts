@@ -47,7 +47,11 @@ export class ShowcaseComponent {
 
     async deletePhoto(index: number) {
         const ok = await this.confirmDeletion();
-        if (ok) this.doDeletePhoto(index);
+        if (ok) {
+            await this.doDeletePhoto(index);
+            const leaf = this.leaves.splice(index, 1)[0];
+            await leaf.removePhotos();
+        }
     }
 
     private confirmDeletion(): Promise<boolean> {
@@ -76,7 +80,7 @@ export class ShowcaseComponent {
         });
     }
 
-    private doDeletePhoto(index: number) {
+    private async doDeletePhoto(index: number) {
         logger.debug(() => `Deleting photo: ${index}`);
 
         const getChild = (className: string) => {
@@ -94,27 +98,30 @@ export class ShowcaseComponent {
         logger.debug(() => `Animate target: ${target}`);
 
         if (floating != null && target != null) {
-            floating.style.display = 'none';
+            return new Promise<void>((resolve, reject) => {
+                floating.style.display = 'none';
 
-            const height = target.offsetHeight;
-            const dur = this.slideSpeed * 2;
-            const animation = this.ab.css();
+                const height = target.offsetHeight;
+                const dur = this.slideSpeed * 2;
+                const animation = this.ab.css();
 
-            animation.setFromStyles({ opacity: '1' });
-            animation.setToStyles({ opacity: '0', transform: `translateY(${height}px)` });
-            animation.setDuration(dur);
-            animation.start(target);
-            logger.debug(() => `Animation started: ${height}px in ${dur}ms`);
+                animation.setFromStyles({ opacity: '1' });
+                animation.setToStyles({ opacity: '0', transform: `translateY(${height}px)` });
+                animation.setDuration(dur);
+                animation.start(target);
+                logger.debug(() => `Animation started: ${height}px in ${dur}ms`);
 
-            setTimeout(() => {
-                this.slideNext();
-            }, dur / 2);
+                setTimeout(() => {
+                    this.slideNext();
+                }, dur / 2);
 
-            setTimeout(() => {
-                this.swiper.removeSlide(index);
-                this.leaves.splice(index, 1);
-                this.swiper.update();
-            }, dur);
+                setTimeout(() => {
+                    this.swiper.removeSlide(index);
+                    this.leaves.splice(index, 1);
+                    this.swiper.update();
+                    resolve();
+                }, dur);
+            });
         }
     }
 

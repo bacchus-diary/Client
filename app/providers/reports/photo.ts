@@ -14,27 +14,12 @@ const PATH_THUMBNAIL = `${PATH_REDUCED}/thumbnail`;
 
 const localRefresh = 10 * 60 * 1000; // 10 minuites
 
-export type Images = {
-    original: Image,
-    reduced: {
-        mainview: Image,
-        thumbnail: Image
-    }
-};
-
 @Injectable()
 export class Photo {
     constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) { }
 
     images(reportId: string, leafId: string): Images {
-        const newImage = (path: string) => new Image(this, reportId, leafId, path);
-        return {
-            original: newImage(PATH_ORIGINAL),
-            reduced: {
-                mainview: newImage(PATH_MAINVIEW),
-                thumbnail: newImage(PATH_THUMBNAIL)
-            }
-        };
+        return new Images(this.s3file, this, reportId, leafId);
     }
 
     get cognitoId(): Promise<string> {
@@ -47,6 +32,35 @@ export class Photo {
 
     async makeUrl(path: string): Promise<string> {
         return await this.s3file.url(path, await this.expiresInSeconds);
+    }
+}
+
+export class Images {
+    constructor(private s3file: S3File, private photo: Photo, private reportId: string, private leafId: string) {
+        const newImage = (path: string) => new Image(photo, reportId, leafId, path);
+        this.original = newImage(PATH_ORIGINAL);
+        this.reduced = {
+            mainview: newImage(PATH_MAINVIEW),
+            thumbnail: newImage(PATH_THUMBNAIL)
+        };
+    }
+    original: Image;
+    reduced: {
+        mainview: Image,
+        thumbnail: Image
+    };
+
+    async exists(): Promise<boolean> {
+        return await this.s3file.exists(await this.original.storagePath);
+    }
+
+    async remove() {
+        const paths = [
+            this.original.storagePath,
+            this.reduced.mainview.storagePath,
+            this.reduced.thumbnail.storagePath
+        ];
+        await Promise.all(paths.map(async (path) => this.s3file.remove(await path)));
     }
 }
 

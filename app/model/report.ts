@@ -40,12 +40,12 @@ type LeafContent = {
 
 export class Report implements DBRecord<Report> {
     private static table: Promise<DynamoTable<Report>>;
-    static async createTable(cognito: Cognito, dynamo: Dynamo): Promise<DynamoTable<Report>> {
+    static async createTable(cognito: Cognito, dynamo: Dynamo, photo: Photo): Promise<DynamoTable<Report>> {
         if (!this.table) {
             this.table = dynamo.createTable<Report>('REPORT', 'REPORT_ID', async (src: ReportRecord) => {
                 logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
                 if (!src) return null;
-                const leafTable = await Leaf.createTable(cognito, dynamo);
+                const leafTable = await Leaf.createTable(cognito, dynamo, photo);
                 const keys = new Map<string, string>();
                 keys['COGNITO_ID'] = (await cognito.identity).identityId;
                 keys['REPORT_ID'] = src.REPORT_ID;
@@ -163,12 +163,14 @@ export class Report implements DBRecord<Report> {
 
 export class Leaf implements DBRecord<Leaf> {
     private static table: Promise<DynamoTable<Leaf>>;
-    static async createTable(cognito: Cognito, dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
+    static async createTable(cognito: Cognito, dynamo: Dynamo, photo: Photo): Promise<DynamoTable<Leaf>> {
         if (!this.table) {
             this.table = dynamo.createTable<Leaf>('LEAF', 'LEAF_ID', async (src: LeafRecord) => {
                 logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
                 if (!src) return null;
-                return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT);
+                const result = new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT);
+                if (!result.photo(photo).exists()) return null;
+                return result;
             }, async (obj) => {
                 return {
                     COGNITO_ID: (await cognito.identity).identityId,
@@ -245,5 +247,9 @@ export class Leaf implements DBRecord<Leaf> {
             this._images = photo.images(this.reportId, this.id())
         }
         return this._images;
+    }
+
+    async removePhotos() {
+        if (this._images) await this._images.remove();
     }
 }

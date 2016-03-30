@@ -15,21 +15,6 @@ export class S3File {
         this.client = cognito.identity.then((x) => new AWS.S3());
     }
 
-    async url(path: string, expiresInSeconds: number): Promise<string> {
-        const s3: any = await this.client;
-        const bucketName = await this.settings.s3Bucket;
-        logger.debug(() => `Getting url of file: ${bucketName}:${path}`);
-        try {
-            return s3.getSignedUrl('getObject', {
-                Bucket: bucketName,
-                Key: path,
-                Expires: expiresInSeconds
-            });
-        } catch (ex) {
-            logger.warn(() => `Error on getting url: ${ex}`);
-        }
-    }
-
     private client: Promise<S3>;
 
     private async invoke<R>(proc: (s3client) => AWSRequest): Promise<R> {
@@ -44,5 +29,43 @@ export class S3File {
             Key: path
         }));
         return String.fromCharCode.apply(null, res.Body);
+    }
+
+    async remove(path: string) {
+        const bucketName = await this.settings.s3Bucket;
+        logger.debug(() => `Removing file: ${bucketName}:${path}`);
+        await this.invoke((s3) => s3.deleteObject({
+            Bucket: bucketName,
+            Key: path
+        }));
+    }
+
+    async exists(path: string): Promise<boolean> {
+        const bucketName = await this.settings.s3Bucket;
+        logger.debug(() => `Checking exists: ${bucketName}:${path}`);
+        try {
+            const res = await this.invoke<{ ContentLength: number }>((s3) => s3.headObject({
+                Bucket: bucketName,
+                Key: path
+            }));
+            return res.ContentLength > 0;
+        } catch (ex) {
+            return false;
+        }
+    }
+
+    async url(path: string, expiresInSeconds: number): Promise<string> {
+        const s3: any = await this.client;
+        const bucketName = await this.settings.s3Bucket;
+        logger.debug(() => `Getting url of file: ${bucketName}:${path}`);
+        try {
+            return s3.getSignedUrl('getObject', {
+                Bucket: bucketName,
+                Key: path,
+                Expires: expiresInSeconds
+            });
+        } catch (ex) {
+            logger.warn(() => `Error on getting url: ${ex}`);
+        }
     }
 }

@@ -1,6 +1,7 @@
 import {Injectable} from 'angular2/core';
 
 import {Report, Leaf} from '../../model/report';
+import {Photo} from './photo';
 import {Cognito} from '../aws/cognito';
 import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
@@ -15,9 +16,9 @@ const PAGE_SIZE = 10;
 export class CachedReports {
     private static pagingList: Promise<PagingList<Report>>;
 
-    constructor(private cognito: Cognito, private dynamo: Dynamo) {
-        this.tableReport = Report.createTable(cognito, dynamo);
-        this.tableLeaf = Leaf.createTable(cognito, dynamo);
+    constructor(private cognito: Cognito, private dynamo: Dynamo, private photo: Photo) {
+        this.tableReport = Report.createTable(cognito, dynamo, photo);
+        this.tableLeaf = Leaf.createTable(cognito, dynamo, photo);
     }
 
     private async load() {
@@ -68,7 +69,10 @@ export class CachedReports {
         logger.debug(() => `Removing report: ${report}`);
 
         const tableLeaf = await this.tableLeaf;
-        const removings = report.leaves.map((leaf) => tableLeaf.remove(leaf.id()));
+        const removings = report.leaves.map(async (leaf) => {
+            await tableLeaf.remove(leaf.id());
+            await leaf.removePhotos();
+        });
         removings.push((await this.tableReport).remove(report.id()));
 
         _.remove(await this.currentList, equalsTo(report));
