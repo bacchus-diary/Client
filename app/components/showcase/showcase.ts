@@ -41,44 +41,54 @@ export class ShowcaseComponent {
     }
 
     private async readPhoto(leaf: Leaf, base64image: string): Promise<boolean> {
-        const annon = await this.cvision.request(base64image, {
-            LABEL_DETECTION: 10,
-            LOGO_DETECTION: 3,
-            TEXT_DETECTION: 10,
-            SAFE_SEARCH_DETECTION: 1
-        });
-        if (annon.responses.length > 0) {
-            const res = annon.responses[0];
-            const safe = res.safeSearchAnnotation;
-            const guides = [safe.adult, safe.medical, safe.violence];
-            if (_.some(guides, (value) => Likelihood.POSSIBLE < Likelihood[value])) {
-                return false;
-            } else {
-                const logo = res.logoAnnotations.map((x) => x.description).join("\n");
-                const text = res.textAnnotations.map((x) => x.description).join("\n");
+        try {
+            const annon = await this.cvision.request(base64image, {
+                LABEL_DETECTION: 10,
+                LOGO_DETECTION: 3,
+                TEXT_DETECTION: 10,
+                SAFE_SEARCH_DETECTION: 1
+            });
+            logger.debug(() => `Read photo: ${JSON.stringify(annon, null, 4)}`)
+            if (annon.responses.length > 0) {
+                const res = annon.responses[0];
+
+                const safe = res.safeSearchAnnotation;
+                const guides = [safe.adult, safe.medical, safe.violence];
+                logger.debug(() => `Checking safety: ${guides}`);
+                if (_.some(guides, (value) => Likelihood.POSSIBLE < Likelihood[value])) {
+                    return false;
+                }
+
+                const logo = (res.logoAnnotations || []).map((x) => x.description).join("\n");
+                const text = (res.textAnnotations || []).map((x) => x.description).join("\n");
+                logger.debug(() => `Texts on photo: ${JSON.stringify({ logo: logo, text: text })}`);
+
                 leaf.description = _.compact([logo, text]).join("\n\n");
-                leaf.labels = res.labelAnnotations.map((x) => x.description);
+                leaf.labels = (res.labelAnnotations || []).map((x) => x.description);
             }
+        } catch (ex) {
+            logger.warn(() => `Error on requesting cvision: ${ex}`);
         }
         return true;
     }
 
     async addPhoto() {
-        const base64image = await this.photoShop.photo(true);
-        const blob = this.photoShop.decodeBase64(base64image);
-        const url = this.photoShop.makeUrl(blob);
-        logger.debug(() => `Photo URL: ${url}`);
-
-        const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
-        leaf.photo.reduced.mainview.url = url;
-        const index = this.leaves.push(leaf) - 1;
         try {
             this.swiper.lockSwipes();
+
+            const base64image = await this.photoShop.photo(true);
+            const blob = this.photoShop.decodeBase64(base64image);
+            const url = this.photoShop.makeUrl(blob);
+            logger.debug(() => `Photo URL: ${url}`);
+
+            const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
+            leaf.photo.reduced.mainview.url = url;
+            const index = this.leaves.push(leaf) - 1;
             this.swiper.update();
 
             const isSafe = await this.readPhoto(leaf, base64image);
             if (isSafe) {
-                await this.s3file.upload(await leaf.photo.original.storagePath, blob);
+                this.s3file.upload(await leaf.photo.original.storagePath, blob);
             } else {
                 await new Promise<void>((resolve, reject) => {
                     this.nav.present(Alert.create({
@@ -95,6 +105,8 @@ export class ShowcaseComponent {
                     }));
                 });
             }
+        } catch (ex) {
+            logger.warn(() => `Error on adding photo: ${ex}`);
         } finally {
             this.swiper.unlockSwipes();
         }

@@ -220,9 +220,13 @@ export class CVision {
                 })
             }]
         };
+        logger.debug(() => `CVision request: ${JSON.stringify(request.requests.map((x) => x.features))}`);
+
         const res = await toPromise(this.http.post(url, JSON.stringify(request), {
             headers: new Headers({ 'Content-Type': 'application/json' })
-        }).retry(3).delay(1000));
-        return JSON.parse(res.text());
+        }));
+
+        logger.debug(() => `CVision response: ${res.status}`);
+        return res.json();
     }
 }
