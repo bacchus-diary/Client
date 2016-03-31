@@ -27,7 +27,7 @@
     <ion-list>
         <button ion-item class="item" *ngFor="#item of reports" (click)="goReport(item)">
             <ion-thumbnail item-left>
-                <img [src]="item.leaves[0].photo(urlGenerator).reduced.thumbnail.url" />
+                <img [src]="item.leaves[0].photo.reduced.thumbnail.url" />
             </ion-thumbnail>
             <fathens-rating [value]="item.rating"></fathens-rating>
             <p class="item-comment">{{ item.comment }}</p>

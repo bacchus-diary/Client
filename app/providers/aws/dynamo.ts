@@ -8,6 +8,7 @@ import {AWS, requestToPromise} from './aws';
 import * as DC from './document_client.d';
 import {Cognito} from './cognito';
 import {Configuration} from '../config/configuration';
+import {Photo} from '../reports/photo';
 
 const logger = new Logger(Dynamo);
 
@@ -15,20 +16,22 @@ const COGNITO_ID_COLUMN = "COGNITO_ID";
 
 @Injectable()
 export class Dynamo {
-    constructor(private cognito: Cognito, private config: Configuration) {
+    constructor(private cognito: Cognito, private config: Configuration, private photo: Photo) {
         this.client = cognito.identity.then((x) =>
             new AWS.DynamoDB.DocumentClient({ dynamoDbCrc32: false }));
     }
 
     private client: Promise<DC.DocumentClient>;
 
-    async createTable<T extends DBRecord<T>>(
-        name: string,
-        columnId: string,
-        reader: RecordReader<T>,
-        writer: RecordWriter<T>
-    ): Promise<DynamoTable<T>> {
-        return new DynamoTable(this.cognito, await this.client, (await this.config.server).appName, name, columnId, reader, writer);
+    async createTable<T extends DBRecord<T>>(maker: DBTableMaker<T>): Promise<DynamoTable<T>> {
+        return new DynamoTable(
+            this.cognito,
+            await this.client,
+            (await this.config.server).appName,
+            maker.tableName,
+            maker.idColumnName,
+            maker.reader(this.cognito, this.photo),
+            maker.writer(this.cognito, this.photo));
     }
 }
 
@@ -36,6 +39,16 @@ export function createRandomKey(): string {
     const base = '0'.codePointAt(0);
     const char = (c: number) => String.fromCharCode(base + ((9 < c) ? c + 7 : c));
     return _.range(32).map((i) => char(_.random(0, 35))).join('');
+}
+
+interface DBTableMaker<T extends DBRecord<T>> {
+    tableName: string;
+
+    idColumnName: string;
+
+    reader(cognito: Cognito, photo: Photo): RecordReader<T>;
+
+    writer(cognito: Cognito, photo: Photo): RecordWriter<T>;
 }
 
 export interface DBRecord<T> {
@@ -113,7 +126,7 @@ export class DynamoTable<T extends DBRecord<T>> {
             Item: await this.writer(obj)
         };
         const key = await this.makeKey(obj.id(), currentCognitoId);
-        Object.keys(key).forEach((name) =>{
+        Object.keys(key).forEach((name) => {
             params.Item[name] = key[name];
         });
         logger.debug(() => `Putting ${JSON.stringify(params)}`);

@@ -21,44 +21,60 @@ type LeafContent = {
 };
 
 export class Leaf implements DBRecord<Leaf> {
-    private static table: Promise<DynamoTable<Leaf>>;
-    static async createTable(cognito: Cognito, dynamo: Dynamo, photo: Photo): Promise<DynamoTable<Leaf>> {
-        if (!this.table) {
-            this.table = dynamo.createTable<Leaf>('LEAF', 'LEAF_ID', async (src: LeafRecord) => {
-                logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
-                if (!src) return null;
-                const result = new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT);
-                if (!result.photo(photo).exists()) return null;
-                return result;
-            }, async (obj) => {
-                const m: LeafRecord = {
-                    COGNITO_ID: (await cognito.identity).identityId,
-                    REPORT_ID: obj.reportId,
-                    LEAF_ID: obj.id(),
-                    CONTENT: obj.toMap()
-                };
-                return m;
+    private static _table: Promise<DynamoTable<Leaf>>;
+    static async table(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
+        if (!this._table) {
+            this._table = dynamo.createTable<Leaf>({
+                tableName: 'LEAF',
+                idColumnName: 'LEAF_ID',
+                reader: (cognito: Cognito, photo: Photo) => async (src: LeafRecord) => {
+                    logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
+                    if (!src) return null;
+                    const images = photo.images(src.REPORT_ID, src.LEAF_ID);
+                    if (!images.exists()) return null;
+                    return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT, images);
+                },
+                writer: (cognito: Cognito, photo: Photo) => async (obj) => {
+                    const m: LeafRecord = {
+                        COGNITO_ID: (await cognito.identity).identityId,
+                        REPORT_ID: obj.reportId,
+                        LEAF_ID: obj.id(),
+                        CONTENT: obj.toMap()
+                    };
+                    return m;
+                }
             });
         }
-        return this.table;
+        return this._table;
     }
 
-    static newEmpty(reportId: string): Leaf {
-        return new Leaf(reportId, createRandomKey(), {
-            labels: [],
-            description: null,
-            description_upper: null
-        });
+    static newEmpty(photo: Photo, reportId: string): Leaf {
+        const id = createRandomKey();
+        return new Leaf(
+            reportId,
+            id,
+            {
+                labels: [],
+                description: null,
+                description_upper: null
+            },
+            photo.images(reportId, id));
     }
 
     constructor(
         private reportId: string,
         private _id: string,
-        private content: LeafContent
+        private content: LeafContent,
+        public photo: Images
     ) {
         assert('reportId', reportId);
         assert('id', _id);
         assert('content', content);
+    }
+
+    get table(): Promise<DynamoTable<Leaf>> {
+        assert('Leaf$Table', Leaf._table);
+        return Leaf._table;
     }
 
     get labels(): Array<string> {
@@ -98,31 +114,22 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     clone(): Leaf {
-        return new Leaf(this.reportId, this._id, this.toMap());
+        return new Leaf(this.reportId, this._id, this.toMap(), this.photo);
     }
 
     async add() {
-        await (await Leaf.table).put(this);
+        await (await this.table).put(this);
     }
 
     async remove() {
-        const db = (await Leaf.table).remove(this.id());
-        if (this._images) await this._images.remove();
-        await db;
+        const db = (await this.table).remove(this.id());
+        const s3 = this.photo.remove();
+        await Promise.all([db, s3]);
     }
 
     async update(dst: Leaf) {
         if (this.isNeedUpdate(dst)) {
-            await (await Leaf.table).update(dst);
+            await (await this.table).update(dst);
         }
-    }
-
-    private _images: Images;
-
-    photo(photo: Photo): Images {
-        if (!this._images) {
-            this._images = photo.images(this.reportId, this.id())
-        }
-        return this._images;
     }
 }

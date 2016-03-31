@@ -23,7 +23,7 @@ export class ShowcaseComponent {
         private ab: AnimationBuilder,
         private s3file: S3File,
         private photoShop: PhotoShop,
-        public urlGenerator: Photo) { }
+        private urlGenerator: Photo) { }
 
     @Input() reportId: string;
     @Input() leaves: Array<Leaf>;
@@ -44,12 +44,11 @@ export class ShowcaseComponent {
         const url = this.photoShop.makeUrl(blob);
         logger.debug(() => `Photo URL: ${url}`);
 
-        const leaf = Leaf.newEmpty(this.reportId);
-        const photo = leaf.photo(this.urlGenerator);
-        photo.reduced.mainview.url = url;
+        const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
+        leaf.photo.reduced.mainview.url = url;
         this.leaves.push(leaf);
 
-        await this.s3file.upload(await photo.original.storagePath, blob);
+        await this.s3file.upload(await leaf.photo.original.storagePath, blob);
     }
 
     async deletePhoto(index: number) {

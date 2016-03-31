@@ -17,20 +17,14 @@ const PAGE_SIZE = 10;
 export class CachedReports {
     private static pagingList: Promise<PagingList<Report>>;
 
-    constructor(private cognito: Cognito, private dynamo: Dynamo, private photo: Photo) {
-        this.tableReport = Report.createTable(cognito, dynamo, photo);
-        this.tableLeaf = Leaf.createTable(cognito, dynamo, photo);
-    }
+    constructor(private cognito: Cognito, private dynamo: Dynamo, private photo: Photo) { }
 
     private async load() {
-        const table = await this.tableReport;
+        const table = await Report.table(this.dynamo);
         const pager = table.queryPager();
         logger.debug(() => `Creating PagingList from: ${pager}`);
         return new PagingList(pager, PAGE_SIZE);
     }
-
-    private tableReport: Promise<DynamoTable<Report>>;
-    private tableLeaf: Promise<DynamoTable<Leaf>>;
 
     private get pagingList(): Promise<PagingList<Report>> {
         if (!CachedReports.pagingList) {
