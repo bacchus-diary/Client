@@ -9,6 +9,16 @@ const logger = new Logger(CVision);
 
 const urlGCV = "https://vision.googleapis.com/v1/images:annotate";
 
+type FeaturesMap = {
+    FACE_DETECTION?: number,
+    LANDMARK_DETECTION?: number,
+    LOGO_DETECTION?: number,
+    LABEL_DETECTION?: number,
+    TEXT_DETECTION?: number,
+    SAFE_SEARCH_DETECTION?: number,
+    IMAGE_PROPERTIES?: number
+}
+
 type _Features = 'FACE_DETECTION' |
     'LANDMARK_DETECTION' |
     'LOGO_DETECTION' |
@@ -197,12 +207,17 @@ export const Likelihood = {
 export class CVision {
     constructor(private http: Http, private config: Configuration) { }
 
-    async request(base64image: string, features: _FeatureMaxResults[]): Promise<CVResponse> {
+    async request(base64image: string, features: FeaturesMap): Promise<CVResponse> {
         const url = `${urlGCV}?key=${(await this.config.server).googleBrowserKey}`;
         const request: CVRequest = {
             requests: [{
                 image: { content: base64image },
-                features: features
+                features: Object.keys(features).map((name) => {
+                    return {
+                        type: name as _Features,
+                        maxResults: features[name] as number
+                    }
+                })
             }]
         };
         const res = await toPromise(this.http.post(url, JSON.stringify(request), {

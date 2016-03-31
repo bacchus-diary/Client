@@ -4,6 +4,7 @@ import {Component, Input, ElementRef} from 'angular2/core';
 
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
+import {CVision, Likelihood} from '../../providers/cvision';
 import {PhotoShop} from '../../providers/photo_shop';
 import {FATHENS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
@@ -22,6 +23,7 @@ export class ShowcaseComponent {
         private nav: NavController,
         private ab: AnimationBuilder,
         private s3file: S3File,
+        private cvision: CVision,
         private photoShop: PhotoShop,
         private urlGenerator: Photo) { }
 
@@ -38,17 +40,64 @@ export class ShowcaseComponent {
         }
     }
 
+    private async readPhoto(leaf: Leaf, base64image: string): Promise<boolean> {
+        const annon = await this.cvision.request(base64image, {
+            LABEL_DETECTION: 10,
+            LOGO_DETECTION: 3,
+            TEXT_DETECTION: 10,
+            SAFE_SEARCH_DETECTION: 1
+        });
+        if (annon.responses.length > 0) {
+            const res = annon.responses[0];
+            const safe = res.safeSearchAnnotation;
+            const guides = [safe.adult, safe.medical, safe.violence];
+            if (_.some(guides, (value) => Likelihood.POSSIBLE < Likelihood[value])) {
+                return false;
+            } else {
+                const logo = res.logoAnnotations.map((x) => x.description).join("\n");
+                const text = res.textAnnotations.map((x) => x.description).join("\n");
+                leaf.description = _.compact([logo, text]).join("\n\n");
+                leaf.labels = res.labelAnnotations.map((x) => x.description);
+            }
+        }
+        return true;
+    }
+
     async addPhoto() {
-        const dataString = await this.photoShop.photo(true);
-        const blob = this.photoShop.decodeBase64(dataString);
+        const base64image = await this.photoShop.photo(true);
+        const blob = this.photoShop.decodeBase64(base64image);
         const url = this.photoShop.makeUrl(blob);
         logger.debug(() => `Photo URL: ${url}`);
 
         const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
         leaf.photo.reduced.mainview.url = url;
-        this.leaves.push(leaf);
+        const index = this.leaves.push(leaf) - 1;
+        try {
+            this.swiper.lockSwipes();
+            this.swiper.update();
 
-        await this.s3file.upload(await leaf.photo.original.storagePath, blob);
+            const isSafe = await this.readPhoto(leaf, base64image);
+            if (isSafe) {
+                await this.s3file.upload(await leaf.photo.original.storagePath, blob);
+            } else {
+                await new Promise<void>((resolve, reject) => {
+                    this.nav.present(Alert.create({
+                        title: 'Delete Photo',
+                        message: 'This photo is seems to be inappropriate',
+                        buttons: [{
+                            text: 'Delete',
+                            handler: async (data) => {
+                                await this.doDeletePhoto(index);
+                                this.leaves.splice(index, 1);
+                                resolve();
+                            }
+                        }]
+                    }));
+                });
+            }
+        } finally {
+            this.swiper.unlockSwipes();
+        }
     }
 
     async deletePhoto(index: number) {
@@ -186,4 +235,13 @@ interface Swiper {
     mySwiper.removeSlide([0, 1]); //remove first and second slides
     */
     removeSlide(slideIndex: number | Array<number>);
+
+    /**
+    Disable (lock) ability to change slides
+    */
+    lockSwipes();
+    /**
+    Enable (unlock) ability to change slides
+    */
+    unlockSwipes();
 }
