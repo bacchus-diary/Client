@@ -2,8 +2,11 @@ import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, ElementRef} from 'angular2/core';
 
-import {Leaf} from '../../model/report';
-import {PhotoShop} from '../../util/photo_shop';
+import {S3File} from '../../providers/aws/s3file';
+import {Photo} from '../../providers/reports/photo';
+import {PhotoShop} from '../../providers/photo_shop';
+import {FATHENS} from '../../providers/all';
+import {Leaf} from '../../model/leaf';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
@@ -11,11 +14,18 @@ const logger = new Logger(ShowcaseComponent);
 @Component({
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
-    directives: [IONIC_DIRECTIVES]
+    directives: [IONIC_DIRECTIVES],
+    providers: [FATHENS]
 })
 export class ShowcaseComponent {
-    constructor(private nav: NavController, private ab: AnimationBuilder) { }
+    constructor(
+        private nav: NavController,
+        private ab: AnimationBuilder,
+        private s3file: S3File,
+        private photoShop: PhotoShop,
+        private urlGenerator: Photo) { }
 
+    @Input() reportId: string;
     @Input() leaves: Array<Leaf>;
     @Input() slideSpeed: number = 300;
     @Input() confirmDelete: boolean = true;
@@ -29,16 +39,25 @@ export class ShowcaseComponent {
     }
 
     async addPhoto() {
-        const dataString = await PhotoShop.photo(true);
-        const leaf = new Leaf();
-        const url = PhotoShop.makeUrl(PhotoShop.decodeBase64(dataString));
+        const dataString = await this.photoShop.photo(true);
+        const blob = this.photoShop.decodeBase64(dataString);
+        const url = this.photoShop.makeUrl(blob);
         logger.debug(() => `Photo URL: ${url}`);
+
+        const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
+        leaf.photo.reduced.mainview.url = url;
         this.leaves.push(leaf);
+
+        await this.s3file.upload(await leaf.photo.original.storagePath, blob);
     }
 
     async deletePhoto(index: number) {
         const ok = await this.confirmDeletion();
-        if (ok) this.doDeletePhoto(index);
+        if (ok) {
+            await this.doDeletePhoto(index);
+            const leaf = this.leaves.splice(index, 1)[0];
+            await leaf.remove();
+        }
     }
 
     private confirmDeletion(): Promise<boolean> {
@@ -67,7 +86,7 @@ export class ShowcaseComponent {
         });
     }
 
-    private doDeletePhoto(index: number) {
+    private async doDeletePhoto(index: number) {
         logger.debug(() => `Deleting photo: ${index}`);
 
         const getChild = (className: string) => {
@@ -85,27 +104,30 @@ export class ShowcaseComponent {
         logger.debug(() => `Animate target: ${target}`);
 
         if (floating != null && target != null) {
-            floating.style.display = 'none';
+            return new Promise<void>((resolve, reject) => {
+                floating.style.display = 'none';
 
-            const height = target.offsetHeight;
-            const dur = this.slideSpeed * 2;
-            const animation = this.ab.css();
+                const height = target.offsetHeight;
+                const dur = this.slideSpeed * 2;
+                const animation = this.ab.css();
 
-            animation.setFromStyles({ opacity: '1' });
-            animation.setToStyles({ opacity: '0', transform: `translateY(${height}px)` });
-            animation.setDuration(dur);
-            animation.start(target);
-            logger.debug(() => `Animation started: ${height}px in ${dur}ms`);
+                animation.setFromStyles({ opacity: '1' });
+                animation.setToStyles({ opacity: '0', transform: `translateY(${height}px)` });
+                animation.setDuration(dur);
+                animation.start(target);
+                logger.debug(() => `Animation started: ${height}px in ${dur}ms`);
 
-            setTimeout(() => {
-                this.slideNext();
-            }, dur / 2);
+                setTimeout(() => {
+                    this.slideNext();
+                }, dur / 2);
 
-            setTimeout(() => {
-                this.swiper.removeSlide(index);
-                this.leaves.splice(index, 1);
-                this.swiper.update();
-            }, dur);
+                setTimeout(() => {
+                    this.swiper.removeSlide(index);
+                    this.leaves.splice(index, 1);
+                    this.swiper.update();
+                    resolve();
+                }, dur);
+            });
         }
     }
 
