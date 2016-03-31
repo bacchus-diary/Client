@@ -187,14 +187,14 @@ export class Report implements DBRecord<Report> {
         const notIncluded = (list: Array<X>) => (x: X) => _.every(list, (y) => y.id() != x.id());
         const parted = _.partition(dst, notIncluded(src));
         return {
-            common: parted[0].map((d) => {
+            common: parted[1].map((d) => {
                 const s = _.find(src, (x) => x.id() == d.id());
                 return {
                     src: s,
                     dst: d
                 };
             }),
-            onlyDst: parted[1],
+            onlyDst: parted[0],
             onlySrc: _.filter(src, notIncluded(dst))
         };
     }
