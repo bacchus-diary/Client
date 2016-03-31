@@ -27,11 +27,6 @@ type _Features = 'FACE_DETECTION' |
     'SAFE_SEARCH_DETECTION' |
     'IMAGE_PROPERTIES';
 
-type _FeatureMaxResults = {
-    type: _Features,
-    maxResults: number
-}
-
 type CVRequest = {
     requests: [
         {
@@ -41,7 +36,10 @@ type CVRequest = {
                     gcs_image_uri: string
                 }
             },
-            features: _FeatureMaxResults[],
+            features: {
+                type: _Features,
+                maxResults: number
+            }[],
             imageContext?: {
                 latLongRect: {
                     minLatLng: _LatLng,

@@ -59,8 +59,8 @@ export class ShowcaseComponent {
                     return false;
                 }
 
-                const logo = (res.logoAnnotations || []).map((x) => x.description).join("\n");
-                const text = (res.textAnnotations || []).map((x) => x.description).join("\n");
+                const logo = (_.head(res.logoAnnotations) || {} as any).description;
+                const text = (_.head(res.textAnnotations) || {} as any).description;
                 logger.debug(() => `Texts on photo: ${JSON.stringify({ logo: logo, text: text })}`);
 
                 leaf.description = _.compact([logo, text]).join("\n\n");
