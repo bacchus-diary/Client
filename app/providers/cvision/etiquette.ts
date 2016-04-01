@@ -79,9 +79,7 @@ export class Etiquette {
     }
 
     writeContent(leaf: Leaf) {
-        const keywords = this.sortedKeywords();
-        leaf.title = _.head(keywords);
-        leaf.keywords = keywords;
+        leaf.keywords = this.sortedKeywords();
         leaf.labels = _.compact((this.src.labelAnnotations || []).map((x) => x.description));
         leaf.description = _.compact([
             this.logo.join("\n"),

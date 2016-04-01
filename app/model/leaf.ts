@@ -15,7 +15,6 @@ type LeafRecord = {
     CONTENT: LeafContent
 };
 type LeafContent = {
-    title: string,
     labels: string[],
     keywords: string[],
     description: string,
@@ -56,7 +55,6 @@ export class Leaf implements DBRecord<Leaf> {
             reportId,
             id,
             {
-                title: null,
                 labels: [],
                 keywords: [],
                 description: null,
@@ -83,14 +81,6 @@ export class Leaf implements DBRecord<Leaf> {
 
     loadContent(dst: LeafContent) {
         this.content = dst;
-    }
-
-    get title(): string {
-        return this.content.title || "";
-    }
-    set title(v: string) {
-        assert('title', v);
-        this.content.title = v;
     }
 
     get labels(): Array<string> {
@@ -127,7 +117,6 @@ export class Leaf implements DBRecord<Leaf> {
 
     toMap(): LeafContent {
         return {
-            title: this.title.length > 0 ? this.title : null,
             labels: this.labels.map(_.identity),
             keywords: this.keywords.map(_.identity),
             description: this.description.length > 0 ? this.description : null,
