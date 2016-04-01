@@ -8,13 +8,13 @@ import {Logger} from '../util/logging';
 
 const logger = new Logger(Leaf);
 
-export type LeafRecord = {
+type LeafRecord = {
     COGNITO_ID: string,
     REPORT_ID: string,
     LEAF_ID: string,
     CONTENT: LeafContent
 };
-export type LeafContent = {
+type LeafContent = {
     title: string,
     labels: string[],
     keywords: string[],
@@ -118,7 +118,7 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     toString(): string {
-        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap())}`;
+        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap(), null, 4)}`;
     }
 
     id(): string {

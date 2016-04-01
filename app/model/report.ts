@@ -9,14 +9,14 @@ import {Logger} from '../util/logging';
 
 const logger = new Logger(Report);
 
-export type ReportRecord = {
+type ReportRecord = {
     COGNITO_ID: string,
     REPORT_ID: string,
     DATE_AT: number,
     CONTENT: ReportContent
 };
 
-export type ReportContent = {
+type ReportContent = {
     LEAF_INDEXES: string[],
     rating: number,
     comment: string,
@@ -128,7 +128,7 @@ export class Report implements DBRecord<Report> {
     }
 
     public toString(): string {
-        return `REPORT_ID: ${this.id()}, DATE_AT: ${this.dateAt}, ${JSON.stringify(this.toMap())}`;
+        return `REPORT_ID: ${this.id()}, DATE_AT: ${this.dateAt}, ${JSON.stringify(this.toMap(), null, 4)}`;
     }
 
     id(): string {

@@ -1,6 +1,6 @@
 import {Injectable} from 'angular2/core';
 
-import {LeafContent} from '../../model/leaf';
+import {Leaf} from '../../model/leaf';
 import * as GCV from './gcv.d';
 import {CVision} from './cvision';
 import {Logger} from '../../util/logging';
@@ -78,21 +78,15 @@ export class Etiquette {
         return _.flatten([this.logo, _.compact(topGroup.map((e) => e.text.description))]);
     }
 
-    makeContent(): LeafContent {
-        const desc = _.compact([
+    writeContent(leaf: Leaf) {
+        const keywords = this.sortedKeywords();
+        leaf.title = _.head(keywords);
+        leaf.keywords = keywords;
+        leaf.labels = _.compact((this.src.labelAnnotations || []).map((x) => x.description));
+        leaf.description = _.compact([
             this.logo.join("\n"),
             description(_.head(this.src.textAnnotations))
         ]).join("\n\n");
-
-        const keywords = this.sortedKeywords();
-        const content = {
-            title: _.head(keywords),
-            keywords: keywords,
-            labels: _.compact((this.src.labelAnnotations || []).map((x) => x.description)),
-            description: desc,
-            description_upper: desc.toUpperCase()
-        };
-        logger.debug(() => `Made content by etiquette: ${JSON.stringify(content, null, 4)}`);
-        return content;
+        logger.debug(() => `Leaf by etiquette: ${leaf}`);
     }
 }

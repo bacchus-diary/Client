@@ -40,17 +40,6 @@ export class ShowcaseComponent {
         }
     }
 
-    private async readPhoto(leaf: Leaf, base64image: string): Promise<boolean> {
-        try {
-            const etiquette = await this.etiquetteVision.read(base64image);
-            if (!etiquette.isSafe()) return false;
-            leaf.loadContent(etiquette.makeContent());
-        } catch (ex) {
-            logger.warn(() => `Error on requesting cvision: ${ex}`);
-        }
-        return true;
-    }
-
     async addPhoto() {
         try {
             this.swiper.lockSwipes();
@@ -65,8 +54,9 @@ export class ShowcaseComponent {
             const index = this.leaves.push(leaf) - 1;
             this.swiper.update();
 
-            const isSafe = await this.readPhoto(leaf, base64image);
-            if (isSafe) {
+            const etiquette = await this.etiquetteVision.read(base64image);
+            if (etiquette.isSafe()) {
+                etiquette.writeContent(leaf);
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
             } else {
                 await new Promise<void>((resolve, reject) => {
