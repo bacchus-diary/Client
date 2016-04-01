@@ -9,14 +9,14 @@ import {Logger} from '../util/logging';
 
 const logger = new Logger(Report);
 
-type ReportRecord = {
+export type ReportRecord = {
     COGNITO_ID: string,
     REPORT_ID: string,
     DATE_AT: number,
     CONTENT: ReportContent
 };
 
-type ReportContent = {
+export type ReportContent = {
     LEAF_INDEXES: string[],
     rating: number,
     comment: string,

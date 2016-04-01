@@ -4,7 +4,7 @@ import {Component, Input, ElementRef} from 'angular2/core';
 
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
-import {CVision, Likelihood} from '../../providers/cvision/cvision';
+import {EtiquetteVision} from '../../providers/cvision/etiquette';
 import {PhotoShop} from '../../providers/photo_shop';
 import {FATHENS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
@@ -23,7 +23,7 @@ export class ShowcaseComponent {
         private nav: NavController,
         private ab: AnimationBuilder,
         private s3file: S3File,
-        private cvision: CVision,
+        private etiquetteVision: EtiquetteVision,
         private photoShop: PhotoShop,
         private urlGenerator: Photo) { }
 
@@ -42,30 +42,9 @@ export class ShowcaseComponent {
 
     private async readPhoto(leaf: Leaf, base64image: string): Promise<boolean> {
         try {
-            const annon = await this.cvision.request(base64image, {
-                LABEL_DETECTION: 10,
-                LOGO_DETECTION: 3,
-                TEXT_DETECTION: 10,
-                SAFE_SEARCH_DETECTION: 1
-            });
-            logger.debug(() => `Read photo: ${JSON.stringify(annon, null, 4)}`)
-            if (annon.responses.length > 0) {
-                const res = annon.responses[0];
-
-                const safe = res.safeSearchAnnotation;
-                const guides = [safe.adult, safe.medical, safe.violence];
-                logger.debug(() => `Checking safety: ${guides}`);
-                if (_.some(guides, (value) => Likelihood.POSSIBLE < Likelihood[value])) {
-                    return false;
-                }
-
-                const logo = (_.head(res.logoAnnotations) || {} as any).description;
-                const text = (_.head(res.textAnnotations) || {} as any).description;
-                logger.debug(() => `Texts on photo: ${JSON.stringify({ logo: logo, text: text })}`);
-
-                leaf.description = _.compact([logo, text]).join("\n\n");
-                leaf.labels = (res.labelAnnotations || []).map((x) => x.description);
-            }
+            const etiquette = await this.etiquetteVision.read(base64image);
+            if (!etiquette.isSafe()) return false;
+            leaf.loadContent(etiquette.makeContent());
         } catch (ex) {
             logger.warn(() => `Error on requesting cvision: ${ex}`);
         }

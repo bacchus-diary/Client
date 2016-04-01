@@ -20,17 +20,27 @@ type FeaturesMap = {
     IMAGE_PROPERTIES?: number
 }
 
-export const Likelihood = {
-    UNKNOWN: 0,
-    VERY_UNLIKELY: 1,
-    UNLIKELY: 2,
-    POSSIBLE: 3,
-    LIKELY: 4,
-    VERY_LIKELY: 5
-}
-
 @Injectable()
 export class CVision {
+    static likelihood(str: GCV.Likelihood): number {
+        return {
+            UNKNOWN: 0,
+            VERY_UNLIKELY: 1,
+            UNLIKELY: 2,
+            POSSIBLE: 3,
+            LIKELY: 4,
+            VERY_LIKELY: 5
+        }[str];
+    }
+
+    static areaVertices(vertices: GCV.Vertix[]): number {
+        return _.reduce(_.range(1, vertices.length), (sum, index) => {
+            const pre = vertices[index - 1];
+            const cur = vertices[index];
+            return sum + (pre.x - cur.x) * (pre.y + cur.y);
+        }, 0) / 2;
+    }
+
     constructor(private http: Http, private config: Configuration) { }
 
     async request(base64image: string, features: FeaturesMap): Promise<GCV.Response> {

@@ -14,39 +14,39 @@ export type Feature = {
 }
 
 export type Request = {
-    requests: [
-        {
-            image: {
-                content?: string, // BASE64
-                source?: {
-                    gcs_image_uri: string
-                }
-            },
-            features: Feature[],
-            imageContext?: {
-                latLongRect: {
-                    minLatLng: LatLng,
-                    maxLatLng: LatLng
-                },
-                languageHints: string[]
-            }
+    requests: AnnotateImageRequest[]
+}
+
+export type AnnotateImageRequest = {
+    image: {
+        content?: string, // BASE64
+        source?: {
+            gcs_image_uri: string
         }
-    ]
+    },
+    features: Feature[],
+    imageContext?: {
+        latLongRect: {
+            minLatLng: LatLng,
+            maxLatLng: LatLng
+        },
+        languageHints: string[]
+    }
 }
 
 export type Response = {
-    responses: [
-        {
-            faceAnnotations: FaceAnnotation[],
-            landmarkAnnotations: EntityAnnotation[],
-            logoAnnotations: EntityAnnotation[],
-            labelAnnotations: EntityAnnotation[],
-            textAnnotations: EntityAnnotation[],
-            safeSearchAnnotation: SafeSearchAnnotation,
-            imagePropertiesAnnotation: ImageProperties[],
-            error: Status[]
-        }
-    ]
+    responses: AnnotateImageResponse[]
+}
+
+export type AnnotateImageResponse = {
+    faceAnnotations: FaceAnnotation[],
+    landmarkAnnotations: EntityAnnotation[],
+    logoAnnotations: EntityAnnotation[],
+    labelAnnotations: EntityAnnotation[],
+    textAnnotations: EntityAnnotation[],
+    safeSearchAnnotation: SafeSearchAnnotation,
+    imagePropertiesAnnotation: ImageProperties[],
+    error: Status[]
 }
 
 export type LatLng = {
