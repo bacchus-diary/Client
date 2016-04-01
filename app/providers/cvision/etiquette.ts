@@ -49,7 +49,7 @@ export class Etiquette {
         return (this.src.logoAnnotations || []).map((x) => x.description);
     }
 
-    sortedKeywords(): Array<string> {
+    get keywords(): Array<string> {
         const list = _.tail(this.src.textAnnotations || []);
         const aread = _.compact(list.map((t) => {
             if (!t.boundingPoly || !t.description) return null;
@@ -79,7 +79,7 @@ export class Etiquette {
     }
 
     writeContent(leaf: Leaf) {
-        leaf.keywords = this.sortedKeywords();
+        leaf.keywords = this.keywords;
         leaf.labels = _.compact((this.src.labelAnnotations || []).map((x) => x.description));
         leaf.description = _.compact([
             this.logo.join("\n"),
