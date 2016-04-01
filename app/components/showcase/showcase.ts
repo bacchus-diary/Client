@@ -32,6 +32,7 @@ export class ShowcaseComponent {
     @Input() leaves: Array<Leaf>;
     @Input() slideSpeed: number = 300;
     @Input() confirmDelete: boolean = true;
+    @Input() onUpdate: () => Promise<void>;
 
     private swiper: Swiper;
     swiperOptions = {
@@ -59,6 +60,7 @@ export class ShowcaseComponent {
             if (etiquette.isSafe()) {
                 etiquette.writeContent(leaf);
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
+                if (this.onUpdate) this.onUpdate();
             } else {
                 await new Promise<void>((resolve, reject) => {
                     this.nav.present(Alert.create({
@@ -86,6 +88,7 @@ export class ShowcaseComponent {
         if (ok) {
             const leaf = await this.doDeletePhoto(index);
             await leaf.remove();
+            if (this.onUpdate) this.onUpdate();
         }
     }
 
