@@ -41,28 +41,58 @@ export class Etiquette {
             medical: 'POSSIBLE'
         };
         const safe = this.src.safeSearchAnnotation;
-        return _.every(Object.keys(maximum), (name) => CVision.likelihood[safe[name]] <= CVision.likelihood[maximum[name]]);
+        logger.info(() => `Checking safety: ${JSON.stringify(safe)} with ${JSON.stringify(maximum)}`);
+        return _.every(Object.keys(maximum), (name) => CVision.likelihood(safe[name]) <= CVision.likelihood(maximum[name]));
+    }
+
+    get logo(): Array<string> {
+        return (this.src.logoAnnotations || []).map((x) => x.description);
+    }
+
+    sortedKeywords(): Array<string> {
+        const list = _.tail(this.src.textAnnotations || []);
+        const aread = _.compact(list.map((t) => {
+            if (!t.boundingPoly || !t.description) return null;
+            const area = CVision.areaVertices(t.boundingPoly.vertices || []);
+            return {
+                text: t,
+                area: area / t.description.length
+            };
+        }));
+        if (aread.length < 1) return [];
+
+        const sorted = _.sortBy(aread.reverse(), (t) => t.area).reverse();
+
+        const max = _.head(sorted).area;
+        const min = _.last(sorted).area;
+        const limit = min + (max - min) * 0.2;
+
+        const topGroup = _.filter(sorted, (t) => {
+            if (t.area < limit) return false;
+            if ([/^[^\w]+$/, /^\d{1,4}$/, /^\w{1,2}$/].some((regex) => regex.test(t.text.description))) return false;
+            if (t.text.description.replace(/[^\w]/, '').length < 2) return false;
+            return true;
+        });
+        logger.debug(() => `Reduced keywords: ${JSON.stringify(topGroup)}\nfrom: ${JSON.stringify(sorted)}`);
+
+        return _.flatten([this.logo, _.compact(topGroup.map((e) => e.text.description))]);
     }
 
     makeContent(): LeafContent {
-        const sorted = _.sortBy(this.src.textAnnotations || [], (t) => {
-            if (!t.boundingPoly || !t.description) return 0;
-            const area = CVision.areaVertices(t.boundingPoly.vertices || []);
-            return area / t.description.length;
-        });
-        const keywords = _.compact(sorted.map((e) => e.description));
+        const desc = _.compact([
+            this.logo.join("\n"),
+            description(_.head(this.src.textAnnotations))
+        ]).join("\n\n");
 
-        const logo = description(_.head(this.src.logoAnnotations));
-        const text = description(_.head(this.src.textAnnotations));
-        logger.debug(() => `Texts on photo: ${JSON.stringify({ logo: logo, text: text })}`);
-        const desc = _.compact([logo, text]).join("\n\n");
-
-        return {
+        const keywords = this.sortedKeywords();
+        const content = {
             title: _.head(keywords),
             keywords: keywords,
             labels: _.compact((this.src.labelAnnotations || []).map((x) => x.description)),
             description: desc,
             description_upper: desc.toUpperCase()
         };
+        logger.debug(() => `Made content by etiquette: ${JSON.stringify(content, null, 4)}`);
+        return content;
     }
 }
