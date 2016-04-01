@@ -34,11 +34,12 @@ export class CVision {
     }
 
     static areaVertices(vertices: GCV.Vertix[]): number {
-        return _.reduce(_.range(1, vertices.length), (sum, index) => {
-            const pre = vertices[index - 1];
+        const sum = _.reduce(_.range(vertices.length), (sum, index) => {
+            const pre = vertices[(index > 0 ? index : vertices.length) - 1];
             const cur = vertices[index];
             return sum + (pre.x - cur.x) * (pre.y + cur.y);
-        }, 0) / 2;
+        }, 0);
+        return Math.abs(sum) / 2;
     }
 
     constructor(private http: Http, private config: Configuration) { }
