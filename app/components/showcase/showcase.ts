@@ -57,8 +57,8 @@ export class ShowcaseComponent {
             this.swiper.update();
 
             const etiquette = await this.etiquetteVision.read(base64image);
-            if (etiquette.isSafe()) {
-                etiquette.writeContent(leaf);
+            if (!etiquette || etiquette.isSafe()) {
+                if (etiquette) etiquette.writeContent(leaf);
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
                 if (this.onUpdate) this.onUpdate();
             } else {
