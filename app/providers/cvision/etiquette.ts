@@ -55,8 +55,8 @@ export class Etiquette {
             if (!t.boundingPoly || !t.description) return null;
             const area = CVision.areaVertices(t.boundingPoly.vertices || []);
             return {
-                text: t,
-                area: area / t.description.length
+                area: area / t.description.length,
+                text: t
             };
         }));
         if (aread.length < 1) return [];
@@ -73,7 +73,7 @@ export class Etiquette {
             if (t.text.description.replace(/[^\w]/, '').length < 2) return false;
             return true;
         });
-        logger.debug(() => `Reduced keywords: ${JSON.stringify(topGroup)}\nfrom: ${JSON.stringify(sorted)}`);
+        logger.debug(() => `Reduced keywords: ${JSON.stringify(topGroup, null, 4)}\nfrom: ${JSON.stringify(sorted, null, 4)}`);
 
         return _.flatten([this.logo, _.compact(topGroup.map((e) => e.text.description))]);
     }
