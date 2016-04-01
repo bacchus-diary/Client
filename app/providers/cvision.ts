@@ -206,6 +206,8 @@ export class CVision {
     constructor(private http: Http, private config: Configuration) { }
 
     async request(base64image: string, features: FeaturesMap): Promise<CVResponse> {
+        logger.debug(() => `CVision request: ${features}`);
+
         const url = `${urlGCV}?key=${(await this.config.server).googleBrowserKey}`;
         const request: CVRequest = {
             requests: [{
@@ -218,11 +220,7 @@ export class CVision {
                 })
             }]
         };
-        logger.debug(() => `CVision request: ${JSON.stringify(request.requests.map((x) => x.features))}`);
-
-        const res = await toPromise(this.http.post(url, JSON.stringify(request), {
-            headers: new Headers({ 'Content-Type': 'application/json' })
-        }));
+        const res = await toPromise(this.http.post(url, JSON.stringify(request)));
 
         logger.debug(() => `CVision response: ${res.status}`);
         return res.json();
