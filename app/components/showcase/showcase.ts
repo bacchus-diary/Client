@@ -4,7 +4,7 @@ import {Component, Input, ElementRef} from 'angular2/core';
 
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
-import {CVision, Likelihood} from '../../providers/cvision';
+import {CVision, Likelihood} from '../../providers/cvision/cvision';
 import {PhotoShop} from '../../providers/photo_shop';
 import {FATHENS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
