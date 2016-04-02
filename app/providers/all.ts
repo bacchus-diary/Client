@@ -10,8 +10,12 @@ import {Photo} from './reports/photo';
 import {PhotoShop} from './photo_shop';
 import {CVision} from './cvision/cvision';
 import {EtiquetteVision} from './cvision/etiquette';
+import {Suggestions} from './suggestions/suggestions';
+import {AmazonPAA} from './suggestions/amazon_paa';
 
 export const FATHENS = [
+    AmazonPAA,
+    Suggestions,
     BootSettings,
     Configuration,
     S3File,
