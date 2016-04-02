@@ -4,6 +4,7 @@ import {RatingComponent} from '../../components/rating/rating';
 import {ShowcaseComponent} from '../../components/showcase/showcase';
 import {FATHENS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
+import {Suggestions, Product} from '../../providers/suggestions/suggestions';
 import {Report} from '../../model/report';
 import {Logger} from '../../util/logging';
 
@@ -15,13 +16,19 @@ const logger = new Logger(ReportDetailPage);
     providers: [FATHENS]
 })
 export class ReportDetailPage {
-    constructor(private nav: NavController, private params: NavParams, private cachedReports: CachedReports) {
+    constructor(
+        private nav: NavController,
+        private params: NavParams,
+        private cachedReports: CachedReports,
+        private suggestions: Suggestions
+    ) {
         const report: Report = params.get('report');
         this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
     }
 
     report: Report;
+    products: Array<Product>;
 
     async onPageWillLeave() {
         await this.update();
@@ -49,6 +56,10 @@ export class ReportDetailPage {
                 }
             ]
         }));
+    }
+
+    async updateLeaves() {
+        this.products = await this.suggestions.upon(this.report);
     }
 
     private async update() {

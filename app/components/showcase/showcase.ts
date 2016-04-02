@@ -1,6 +1,6 @@
 import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
-import {Component, Input, ElementRef} from 'angular2/core';
+import {Component, Input, Output, ElementRef, EventEmitter} from 'angular2/core';
 
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
@@ -32,7 +32,7 @@ export class ShowcaseComponent {
     @Input() leaves: Array<Leaf>;
     @Input() slideSpeed: number = 300;
     @Input() confirmDelete: boolean = true;
-    @Input() onUpdate: () => Promise<void>;
+    @Output() update = new EventEmitter<void>();
 
     private swiper: Swiper;
     swiperOptions = {
@@ -60,7 +60,7 @@ export class ShowcaseComponent {
             if (!etiquette || etiquette.isSafe()) {
                 if (etiquette) etiquette.writeContent(leaf);
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
-                if (this.onUpdate) this.onUpdate();
+                if (this.update) this.update.emit(null);
             } else {
                 await new Promise<void>((resolve, reject) => {
                     this.nav.present(Alert.create({
@@ -88,7 +88,7 @@ export class ShowcaseComponent {
         if (ok) {
             const leaf = await this.doDeletePhoto(index);
             await leaf.remove();
-            if (this.onUpdate) this.onUpdate();
+            if (this.update) this.update.emit(null);
         }
     }
 
