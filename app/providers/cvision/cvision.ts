@@ -1,5 +1,5 @@
 import {Injectable} from 'angular2/core';
-import {Http, Headers} from 'angular2/http';
+import {Http} from 'angular2/http';
 
 import * as GCV from './gcv.d';
 import {Configuration} from '../config/configuration';

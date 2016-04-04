@@ -4,7 +4,6 @@
   "ambientDependencies": {
     "aws-sdk": "registry:dt/aws-sdk#0.0.0+20160316155526",
     "js-yaml": "registry:dt/js-yaml#3.5.2+20160316171810",
-    "lodash": "registry:dt/lodash#3.10.0+20160330154726",
-    "x2js/xml2json": "registry:dt/x2js/xml2json#0.0.0+20160316155526"
+    "lodash": "registry:dt/lodash#3.10.0+20160330154726"
   }
 }

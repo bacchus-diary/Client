@@ -25,6 +25,7 @@ export class ReportDetailPage {
         const report: Report = params.get('report');
         this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
+        this.updateLeaves();
     }
 
     report: Report;
