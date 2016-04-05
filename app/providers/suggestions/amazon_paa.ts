@@ -49,8 +49,6 @@ let gateway: Promise<ApiGateway<Document>>;
 let invoking: Promise<Document> = null;
 const INTERVAL = 5000; // 5 seconds
 
-const storage = new CacheStorage('amazon_paa', 7 * 24 * 60 * 60 * 1000) // 7 days
-
 @Injectable()
 export class AmazonPAA {
     constructor(private http: Http, private settings: BootSettings, private config: Configuration) {
@@ -68,6 +66,25 @@ export class AmazonPAA {
             ));
         }
     }
+
+    private storage = new CacheStorage('amazon_paa', 'item_search', 7 * 24 * 60 * 60 * 1000, {
+        keywords: '',
+        pageIndex: 0
+    }, async (keys): Promise<Array<Product>> => {
+        const xml = await this.invoke({
+            Operation: 'ItemSearch',
+            SearchIndex: 'All',
+            ResponseGroup: 'Images,ItemAttributes,OfferSummary',
+            Keywords: keys.keywords,
+            Availability: 'Available',
+            ItemPage: `${keys.pageIndex}`
+        });
+
+        const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
+        logger.debug(() => `PAA Items by '${keys.keywords}': ${elms.length}`);
+
+        return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
+    });
 
     async invoke(params: { [key: string]: string; }): Promise<Document> {
         let waiting = null;
@@ -89,21 +106,7 @@ export class AmazonPAA {
     }
 
     async itemSearch(keywords: string, pageIndex: number): Promise<Array<Product>> {
-        return storage.get('itemSearch', { keywords: keywords, pageIndex: pageIndex }, async () => {
-            const xml = await this.invoke({
-                Operation: 'ItemSearch',
-                SearchIndex: 'All',
-                ResponseGroup: 'Images,ItemAttributes,OfferSummary',
-                Keywords: keywords,
-                Availability: 'Available',
-                ItemPage: `${pageIndex}`
-            });
-
-            const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
-            logger.debug(() => `PAA Items by '${keywords}': ${elms.length}`);
-
-            return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
-        });
+        return this.storage.get({ keywords: keywords, pageIndex: pageIndex });
     }
 
     private toProduct(item: Element): Product {

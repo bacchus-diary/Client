@@ -4,72 +4,91 @@ import {Logger} from './logging';
 
 const logger = new Logger(CacheStorage);
 
-export class CacheStorage {
-    constructor(private storageName: string, private maxAge: number) { }
+type KeyTypes = { [key: string]: ColumnType; };
+
+type ColumnType = string | number;
+
+function columnType(v: ColumnType): string {
+    return {
+        string: 'TEXT',
+        number: 'INTEGER'
+    }[typeof v];
+}
+
+function quote(v: ColumnType): string {
+    return ('string' == typeof v) ? `'${v}'` : v.toString();
+}
+
+export class CacheStorage<K, T> {
+    constructor(
+        private storageName: string,
+        private tableName: string,
+        private maxAge: number,
+        keys: K,
+        private getter: (keys: K) => Promise<T>
+    ) {
+        const c = this.makeRecord(keys);
+
+        const columns = Object.keys(c).map((name) => `${name} ${columnType(c[name])}`).join(', ');
+        this.query(`CREATE TABLE IF NOT EXISTS ${tableName} (${columns})`);
+    }
 
     private storage = new Storage(SqlStorage, { name: this.storageName });
 
-    async get<T>(tableName, keys: { [key: string]: string | number; }, getter: () => Promise<T>): Promise<T> {
-        const quote = (v: string | number): string => {
-            return ('string' == typeof v) ? `'${v}'` : v.toString();
+    private makeRecord(keys: K, obj?: any): any {
+        const c = {
+            timestamp: new Date().getTime(),
+            json: JSON.stringify(obj || {}).replace(/'/g, "''")
         }
-        const query = async (sql: string, values?: any[]): Promise<any> => {
-            try {
-                logger.debug(() => `Querying to SqlStorage: ${sql} (with: ${values})`);
-                const r = await this.storage.query(sql, values);
-                logger.debug(() => `Result of SQL: ${JSON.stringify(r)}`);
-                return r.res;
-            } catch (ex) {
-                logger.warn(() => `Failed to SQL: ${JSON.stringify(ex)}`);
-                throw ex;
-            }
-        }
-        const getCache = async (): Promise<T> => {
-            const constraint = Object.keys(keys).map((name) => `${name} = ?`).join(' AND ');
-            const sql = `SELECT * FROM ${tableName} WHERE ${constraint}`;
-            const values = Object.keys(keys).map((name) => quote(keys[name]));
+        return _.merge(c, keys);
+    }
 
-            const found = await query(sql, values);
-            if (found.length > 0) {
-                const record = found[0];
-                const timeLimit = new Date().getTime() + this.maxAge;
-                if (record.timestamp < timeLimit) {
-                    return JSON.parse(record.json);
-                }
-                await query(`DELETE FROM ${tableName} WHERE ${constraint}`, values);
-            }
-            return null;
-        }
-        const createTable = async (): Promise<void> => {
-            const sqlType = (v: string | number): string => {
-                return {
-                    string: 'TEXT',
-                    number: 'INTEGER'
-                }[typeof v];
-            }
-            const columns = Object.keys(keys).map((name) => `${name} ${sqlType(keys[name])}`).join(', ');
-            await query(`CREATE TABLE IF NOT EXISTS ${tableName} (${columns})`);
-        }
-        const setCache = async (result: T): Promise<void> => {
-            keys['timestamp'] = new Date().getTime();
-            keys['json'] = JSON.stringify(result).replace(/'/g, "''");
-
-            await createTable();
-
-            const names = Object.keys(keys).map((name) => name).join(', ');
-            const values = Object.keys(keys).map((name) => quote(keys[name])).join(', ');
-
-            await query(`INSERT INTO ${tableName} (${names}) VALUES (${values})`);
-        }
-
+    private async query(sql: string, values?: any[]): Promise<any> {
         try {
-            const cache = await getCache();
+            logger.debug(() => `Querying to SqlStorage: ${sql} (with: ${values})`);
+            return await this.storage.query(sql, values);
+        } catch (ex) {
+            logger.warn(() => `Failed to SQL: ${JSON.stringify(ex)}`);
+            throw ex;
+        }
+    }
+
+    private async getCache(keys: K): Promise<T> {
+        const constraint = Object.keys(keys).map((name) => `${name} = ?`).join(' AND ');
+        const sql = `SELECT * FROM ${this.tableName} WHERE ${constraint}`;
+        const values = Object.keys(keys).map((name) => keys[name]);
+
+        const rows = (await this.query(sql, values)).res.rows;
+        if (rows.length > 0) {
+            const record = rows.item(0);
+            logger.info(() => `Checking timestamp of cache: ${JSON.stringify(record, null, 4)}`);
+            const timeLimit = new Date().getTime() + this.maxAge;
+            if (record.timestamp < timeLimit) {
+                return JSON.parse(record.json);
+            }
+            await this.query(`DELETE FROM ${this.tableName} WHERE ${constraint}`, values);
+        }
+        return null;
+    }
+
+    private async setCache(keys: K, result: T): Promise<void> {
+        const c = this.makeRecord(keys, result);
+
+        const names = Object.keys(c).map((name) => name).join(', ');
+        const values = Object.keys(c).map((name) => quote(c[name])).join(', ');
+
+        await this.query(`INSERT INTO ${this.tableName} (${names}) VALUES (${values})`);
+    }
+
+    async get(keys: K): Promise<T> {
+        try {
+            const cache = await this.getCache(keys);
             if (cache != null) return cache;
         } catch (ex) {
         }
-        const result = await getter();
+        const result = await this.getter(keys);
         try {
-            await setCache(result);
+            await this.setCache(keys, result);
         } catch (ex) {
         }
         return result;
