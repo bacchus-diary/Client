@@ -5,6 +5,7 @@ import {BootSettings} from '../config/boot_settings';
 import {Configuration} from '../config/configuration';
 import {ApiGateway} from '../aws/api_gateway';
 import {Product} from './suggestions';
+import {CacheStorage} from '../../util/cache_storage';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(AmazonPAA);
@@ -48,6 +49,8 @@ let gateway: Promise<ApiGateway<Document>>;
 let invoking: Promise<Document> = null;
 const INTERVAL = 5000; // 5 seconds
 
+const storage = new CacheStorage('amazon_paa', 7 * 24 * 60 * 60 * 1000) // 7 days
+
 @Injectable()
 export class AmazonPAA {
     constructor(private http: Http, private settings: BootSettings, private config: Configuration) {
@@ -67,35 +70,40 @@ export class AmazonPAA {
     }
 
     async invoke(params: { [key: string]: string; }): Promise<Document> {
-        while (invoking != null) {
-            await invoking;
+        let waiting = null;
+        while (invoking != waiting) {
+            waiting = invoking;
+            await waiting;
             await new Promise((resolve, reject) => {
                 setTimeout(() => resolve(null), INTERVAL);
             });
-            invoking = null;
         }
         invoking = gateway.then(async (g) => g.invoke({
             params: params,
             endpoint: await getEndpoint(),
             bucketName: await this.settings.s3Bucket
         }));
-        return await invoking;
+        const result = await invoking;
+        invoking = null;
+        return result;
     }
 
     async itemSearch(keywords: string, pageIndex: number): Promise<Array<Product>> {
-        const xml = await this.invoke({
-            Operation: 'ItemSearch',
-            SearchIndex: 'All',
-            ResponseGroup: 'Images,ItemAttributes,OfferSummary',
-            Keywords: keywords,
-            Availability: 'Available',
-            ItemPage: `${pageIndex}`
+        return storage.get('itemSearch', { keywords: keywords, pageIndex: pageIndex }, async () => {
+            const xml = await this.invoke({
+                Operation: 'ItemSearch',
+                SearchIndex: 'All',
+                ResponseGroup: 'Images,ItemAttributes,OfferSummary',
+                Keywords: keywords,
+                Availability: 'Available',
+                ItemPage: `${pageIndex}`
+            });
+
+            const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
+            logger.debug(() => `PAA Items by '${keywords}': ${elms.length}`);
+
+            return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
         });
-
-        const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
-        logger.debug(() => `PAA Items by '${keywords}': ${elms.length}`);
-
-        return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
     }
 
     private toProduct(item: Element): Product {
