@@ -27,13 +27,20 @@ export class CacheStorage<K, T> {
         keys: K,
         private getter: (keys: K) => Promise<T>
     ) {
-        const c = this.makeRecord(keys);
-
-        const columns = Object.keys(c).map((name) => `${name} ${columnType(c[name])}`).join(', ');
-        this.query(`CREATE TABLE IF NOT EXISTS ${tableName} (${columns})`);
+        this.storage = this.init(keys);
     }
 
-    private storage = new Storage(SqlStorage, { name: this.storageName });
+    private storage: Promise<Storage>;
+
+    private async init(keys: K): Promise<Storage> {
+        const storage = new Storage(SqlStorage, { name: this.storageName });
+        const c = this.makeRecord(keys);
+        const columns = Object.keys(c).map((name) => `${name} ${columnType(c[name])}`).join(', ');
+        const sql = `CREATE TABLE IF NOT EXISTS ${this.tableName} (${columns})`;
+        logger.debug(() => `CacheStorage(${this.storageName}): ${sql}`);
+        await storage.query(sql);
+        return storage;
+    }
 
     private makeRecord(keys: K, obj?: any): any {
         const c = {
@@ -46,7 +53,7 @@ export class CacheStorage<K, T> {
     private async query(sql: string, values?: any[]): Promise<any> {
         try {
             logger.debug(() => `Querying to SqlStorage: ${sql} (with: ${values})`);
-            return await this.storage.query(sql, values);
+            return await (await this.storage).query(sql, values);
         } catch (ex) {
             logger.warn(() => `Failed to SQL: ${JSON.stringify(ex)}`);
             throw ex;
