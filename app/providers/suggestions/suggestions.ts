@@ -68,7 +68,7 @@ class PagingSuggestions implements PagingList<Product> {
     }
 
     async more(): Promise<void> {
-        if (this.hasMore && !this.loading) {
+        if (this.hasMore() && !this.loading) {
             this.loading = this.doMore();
             this.loading.then(() => {
                 setTimeout(() => this.loading = null, 100);

@@ -26,14 +26,31 @@ export class ReportDetailPage {
         const report: Report = params.get('report');
         this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
-        this.updateLeaves();
     }
 
     report: Report;
     products: PagingList<Product>;
 
+    async onPageWillEnter() {
+        await this.updateLeaves();
+        this.products.more();
+    }
+
     async onPageWillLeave() {
         await this.update();
+    }
+
+    async updateLeaves() {
+        this.products = await this.suggestions.upon(this.report);
+    }
+
+    async moreSuggestions(event) {
+        await this.products.more();
+        event.complete();
+    }
+
+    openSuggestion(product: Product) {
+        this.suggestions.open(product);
     }
 
     showMore() {
@@ -58,10 +75,6 @@ export class ReportDetailPage {
                 }
             ]
         }));
-    }
-
-    async updateLeaves() {
-        this.products = await this.suggestions.upon(this.report);
     }
 
     private async update() {
