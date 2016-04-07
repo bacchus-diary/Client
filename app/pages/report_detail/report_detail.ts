@@ -6,6 +6,7 @@ import {FATHENS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {Suggestions, Product} from '../../providers/suggestions/suggestions';
 import {Report} from '../../model/report';
+import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportDetailPage);
@@ -29,7 +30,7 @@ export class ReportDetailPage {
     }
 
     report: Report;
-    products: Array<Product>;
+    products: PagingList<Product>;
 
     async onPageWillLeave() {
         await this.update();

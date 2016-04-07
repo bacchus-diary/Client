@@ -23,7 +23,7 @@ export class CachedReports {
         const table = await Report.table(this.dynamo);
         const pager = table.queryPager();
         logger.debug(() => `Creating PagingList from: ${pager}`);
-        return new PagingList(pager, PAGE_SIZE);
+        return new PagingReports(pager);
     }
 
     private get pagingList(): Promise<PagingList<Report>> {
@@ -78,5 +78,19 @@ export class CachedReports {
         currentList[originalIndex] = report;
 
         await original.update(report);
+    }
+}
+
+class PagingReports<T> implements PagingList<T> {
+    constructor(private pager: Pager<T>) { }
+    list: Array<T> = new Array();
+
+    hasMore(): boolean {
+        return this.pager.hasMore();
+    }
+
+    async more() {
+        const adding = await this.pager.more(PAGE_SIZE);
+        adding.forEach((x) => this.list.push(x));
     }
 }

@@ -4,16 +4,8 @@ export interface Pager<T> {
     hasMore(): boolean;
 }
 
-export class PagingList<T> {
-    constructor(private pager: Pager<T>, private pageSize: number) { }
-    list: Array<T> = new Array();
-
-    hasMore(): boolean {
-        return this.pager.hasMore();
-    }
-
-    async more() {
-        const adding = await this.pager.more(this.pageSize);
-        adding.forEach((x) => this.list.push(x));
-    }
+export interface PagingList<T> {
+    list: Array<T>;
+    hasMore(): boolean;
+    more(): Promise<void>;
 }
