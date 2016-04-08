@@ -1,9 +1,10 @@
 import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
+import {EventEmitter} from 'angular2/core';
+import {Observable} from 'rxjs'
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
-import {Suggestions, Product} from '../../providers/suggestions/suggestions';
 import {Report} from '../../model/report';
 import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
@@ -19,37 +20,26 @@ export class ReportDetailPage {
     constructor(
         private nav: NavController,
         private params: NavParams,
-        private cachedReports: CachedReports,
-        private suggestions: Suggestions
+        private cachedReports: CachedReports
     ) {
         const report: Report = params.get('report');
         this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
+        this.leavesUpdated = Observable.fromEvent<void>(this.leavesEmitter, null);
     }
 
     report: Report;
-    products: PagingList<Product>;
 
-    async onPageWillEnter() {
-        await this.updateLeaves();
-        this.products.more();
+    leavesEmitter = new EventEmitter<void>(true);
+    leavesUpdated: Observable<void>;
+
+    async updateLeaves() {
+        logger.debug(() => `Updating suggestions`);
+        this.leavesEmitter.emit(null);
     }
 
     async onPageWillLeave() {
         await this.update();
-    }
-
-    async updateLeaves() {
-        this.products = await this.suggestions.upon(this.report);
-    }
-
-    async moreSuggestions(event) {
-        await this.products.more();
-        event.complete();
-    }
-
-    openSuggestion(product: Product) {
-        this.suggestions.open(product);
     }
 
     showMore() {

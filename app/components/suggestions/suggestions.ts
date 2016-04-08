@@ -1,5 +1,6 @@
 import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {Component, Input, Output, ElementRef, EventEmitter} from 'angular2/core';
+import {Observable} from 'rxjs'
 
 import {Report} from '../../model/report';
 import {Suggestions, Product} from '../../providers/suggestions/suggestions';
@@ -18,11 +19,25 @@ const logger = new Logger(SuggestionsComponent);
 export class SuggestionsComponent {
     constructor(private suggestions: Suggestions) { }
 
-    @Input() report: Report;
+    @Input() set reloadEvent(v: Observable<void>) {
+        v.subscribe(() => this.refresh());
+    }
+    @Input() set report(v: Report) {
+        this._report = v;
+        this.refresh();
+    }
+    private _report: Report;
+
     products: PagingList<Product>;
 
-    async reload() {
-        this.products = await this.suggestions.upon(this.report);
+    private async refresh() {
+        if (this._report) {
+            this.products = await this.suggestions.upon(this._report);
+            logger.debug(() => `Setting suggestions of report`);
+            this.moreSuggestions();
+        } else {
+            this.products = null;
+        }
     }
 
     get hasSuggestions(): boolean {

@@ -6,42 +6,4 @@
     .fathens-showcase {
         margin-top: 1rem;
     }
-
-    .suggestions {
-        margin-top: 2rem;
-        &>h4 {
-            color: orange;
-        }
-
-        .products {
-            display: flex;
-            overflow-x: scroll;
-
-            ion-list {
-                display: flex;
-                flex-shrink: 0;
-
-                .product {
-                    width: 200px;
-                    align-items: flex-start;
-
-                    .image {
-                        margin-right: 0;
-                    }
-
-                    p {
-                        font-size: 1.2rem;
-                        font-weight: lighter;
-                    }
-                    .title {
-                        @include multilineEllipsis($lineCount: 3);
-                    }
-                    .price {
-                        margin-top: 1rem;
-                        font-style: italic;
-                    }
-                }
-            }
-        }
-    }
 }

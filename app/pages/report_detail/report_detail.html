@@ -15,22 +15,6 @@
     <ion-item>
         <ion-textarea placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
     </ion-item>
-    <div class="suggestions" *ngIf="products">
-        <h4>Suggestions for you ...</h4>
-        <div class="products">
-            <ion-list no-lines>
-                <button ion-item class="product" *ngFor="#product of products.list" (click)="openSuggestion(product)">
-                    <ion-thumbnail item-left class="image">
-                        <img [src]="product.imageUrl" />
-                    </ion-thumbnail>
-                    <p class="title">{{ product.title }}</p>
-                    <p class="price">{{ product.price }}</p>
-                </button>
-            </ion-list>
-            <ion-infinite-scroll (infinite)="moreSuggestions($event)">
-                <ion-infinite-scroll-content></ion-infinite-scroll-content>
-            </ion-infinite-scroll>
-        </div>
-    </div>
+    <fathens-suggestions [report]="report" [reloadEvent]="leavesEmitter"></fathens-suggestions>
     <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" (update)="updateLeaves()"></fathens-showcase>
 </ion-content>

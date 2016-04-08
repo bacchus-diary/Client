@@ -35,14 +35,8 @@ export class Suggestions {
     }
 
     async upon(report: Report): Promise<PagingList<Product>> {
-        try {
-            const keywords = this.makeKeywords(report);
-            logger.debug(() => `Searching suggestions by keywords: ${keywords}`);
-            const items = await Promise.all(keywords.map((keyword) => this.paa.itemSearch(keyword, 1)));
-            return new PagingSuggestions(this.paa, keywords);
-        } catch (ex) {
-            logger.warn(() => `Error on searching items: ${ex}`);
-        }
+        const keywords = this.makeKeywords(report);
+        return new PagingSuggestions(this.paa, keywords);
     }
 
     open(product: Product) {
@@ -80,11 +74,16 @@ class PagingSuggestions implements PagingList<Product> {
     private async doMore(): Promise<void> {
         this.pageIndex++;
         const loadings = this.keywords.map(async (word) => {
-            const products = await this.paa.itemSearch(word, this.pageIndex);
-            products.forEach((x) => {
-                const index = _.findIndex(this.list, (o) => x.priceValue >= o.priceValue);
-                this.list.splice(index, 0, x);
-            });
+            try {
+                logger.debug(() => `Searching suggestions by keywords: ${word}`);
+                const products = await this.paa.itemSearch(word, this.pageIndex);
+                products.forEach((x) => {
+                    const index = _.findIndex(this.list, (o) => x.priceValue >= o.priceValue);
+                    this.list.splice(index, 0, x);
+                });
+            } catch (ex) {
+                logger.warn(() => `Error on searching items: ${ex}`);
+            }
         });
         await Promise.all(loadings);
     }
