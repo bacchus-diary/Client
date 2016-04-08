@@ -13,7 +13,7 @@ import {EtiquetteVision} from './cvision/etiquette';
 import {Suggestions} from './suggestions/suggestions';
 import {AmazonPAA} from './suggestions/amazon_paa';
 
-export const FATHENS = [
+export const FATHENS_PROVIDERS = [
     AmazonPAA,
     Suggestions,
     BootSettings,

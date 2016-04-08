@@ -6,7 +6,7 @@ import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
 import {EtiquetteVision} from '../../providers/cvision/etiquette';
 import {PhotoShop} from '../../providers/photo_shop';
-import {FATHENS} from '../../providers/all';
+import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
 import {assert} from '../../util/assertion';
 import {Logger} from '../../util/logging';
@@ -17,7 +17,7 @@ const logger = new Logger(ShowcaseComponent);
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
     directives: [IONIC_DIRECTIVES],
-    providers: [FATHENS]
+    providers: [FATHENS_PROVIDERS]
 })
 export class ShowcaseComponent {
     constructor(

@@ -1,10 +1,10 @@
 import {Page, NavController} from 'ionic-angular';
 
-import {RatingComponent} from '../../components/rating/rating';
+import {FATHENS_DIRECTIVES} from '../../components/all';
 import {AddReportPage} from '../add_report/add_report';
 import {ReportDetailPage} from '../report_detail/report_detail';
 import {Report} from '../../model/report';
-import {FATHENS} from '../../providers/all';
+import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {Logger} from '../../util/logging';
 
@@ -12,8 +12,8 @@ const logger = new Logger(ReportsListPage);
 
 @Page({
     templateUrl: 'build/pages/reports_list/reports_list.html',
-    directives: [RatingComponent],
-    providers: [FATHENS]
+    directives: [FATHENS_DIRECTIVES],
+    providers: [FATHENS_PROVIDERS]
 })
 export class ReportsListPage {
     constructor(

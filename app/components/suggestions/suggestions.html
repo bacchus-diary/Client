@@ -1,0 +1,14 @@
+<div class="fathens-suggestions" *ngIf="hasSuggestions">
+    <h4>Suggestions for you ...</h4>
+    <div class="products">
+        <ion-list no-lines>
+            <ion-item class="product" *ngFor="#product of products.list" (click)="openSuggestion(product)">
+                <ion-thumbnail item-left class="image">
+                    <img [src]="product.imageUrl" />
+                </ion-thumbnail>
+                <p class="title">{{ product.title }}</p>
+                <p class="price">{{ product.price }}</p>
+            </ion-item>
+        </ion-list>
+    </div>
+</div>

@@ -1,8 +1,7 @@
 import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
 
-import {RatingComponent} from '../../components/rating/rating';
-import {ShowcaseComponent} from '../../components/showcase/showcase';
-import {FATHENS} from '../../providers/all';
+import {FATHENS_DIRECTIVES} from '../../components/all';
+import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {Suggestions, Product} from '../../providers/suggestions/suggestions';
 import {Report} from '../../model/report';
@@ -13,8 +12,8 @@ const logger = new Logger(ReportDetailPage);
 
 @Page({
     templateUrl: 'build/pages/report_detail/report_detail.html',
-    directives: [RatingComponent, ShowcaseComponent],
-    providers: [FATHENS]
+    directives: [FATHENS_DIRECTIVES],
+    providers: [FATHENS_PROVIDERS]
 })
 export class ReportDetailPage {
     constructor(
