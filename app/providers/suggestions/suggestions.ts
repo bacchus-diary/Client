@@ -87,9 +87,10 @@ class PagingSuggestions implements PagingList {
             try {
                 logger.debug(() => `Searching suggestions by keywords: ${word}`);
                 const products = await this.paa.itemSearch(word, this.pageIndex);
-                products.forEach((x) => {
-                    const index = _.findIndex(this.list, (o) => x.priceValue >= o.priceValue);
-                    this.list.splice(index, 0, x);
+                const sorted = _.sortBy(products, (x) => x.priceValue).reverse();
+                sorted.forEach((x) => {
+                    const same = _.find(this.list, (o) => x.title == o.title);
+                    if (!same) this.list.push(x);
                 });
             } catch (ex) {
                 logger.warn(() => `Error on searching items: ${ex}`);
