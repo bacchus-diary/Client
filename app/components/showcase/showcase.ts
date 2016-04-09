@@ -1,6 +1,6 @@
 import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
-import {Component, Input, Output, ElementRef, EventEmitter} from 'angular2/core';
+import {Component, Input, Output, EventEmitter} from 'angular2/core';
 
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
