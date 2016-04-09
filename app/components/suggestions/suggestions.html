@@ -1,8 +1,8 @@
-<div class="fathens-suggestions" *ngIf="hasSuggestions">
+<div class="fathens-suggestions" *ngIf="isReady">
     <h4>Suggestions for you ...</h4>
-    <div class="products">
+    <div class="products" (scroll)="onScroll($event)">
         <ion-list no-lines>
-            <ion-item class="product" *ngFor="#product of products.list" (click)="openSuggestion(product)">
+            <ion-item class="product" *ngFor="#product of products.list" (click)="open(product)">
                 <ion-thumbnail item-left class="image">
                     <img [src]="product.imageUrl" />
                 </ion-thumbnail>
@@ -10,5 +10,8 @@
                 <p class="price">{{ product.price }}</p>
             </ion-item>
         </ion-list>
+        <div class="spinner" *ngIf="isLoading">
+            <ion-spinner></ion-spinner>
+        </div>
     </div>
 </div>
