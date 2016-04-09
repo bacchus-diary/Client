@@ -1,6 +1,6 @@
 import {Page, Storage, SqlStorage} from 'ionic-angular';
 
-import {FATHENS} from '../../providers/all';
+import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Cognito} from '../../providers/aws/cognito';
 import {Logger} from '../../util/logging';
 
@@ -8,7 +8,7 @@ const logger = new Logger(PreferencesPage);
 
 @Page({
     templateUrl: 'build/pages/preferences/preferences.html',
-    providers: [FATHENS]
+    providers: [FATHENS_PROVIDERS]
 })
 export class PreferencesPage {
     constructor(private cognito: Cognito) { }

@@ -128,7 +128,7 @@ export class Report implements DBRecord<Report> {
     }
 
     public toString(): string {
-        return `REPORT_ID: ${this.id()}, DATE_AT: ${this.dateAt}, ${JSON.stringify(this.toMap())}`;
+        return `REPORT_ID: ${this.id()}, DATE_AT: ${this.dateAt}, ${JSON.stringify(this.toMap(), null, 4)}`;
     }
 
     id(): string {

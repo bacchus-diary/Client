@@ -1,12 +1,14 @@
 import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {AnimationBuilder} from 'angular2/animate';
-import {Component, Input, ElementRef} from 'angular2/core';
+import {Component, Input, Output, EventEmitter} from 'angular2/core';
 
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
+import {EtiquetteVision} from '../../providers/cvision/etiquette';
 import {PhotoShop} from '../../providers/photo_shop';
-import {FATHENS} from '../../providers/all';
+import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
+import {assert} from '../../util/assertion';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
@@ -15,13 +17,14 @@ const logger = new Logger(ShowcaseComponent);
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
     directives: [IONIC_DIRECTIVES],
-    providers: [FATHENS]
+    providers: [FATHENS_PROVIDERS]
 })
 export class ShowcaseComponent {
     constructor(
         private nav: NavController,
         private ab: AnimationBuilder,
         private s3file: S3File,
+        private etiquetteVision: EtiquetteVision,
         private photoShop: PhotoShop,
         private urlGenerator: Photo) { }
 
@@ -29,6 +32,7 @@ export class ShowcaseComponent {
     @Input() leaves: Array<Leaf>;
     @Input() slideSpeed: number = 300;
     @Input() confirmDelete: boolean = true;
+    @Output() update = new EventEmitter<void>();
 
     private swiper: Swiper;
     swiperOptions = {
@@ -39,24 +43,52 @@ export class ShowcaseComponent {
     }
 
     async addPhoto() {
-        const dataString = await this.photoShop.photo(true);
-        const blob = this.photoShop.decodeBase64(dataString);
-        const url = this.photoShop.makeUrl(blob);
-        logger.debug(() => `Photo URL: ${url}`);
+        try {
+            this.swiper.lockSwipes();
 
-        const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
-        leaf.photo.reduced.mainview.url = url;
-        this.leaves.push(leaf);
+            const base64image = await this.photoShop.photo(true);
+            const blob = this.photoShop.decodeBase64(base64image);
+            const url = this.photoShop.makeUrl(blob);
+            logger.debug(() => `Photo URL: ${url}`);
 
-        await this.s3file.upload(await leaf.photo.original.storagePath, blob);
+            const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
+            leaf.photo.reduced.mainview.url = url;
+            const index = this.leaves.push(leaf) - 1;
+            this.swiper.update();
+
+            const etiquette = await this.etiquetteVision.read(base64image);
+            if (!etiquette || etiquette.isSafe()) {
+                if (etiquette) etiquette.writeContent(leaf);
+                this.s3file.upload(await leaf.photo.original.storagePath, blob);
+                if (this.update) this.update.emit(null);
+            } else {
+                await new Promise<void>((resolve, reject) => {
+                    this.nav.present(Alert.create({
+                        title: 'Delete Photo',
+                        message: 'This photo is seems to be inappropriate',
+                        buttons: [{
+                            text: 'Delete',
+                            handler: async (data) => {
+                                await this.doDeletePhoto(index);
+                                resolve();
+                            }
+                        }]
+                    }));
+                });
+            }
+        } catch (ex) {
+            logger.warn(() => `Error on adding photo: ${ex}`);
+        } finally {
+            this.swiper.unlockSwipes();
+        }
     }
 
     async deletePhoto(index: number) {
         const ok = await this.confirmDeletion();
         if (ok) {
-            await this.doDeletePhoto(index);
-            const leaf = this.leaves.splice(index, 1)[0];
+            const leaf = await this.doDeletePhoto(index);
             await leaf.remove();
+            if (this.update) this.update.emit(null);
         }
     }
 
@@ -86,7 +118,7 @@ export class ShowcaseComponent {
         });
     }
 
-    private async doDeletePhoto(index: number) {
+    private async doDeletePhoto(index: number): Promise<Leaf> {
         logger.debug(() => `Deleting photo: ${index}`);
 
         const getChild = (className: string) => {
@@ -103,32 +135,33 @@ export class ShowcaseComponent {
         const target = getChild('deletable');
         logger.debug(() => `Animate target: ${target}`);
 
-        if (floating != null && target != null) {
-            return new Promise<void>((resolve, reject) => {
-                floating.style.display = 'none';
+        assert('floating', floating);
+        assert('deletable', target);
 
-                const height = target.offsetHeight;
-                const dur = this.slideSpeed * 2;
-                const animation = this.ab.css();
+        return new Promise<Leaf>((resolve, reject) => {
+            floating.style.display = 'none';
 
-                animation.setFromStyles({ opacity: '1' });
-                animation.setToStyles({ opacity: '0', transform: `translateY(${height}px)` });
-                animation.setDuration(dur);
-                animation.start(target);
-                logger.debug(() => `Animation started: ${height}px in ${dur}ms`);
+            const height = target.offsetHeight;
+            const dur = this.slideSpeed * 2;
+            const animation = this.ab.css();
 
-                setTimeout(() => {
-                    this.slideNext();
-                }, dur / 2);
+            animation.setFromStyles({ opacity: '1' });
+            animation.setToStyles({ opacity: '0', transform: `translateY(${height}px)` });
+            animation.setDuration(dur);
+            animation.start(target);
+            logger.debug(() => `Animation started: ${height}px in ${dur}ms`);
 
-                setTimeout(() => {
-                    this.swiper.removeSlide(index);
-                    this.leaves.splice(index, 1);
-                    this.swiper.update();
-                    resolve();
-                }, dur);
-            });
-        }
+            setTimeout(() => {
+                this.slideNext();
+            }, dur / 2);
+
+            setTimeout(() => {
+                this.swiper.removeSlide(index);
+                const leaf = this.leaves.splice(index, 1)[0];
+                this.swiper.update();
+                resolve(leaf);
+            }, dur);
+        });
     }
 
     slidePrev() {
@@ -186,4 +219,13 @@ interface Swiper {
     mySwiper.removeSlide([0, 1]); //remove first and second slides
     */
     removeSlide(slideIndex: number | Array<number>);
+
+    /**
+    Disable (lock) ability to change slides
+    */
+    lockSwipes();
+    /**
+    Enable (unlock) ability to change slides
+    */
+    unlockSwipes();
 }

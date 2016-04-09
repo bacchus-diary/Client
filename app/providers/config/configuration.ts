@@ -63,6 +63,10 @@ class Unauthorized {
     get advertisement(): Advertisement {
         return new Advertisement(this.src['advertisement']);
     }
+
+    get api(): ServerApiMap {
+        return new ServerApiMap(this.src['api']);
+    }
 }
 
 class Photo {
@@ -90,11 +94,12 @@ class ServerApiMap {
     constructor(private src: Map<string, any>) { }
 
     private makeInfo(name: string): ApiInfo {
-        return new ApiInfo(
-            `${this.src['base_url']}/${this.src['gateways'][name]}`,
-            this.src['key'],
-            this.src['retry_limit'],
-            this.src['retry_duration']);
+        return {
+            url: `${this.src['base_url']}/${this.src['gateways'][name]}`,
+            key: this.src['key'],
+            retryLimit: this.src['retry_limit'],
+            retryDuration: this.src['retry_duration']
+        }
     }
 
     get paa(): ApiInfo {
@@ -102,13 +107,11 @@ class ServerApiMap {
     }
 }
 
-class ApiInfo {
-    constructor(
-        url: string,
-        key: string,
-        retryLimit: number,
-        retryDuration: number // in Milliseconds
-    ) { }
+export type ApiInfo = {
+    url: string,
+    key: string,
+    retryLimit: number,
+    retryDuration: number // in Milliseconds
 }
 
 class Authorized {

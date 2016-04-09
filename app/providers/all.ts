@@ -8,5 +8,24 @@ import {FBJSSDK} from './facebook/fb_jssdk';
 import {CachedReports} from './reports/cached_list';
 import {Photo} from './reports/photo';
 import {PhotoShop} from './photo_shop';
+import {CVision} from './cvision/cvision';
+import {EtiquetteVision} from './cvision/etiquette';
+import {Suggestions} from './suggestions/suggestions';
+import {AmazonPAA} from './suggestions/amazon_paa';
 
-export const FATHENS = [BootSettings, Configuration, S3File, Cognito, Dynamo, FBConnect, FBJSSDK, CachedReports, Photo, PhotoShop];
+export const FATHENS_PROVIDERS = [
+    AmazonPAA,
+    Suggestions,
+    BootSettings,
+    Configuration,
+    S3File,
+    Cognito,
+    Dynamo,
+    FBConnect,
+    FBJSSDK,
+    CachedReports,
+    Photo,
+    PhotoShop,
+    CVision,
+    EtiquetteVision
+];

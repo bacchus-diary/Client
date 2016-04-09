@@ -6,7 +6,7 @@ import {Photo} from './photo';
 import {Cognito} from '../aws/cognito';
 import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
-import {Pager, PagingList} from '../../util/pager';
+import {Pager} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(CachedReports);
@@ -15,7 +15,7 @@ const PAGE_SIZE = 10;
 
 @Injectable()
 export class CachedReports {
-    private static pagingList: Promise<PagingList<Report>>;
+    private static pagingList: Promise<PagingReports>;
 
     constructor(private cognito: Cognito, private dynamo: Dynamo, private photo: Photo) { }
 
@@ -23,10 +23,10 @@ export class CachedReports {
         const table = await Report.table(this.dynamo);
         const pager = table.queryPager();
         logger.debug(() => `Creating PagingList from: ${pager}`);
-        return new PagingList(pager, PAGE_SIZE);
+        return new PagingReports(pager);
     }
 
-    private get pagingList(): Promise<PagingList<Report>> {
+    private get pagingList(): Promise<PagingReports> {
         if (!CachedReports.pagingList) {
             CachedReports.pagingList = this.load();
         }
@@ -78,5 +78,19 @@ export class CachedReports {
         currentList[originalIndex] = report;
 
         await original.update(report);
+    }
+}
+
+class PagingReports {
+    constructor(private pager: Pager<Report>) { }
+    list: Array<Report> = new Array();
+
+    hasMore(): boolean {
+        return this.pager.hasMore();
+    }
+
+    async more() {
+        const adding = await this.pager.more(PAGE_SIZE);
+        adding.forEach((x) => this.list.push(x));
     }
 }

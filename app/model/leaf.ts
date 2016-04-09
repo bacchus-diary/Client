@@ -16,6 +16,8 @@ type LeafRecord = {
 };
 type LeafContent = {
     labels: string[],
+    logos: string[],
+    keywords: string[],
     description: string,
     description_upper: string
 };
@@ -55,6 +57,8 @@ export class Leaf implements DBRecord<Leaf> {
             id,
             {
                 labels: [],
+                logos: [],
+                keywords: [],
                 description: null,
                 description_upper: null
             },
@@ -77,16 +81,32 @@ export class Leaf implements DBRecord<Leaf> {
         return Leaf._table;
     }
 
+    get logos(): Array<string> {
+        return this.content.logos || [];
+    }
+    set logos(v: Array<string>) {
+        assert('logos', v);
+        this.content.logos = v;
+    }
+
     get labels(): Array<string> {
-        return this.content.labels ? this.content.labels : [];
+        return this.content.labels || [];
     }
     set labels(v: Array<string>) {
         assert('labels', v);
         this.content.labels = v;
     }
 
+    get keywords(): Array<string> {
+        return this.content.keywords || [];
+    }
+    set keywords(v: Array<string>) {
+        assert('keywords', v);
+        this.content.keywords = v;
+    }
+
     get description(): string {
-        return this.content.description ? this.content.description : "";
+        return this.content.description || "";
     }
     set description(v: string) {
         assert('description', v);
@@ -94,7 +114,7 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     toString(): string {
-        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap())}`;
+        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap(), null, 4)}`;
     }
 
     id(): string {
@@ -104,6 +124,8 @@ export class Leaf implements DBRecord<Leaf> {
     toMap(): LeafContent {
         return {
             labels: this.labels.map(_.identity),
+            logos: this.logos.map(_.identity),
+            keywords: this.keywords.map(_.identity),
             description: this.description.length > 0 ? this.description : null,
             description_upper: this.description.length > 0 ? this.description.toUpperCase() : null
         };
