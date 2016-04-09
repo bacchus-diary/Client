@@ -1,6 +1,6 @@
 import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {Component, Input} from 'angular2/core';
-import {Observable} from 'rxjs'
+import {EventEmitter} from 'angular2/core';
 
 import {Report} from '../../model/report';
 import {Suggestions, Product, PagingList} from '../../providers/suggestions/suggestions';
@@ -24,7 +24,7 @@ export class SuggestionsComponent {
 
     private _report: Report;
 
-    @Input() set reloadEvent(v: Observable<void>) {
+    @Input() set reloadEvent(v: EventEmitter<void>) {
         v.subscribe(() => this.refresh());
     }
     @Input() set report(v: Report) {

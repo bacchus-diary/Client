@@ -1,6 +1,5 @@
 import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
 import {EventEmitter} from 'angular2/core';
-import {Observable} from 'rxjs'
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
@@ -24,13 +23,11 @@ export class ReportDetailPage {
         const report: Report = params.get('report');
         this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
-        this.leavesUpdated = Observable.fromEvent<void>(this.leavesEmitter, null);
     }
 
     report: Report;
 
-    leavesEmitter = new EventEmitter<void>(true);
-    leavesUpdated: Observable<void>;
+    private leavesEmitter = new EventEmitter<void>(true);
 
     async updateLeaves() {
         logger.debug(() => `Updating suggestions`);
