@@ -15,5 +15,6 @@
     <ion-item>
         <ion-textarea placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
     </ion-item>
-    <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" [confirmDelete]="false"></fathens-showcase>
+    <fathens-suggestions [report]="report" [reloadEvent]="updateLeaves"></fathens-suggestions>
+    <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" (update)="updateLeaves.emit(null)" [confirmDelete]="false"></fathens-showcase>
 </ion-content>

@@ -1,4 +1,5 @@
 import {Page, NavController} from 'ionic-angular';
+import {EventEmitter} from 'angular2/core';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
@@ -17,6 +18,8 @@ export class AddReportPage {
     constructor(private nav: NavController, private cachedReports: CachedReports) { }
 
     report = Report.newEmpty();
+
+    private updateLeaves = new EventEmitter<void>(true);
 
     async submit() {
         logger.debug(() => `Submitting report`);

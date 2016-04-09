@@ -27,12 +27,7 @@ export class ReportDetailPage {
 
     report: Report;
 
-    private leavesEmitter = new EventEmitter<void>(true);
-
-    async updateLeaves() {
-        logger.debug(() => `Updating suggestions`);
-        this.leavesEmitter.emit(null);
-    }
+    private updateLeaves = new EventEmitter<void>(true);
 
     async onPageWillLeave() {
         await this.update();
