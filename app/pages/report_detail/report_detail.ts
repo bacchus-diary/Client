@@ -6,7 +6,6 @@ import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {Report} from '../../model/report';
-import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportDetailPage);
