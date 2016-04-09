@@ -6,7 +6,7 @@ import {Photo} from './photo';
 import {Cognito} from '../aws/cognito';
 import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
-import {Pager, PagingList} from '../../util/pager';
+import {Pager} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(CachedReports);
@@ -15,7 +15,7 @@ const PAGE_SIZE = 10;
 
 @Injectable()
 export class CachedReports {
-    private static pagingList: Promise<PagingList<Report>>;
+    private static pagingList: Promise<PagingReports>;
 
     constructor(private cognito: Cognito, private dynamo: Dynamo, private photo: Photo) { }
 
@@ -26,7 +26,7 @@ export class CachedReports {
         return new PagingReports(pager);
     }
 
-    private get pagingList(): Promise<PagingList<Report>> {
+    private get pagingList(): Promise<PagingReports> {
         if (!CachedReports.pagingList) {
             CachedReports.pagingList = this.load();
         }
@@ -81,9 +81,9 @@ export class CachedReports {
     }
 }
 
-class PagingReports<T> implements PagingList<T> {
-    constructor(private pager: Pager<T>) { }
-    list: Array<T> = new Array();
+class PagingReports {
+    constructor(private pager: Pager<Report>) { }
+    list: Array<Report> = new Array();
 
     hasMore(): boolean {
         return this.pager.hasMore();

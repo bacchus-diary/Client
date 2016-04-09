@@ -4,7 +4,6 @@ import {Device} from 'ionic-native';
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
 import {AmazonPAA} from './amazon_paa';
-import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(Suggestions);
@@ -34,7 +33,7 @@ export class Suggestions {
         }));
     }
 
-    async upon(report: Report): Promise<PagingList<Product>> {
+    async upon(report: Report): Promise<PagingList> {
         const keywords = this.makeKeywords(report);
         return new PagingSuggestions(this.paa, keywords);
     }
@@ -50,10 +49,21 @@ export class Suggestions {
     }
 }
 
-class PagingSuggestions implements PagingList<Product> {
+export interface PagingList {
+    list: Array<Product>;
+    hasMore(): boolean;
+    more(): Promise<void>;
+    isLoading(): boolean;
+}
+
+class PagingSuggestions implements PagingList {
     constructor(private paa: AmazonPAA, private keywords: Array<string>) { }
     private pageIndex = 0;
     private loading: Promise<void>;
+
+    isLoading(): boolean {
+        return this.loading != null;
+    }
 
     list: Array<Product> = [];
 
@@ -62,7 +72,7 @@ class PagingSuggestions implements PagingList<Product> {
     }
 
     async more(): Promise<void> {
-        if (this.hasMore() && !this.loading) {
+        if (this.hasMore() && !this.isLoading()) {
             this.loading = this.doMore();
             this.loading.then(() => {
                 setTimeout(() => this.loading = null, 100);
