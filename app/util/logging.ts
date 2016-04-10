@@ -26,9 +26,9 @@ export type Lebel = "DEBUG" | "INFO" | "WARN" | "FATAL";
 const lebels: Array<Lebel> = ["DEBUG", "INFO", "WARN", "FATAL"];
 
 function output(text: string) {
-    try {
+    if (typeof plugin !== 'undefined' && plugin.Fabric) {
         plugin.Fabric.Crashlytics.log(text);
-    } catch (ex) {
+    } else {
         console.log(text);
     }
 }
