@@ -6,6 +6,8 @@ interface Plugin {
     Fabric: Fabric;
 }
 
+declare var plugin: Plugin;
+
 interface Fabric {
     Crashlytics: Crashlytics;
     Answers: Answers;

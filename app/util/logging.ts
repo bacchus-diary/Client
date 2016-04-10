@@ -29,7 +29,7 @@ export class Logger {
     static lebel: Lebel = "DEBUG";
     static async setLebelByVersionNumber() {
         try {
-            const version = await window.cordova.getAppVersion.getVersionNumber();
+            const version = await cordova.getAppVersion.getVersionNumber();
             console.log(`Checking version number: ${version}`);
             const last = _.last(version.match(/[0-9]/g));
             const v = parseInt(last);
@@ -59,8 +59,8 @@ export class Logger {
     private output(lebel: Lebel, msg: () => string) {
         if (this.checkLebel(lebel)) {
             const text = `${dateString()}: ${padLeft(lebel, 5)}: ${msg()}`;
-            if (window.plugin && window.plugin.Fabric) {
-                window.plugin.Fabric.Crashlytics.log(text);
+            if (plugin && plugin.Fabric) {
+                plugin.Fabric.Crashlytics.log(text);
             } else {
                 console.log(text);
             }
