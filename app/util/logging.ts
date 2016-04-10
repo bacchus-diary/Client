@@ -48,20 +48,31 @@ export class Logger {
         this.lebel = Logger.lebel;
     }
 
-    lebel: Lebel;
+    private _limit: number;
+    private _lebel: Lebel;
+    get lebel() {
+        return this._lebel;
+    }
+    set lebel(v: Lebel) {
+        this._lebel = v;
+        this._limit = null;
+    }
+    get limit() {
+        if (!this._limit) this._limit = _.findIndex(lebels, (x) => x == this.lebel);
+        return this._limit;
+    }
 
     private checkLebel(l: Lebel): boolean {
-        const limit = _.findIndex(lebels, this.lebel);
-        const n = _.findIndex(lebels, l);
-        return limit <= n;
+        const n = _.findIndex(lebels, (x) => x == l);
+        return this.limit <= n;
     }
 
     private output(lebel: Lebel, msg: () => string) {
         if (this.checkLebel(lebel)) {
             const text = `${dateString()}: ${padLeft(lebel, 5)}: ${msg()}`;
-            if (plugin && plugin.Fabric) {
+            try {
                 plugin.Fabric.Crashlytics.log(text);
-            } else {
+            } catch (ex) {
                 console.log(text);
             }
         }
