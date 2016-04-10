@@ -56,7 +56,6 @@ export class Logger {
         this.lebel = Logger.lebel;
     }
 
-    private _limit: number;
     private _lebel: Lebel;
     get lebel() {
         return this._lebel;
@@ -65,7 +64,9 @@ export class Logger {
         this._lebel = v;
         this._limit = null;
     }
-    get limit() {
+
+    private _limit: number;
+    private get limit() {
         if (!this._limit) this._limit = _.findIndex(lebels, (x) => x == this.lebel);
         return this._limit;
     }
