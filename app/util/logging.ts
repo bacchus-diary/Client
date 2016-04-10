@@ -25,12 +25,20 @@ export type Lebel = "DEBUG" | "INFO" | "WARN" | "FATAL";
 
 const lebels: Array<Lebel> = ["DEBUG", "INFO", "WARN", "FATAL"];
 
+function output(text: string) {
+    try {
+        plugin.Fabric.Crashlytics.log(text);
+    } catch (ex) {
+        console.log(text);
+    }
+}
+
 export class Logger {
     static lebel: Lebel = "DEBUG";
     static async setLebelByVersionNumber() {
         try {
             const version = await cordova.getAppVersion.getVersionNumber();
-            console.log(`Checking version number: ${version}`);
+            output(`Checking version number: ${version}`);
             const last = _.last(version.match(/[0-9]/g));
             const v = parseInt(last);
             if (v % 2 == 0) {
@@ -41,7 +49,7 @@ export class Logger {
         } catch (ex) {
             this.lebel = "DEBUG";
         }
-        console.log(`Set log lebel: ${this.lebel}`);
+        output(`Set log lebel: ${this.lebel}`);
     }
 
     constructor(private owner: any) {
@@ -69,12 +77,7 @@ export class Logger {
 
     private output(lebel: Lebel, msg: () => string) {
         if (this.checkLebel(lebel)) {
-            const text = `${dateString()}: ${padLeft(lebel, 5)}: ${msg()}`;
-            try {
-                plugin.Fabric.Crashlytics.log(text);
-            } catch (ex) {
-                console.log(text);
-            }
+            output(`${dateString()}: ${padLeft(lebel, 5)}: ${msg()}`);
         }
     }
 
