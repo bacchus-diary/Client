@@ -65,7 +65,7 @@ export class Cognito {
                 getCredentials().params.IdentityId = null;
                 await this.refresh();
             }
-            // FabricAnswers.eventLogin(method: "Cognito");
+            window.plugin.Fabric.Answers.eventLogin({ method: 'Cognito' });
         }
     }
 
@@ -126,7 +126,7 @@ export class Cognito {
             const id = await this.refresh();
             await ConnectedServices.set(service, id.isJoin(service));
             if (id.isJoinFacebook()) {
-                // FabricAnswers.eventLogin(method: service);
+                window.plugin.Fabric.Answers.eventLogin({ method: service });
             }
         }
     }
