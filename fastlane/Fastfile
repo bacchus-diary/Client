@@ -144,9 +144,6 @@ platform :android do
       ["release"].include? ENV['BUILD_MODE']
     end
 
-    sh("cordova plugin add cordova-plugin-admobpro")
-    sh("cordova plugin add cordova-plugin-admob-facebook")
-
     android_build(
     keystore: persistent('android', 'keystore'),
     multi_apks: is_multi?,
