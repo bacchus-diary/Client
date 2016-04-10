@@ -1,8 +1,6 @@
 import {Injectable} from 'angular2/core';
-import {Device} from 'ionic-native';
 
 import {Report} from '../../model/report';
-import {Leaf} from '../../model/leaf';
 import {AmazonPAA} from './amazon_paa';
 import {Logger} from '../../util/logging';
 

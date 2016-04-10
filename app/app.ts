@@ -4,6 +4,7 @@ import {Splashscreen} from 'ionic-native';
 import {AcceptancePage} from './pages/acceptance/acceptance';
 import {ReportsListPage} from './pages/reports_list/reports_list';
 import {PreferencesPage} from './pages/preferences/preferences';
+import {Logger} from './util/logging';
 
 @App({
     templateUrl: 'build/app.html',
@@ -25,7 +26,8 @@ class MyApp {
     }
 
     initializeApp() {
-        this.platform.ready().then(() => {
+        this.platform.ready().then(async () => {
+            await Logger.setLebelByVersionNumber();
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
             Splashscreen.hide();
         });

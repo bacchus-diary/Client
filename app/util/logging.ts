@@ -21,28 +21,80 @@ function dateString(now?: Date): string {
     return `${date} ${time}.${pad(3)(now.getMilliseconds())}`;
 }
 
-type Lebel = "DEBUG" | "INFO" | "WARN" | "FATAL";
+export type Lebel = "DEBUG" | "INFO" | "WARN" | "FATAL";
+
+const lebels: Array<Lebel> = ["DEBUG", "INFO", "WARN", "FATAL"];
+
+function output(text: string) {
+    if (typeof plugin !== 'undefined' && plugin.Fabric) {
+        plugin.Fabric.Crashlytics.log(text);
+    } else {
+        console.log(text);
+    }
+}
 
 export class Logger {
-    constructor(private owner: any) { }
+    static lebel: Lebel = lebels[0];
+    static async setLebelByVersionNumber() {
+        try {
+            const version = await cordova.getAppVersion.getVersionNumber();
+            output(`Checking version number: ${version}`);
+            const last = _.last(version.match(/[0-9]/g));
+            const v = parseInt(last);
+            if (v % 2 == 0) {
+                this.lebel = "INFO";
+            } else {
+                this.lebel = "DEBUG";
+            }
+        } catch (ex) {
+            this.lebel = lebels[0];
+        }
+        output(`Set log lebel: ${this.lebel}`);
+    }
 
-    private output(lebel: Lebel, msg: string) {
-        console.log(`${dateString()}: ${padLeft(lebel, 5)}: ${msg}`);
+    constructor(private owner: any) {
+        this.lebel = Logger.lebel;
+    }
+
+    private _lebel: Lebel;
+    get lebel() {
+        return this._lebel;
+    }
+    set lebel(v: Lebel) {
+        this._lebel = v;
+        this._limit = null;
+    }
+
+    private _limit: number;
+    private get limit() {
+        if (!this._limit) this._limit = _.findIndex(lebels, (x) => x == this.lebel);
+        return this._limit;
+    }
+
+    private checkLebel(l: Lebel): boolean {
+        const n = _.findIndex(lebels, (x) => x == l);
+        return this.limit <= n;
+    }
+
+    private output(lebel: Lebel, msg: () => string) {
+        if (this.checkLebel(lebel)) {
+            output(`${dateString()}: ${padLeft(lebel, 5)}: ${msg()}`);
+        }
     }
 
     public debug(msg: () => string) {
-        this.output("DEBUG", msg());
+        this.output("DEBUG", msg);
     }
 
     public info(msg: () => string) {
-        this.output("INFO", msg());
+        this.output("INFO", msg);
     }
 
     public warn(msg: () => string) {
-        this.output("WARN", msg());
+        this.output("WARN", msg);
     }
 
     public fatal(msg: () => string) {
-        this.output("FATAL", msg());
+        this.output("FATAL", msg);
     }
 }

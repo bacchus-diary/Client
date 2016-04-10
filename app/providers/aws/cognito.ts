@@ -3,6 +3,7 @@ import {Injectable} from 'angular2/core';
 
 import {BootSettings} from '../config/boot_settings';
 import {FBConnect} from '../facebook/fb_connect';
+import {Fabric} from '../../util/fabric';
 import {Logger} from '../../util/logging';
 
 import {AWS, ClientConfig} from './aws';
@@ -65,7 +66,7 @@ export class Cognito {
                 getCredentials().params.IdentityId = null;
                 await this.refresh();
             }
-            // FabricAnswers.eventLogin(method: "Cognito");
+            Fabric((fabric) => fabric.Answers.eventLogin({ method: 'Cognito' }));
         }
     }
 
@@ -126,7 +127,7 @@ export class Cognito {
             const id = await this.refresh();
             await ConnectedServices.set(service, id.isJoin(service));
             if (id.isJoinFacebook()) {
-                // FabricAnswers.eventLogin(method: service);
+                Fabric((fabric) => fabric.Answers.eventLogin({ method: service }));
             }
         }
     }
