@@ -1,4 +1,4 @@
-import {App, IonicApp, Platform} from 'ionic-angular';
+import {App, IonicApp, Platform, NavController} from 'ionic-angular';
 import {Splashscreen} from 'ionic-native';
 
 import {AcceptancePage} from './pages/acceptance/acceptance';
@@ -14,7 +14,7 @@ class MyApp {
     rootPage: any;
     pages: Array<{ title: string, component: any }>
 
-    constructor(private app: IonicApp, private platform: Platform) {
+    constructor(private app: IonicApp, private platform: Platform, private nav: NavController) {
         this.initializeApp();
 
         // used for an example of ngFor and navigation
@@ -30,6 +30,11 @@ class MyApp {
             await Logger.setLebelByVersionNumber();
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
             Splashscreen.hide();
+            document.addEventListener('backbutton', () => {
+                if (this.nav.canGoBack()) {
+                    this.nav.pop();
+                }
+            });
         });
     }
 
