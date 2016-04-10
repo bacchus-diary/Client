@@ -34,7 +34,7 @@ function output(text: string) {
 }
 
 export class Logger {
-    static lebel: Lebel = "DEBUG";
+    static lebel: Lebel = lebels[0];
     static async setLebelByVersionNumber() {
         try {
             const version = await cordova.getAppVersion.getVersionNumber();
@@ -47,7 +47,7 @@ export class Logger {
                 this.lebel = "DEBUG";
             }
         } catch (ex) {
-            this.lebel = "DEBUG";
+            this.lebel = lebels[0];
         }
         output(`Set log lebel: ${this.lebel}`);
     }
