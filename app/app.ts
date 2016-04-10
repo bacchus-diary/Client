@@ -14,7 +14,7 @@ class MyApp {
     rootPage: any;
     pages: Array<{ title: string, component: any }>
 
-    constructor(private app: IonicApp, private platform: Platform, private nav: NavController) {
+    constructor(private app: IonicApp, private platform: Platform) {
         this.initializeApp();
 
         // used for an example of ngFor and navigation
@@ -31,8 +31,9 @@ class MyApp {
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
             Splashscreen.hide();
             document.addEventListener('backbutton', () => {
-                if (this.nav.canGoBack()) {
-                    this.nav.pop();
+                const nav = this.app.getComponent('nav');
+                if (nav.canGoBack()) {
+                    nav.pop();
                 }
             });
         });
