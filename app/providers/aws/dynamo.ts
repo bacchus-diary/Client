@@ -1,5 +1,4 @@
 import {Injectable} from 'angular2/core';
-import * as _ from 'lodash';
 
 import {Pager} from '../../util/pager';
 import {Logger} from '../../util/logging';
@@ -131,7 +130,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         });
         logger.debug(() => `Putting ${JSON.stringify(params)}`);
 
-        const res = await toPromise(this.client.put(params));
+        await toPromise(this.client.put(params));
     }
 
     async update(obj: T) {
@@ -149,7 +148,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         });
         logger.debug(() => `Updating ${JSON.stringify(params)}`);
 
-        const res = await toPromise(this.client.update(params))
+        await toPromise(this.client.update(params))
     }
 
     async remove(id: string, currentCognitoId?: string) {
@@ -159,7 +158,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         };
         logger.debug(() => `Removing ${JSON.stringify(params)}`);
 
-        const res = toPromise(this.client.delete(params));
+        await toPromise(this.client.delete(params));
     }
 
     async query(keys?: Map<string, any>, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
