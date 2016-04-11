@@ -76,14 +76,11 @@ export class FBPublish {
             logger.debug(() => `Posting to ${url}: ${content}`);
 
             const result = await toPromise(this.http.post(
-                `${url}?access_token=${token}`,
-                content,
-                {
+                `${url}?access_token=${token}`, content, {
                     headers: new Headers({
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
                     })
-                }
-            ));
+                }));
             const obj = result.json();
             logger.debug(() => `Result of Facebook posting: ${JSON.stringify(obj)}`);
             report.publishedFacebook = obj.id;
