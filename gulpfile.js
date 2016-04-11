@@ -60,7 +60,10 @@ gulp.task('scripts', copyScripts);
 gulp.task('clean', function(){
   return del('www/build');
 });
-gulp.task("typings",function(){
-    gulp.src("./typings.json")
+gulp.task('clean-typings', function(){
+  return del('typings');
+});
+gulp.task("typings", ['clean-typings'], function(){
+    return gulp.src("./typings.json")
         .pipe(gulpTypings()); //will install all typingsfiles in pipeline.
 });
