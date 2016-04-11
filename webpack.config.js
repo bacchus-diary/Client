@@ -5,6 +5,8 @@ module.exports = {
   entry: [
     'babel-polyfill',
     'reflect-metadata',
+    'lodash',
+    'zone.js',
     path.resolve('app/app')
   ],
   output: {
