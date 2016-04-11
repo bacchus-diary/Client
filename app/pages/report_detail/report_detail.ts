@@ -4,6 +4,7 @@ import {EventEmitter} from 'angular2/core';
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
+import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
 import {Logger} from '../../util/logging';
 
@@ -18,6 +19,7 @@ export class ReportDetailPage {
     constructor(
         private nav: NavController,
         private params: NavParams,
+        private fbPublish: FBPublish,
         private cachedReports: CachedReports
     ) {
         const report: Report = params.get('report');
@@ -69,7 +71,7 @@ export class ReportDetailPage {
         await this.cachedReports.remove(this.report);
     }
 
-    private publish() {
-        logger.debug(() => `Publishing report: ${this.report}`);
+    private async publish() {
+        await this.fbPublish.publish(this.report);
     }
 }
