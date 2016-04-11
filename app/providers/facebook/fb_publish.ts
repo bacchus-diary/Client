@@ -24,10 +24,6 @@ export class FBPublish {
         private con: FBConnect
     ) { }
 
-    generateMessage(report: Report): string {
-        return report.comment || "";
-    }
-
     async publish(report: Report) {
         logger.info(() => `Publishing: ${report}`);
         const token = await this.con.grantPublish();
@@ -35,7 +31,7 @@ export class FBPublish {
         const server = await this.config.server;
         const fb = (await this.config.authorized).facebook;
 
-        const makeParams = async (): Promise<{ [key: string]: string | boolean }> => {
+        const makeParams = async () => {
             const openGraph = async () => {
                 const data = {
                     url: `https://api.fathens.org/bacchus-diary/open_graph/report`,
@@ -54,9 +50,9 @@ export class FBPublish {
                 logger.debug(() => `Passing to OpenGraph API: ${json}`);
                 return `${data.url}/${encodeURIComponent(btoa(json))}`;
             }
-            const params: { [key: string]: string | boolean } = {
-                'fb:explicitly_shared': true,
-                message: this.generateMessage(report)
+            const params: { [key: string]: string } = {
+                'fb:explicitly_shared': 'true',
+                message: report.comment || ""
             };
             params[fb.objectName] = await openGraph();
             await Promise.all(
@@ -65,7 +61,7 @@ export class FBPublish {
 
                     const pre = `image[${index}]`;
                     params[`${pre}[url]`] = await leaf.photo.original.makeUrl();
-                    params[`${pre}[user_generated]`] = true;
+                    params[`${pre}[user_generated]`] = 'true';
                 })
             );
             return params;
@@ -73,15 +69,18 @@ export class FBPublish {
 
         try {
             const params = await makeParams();
+            const content = Object.keys(params).map((name) =>
+                [name, params[name]].map(encodeURIComponent).join('=')
+            ).join('&').replace(/%20/g, '+')
             const url = `${fb.hostname}/me/${fb.appName}:${fb.actionName}`;
-            logger.debug(() => `Posting to ${url}: ${JSON.stringify(params)}`);
+            logger.debug(() => `Posting to ${url}: ${content}`);
 
             const result = await toPromise(this.http.post(
                 `${url}?access_token=${token}`,
-                JSON.stringify(params),
+                content,
                 {
                     headers: new Headers({
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
                     })
                 }
             ));
