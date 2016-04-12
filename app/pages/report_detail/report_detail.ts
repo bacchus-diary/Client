@@ -1,4 +1,4 @@
-import {Page, NavController, NavParams, ActionSheet, Loading} from 'ionic-angular';
+import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
 import {EventEmitter} from 'angular2/core';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
@@ -6,6 +6,7 @@ import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
+import {Dialog, Spinner} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportDetailPage);
@@ -40,7 +41,7 @@ export class ReportDetailPage {
             title: 'MORE ACTIONS',
             buttons: [
                 {
-                    text: 'Publish to Facebook',
+                    text: 'Share on Facebook',
                     icon: 'share',
                     cssClass: 'publish',
                     handler: () => {
@@ -72,21 +73,16 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        this.withinLoading('POSTING...', async () => {
-            // await this.fbPublish.publish(this.report);
-            await new Promise((resolve, reject) => {
-                setTimeout(() => resolve(), 3000);
-            })
-        });
-    }
-
-    private async withinLoading(msg: string, proc: () => Promise<void>) {
-        const loading = Loading.create({
-            content: msg,
-            dismissOnPageChange: true
-        });
-        this.nav.present(loading);
-        await proc();
-        loading.dismiss();
+        if (await Dialog.confirm(this.nav, 'Share on Facebook', 'Are you sure to share on Facebook ?')) {
+            try {
+                await Spinner.within(this.nav, 'Posting...', async () => {
+                    // await this.fbPublish.publish(this.report);
+                    await new Promise((resolve, reject) => setTimeout(() => reject('SampleError'), 3000));
+                });
+            } catch (ex) {
+                logger.warn(() => `Failed to share on Facebook: ${ex}`);
+                Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
+            }
+        }
     }
 }
