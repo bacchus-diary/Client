@@ -3,6 +3,7 @@ import {Camera, Device} from 'ionic-native';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, Output, EventEmitter} from 'angular2/core';
 
+import {ElasticTextareaDirective} from '../elastic_textarea/elastic_textarea';
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
 import {EtiquetteVision} from '../../providers/cvision/etiquette';
@@ -17,7 +18,7 @@ const logger = new Logger(ShowcaseComponent);
 @Component({
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
-    directives: [IONIC_DIRECTIVES],
+    directives: [IONIC_DIRECTIVES, ElasticTextareaDirective],
     providers: [FATHENS_PROVIDERS]
 })
 export class ShowcaseComponent {

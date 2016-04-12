@@ -13,7 +13,7 @@
 <ion-content padding class="report_detail">
     <fathens-rating [value]="report.rating" (changed)="report.rating = $event"></fathens-rating>
     <ion-item>
-        <ion-textarea placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
+        <ion-textarea elastic placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
     </ion-item>
     <fathens-suggestions [report]="report" [reloadEvent]="updateLeaves"></fathens-suggestions>
     <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" (update)="updateLeaves.emit(null)"></fathens-showcase>

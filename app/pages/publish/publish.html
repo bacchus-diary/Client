@@ -9,9 +9,9 @@
 </ion-navbar>
 
 <ion-content class="publish">
-    <div class="message">
-        <ion-textarea [(ngModel)]="message"></ion-textarea>
-    </div>
+    <ion-item class="message">
+        <ion-textarea elastic [(ngModel)]="message"></ion-textarea>
+    </ion-item>
     <div class="buttons">
         <button danger (click)="dismiss(false)">Cancel</button>
         <button (click)="dismiss(true)">Ok</button>
