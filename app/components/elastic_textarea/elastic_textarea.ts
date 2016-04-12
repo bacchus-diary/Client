@@ -10,11 +10,11 @@ const logger = new Logger(ElasticTextareaDirective);
 export class ElasticTextareaDirective {
     constructor(private ref: ElementRef) { }
 
-    private textarea: HTMLTextAreaElement = null;
+    private textarea: HTMLTextAreaElement;
     private mirror: HTMLTextAreaElement;
 
     async ngOnInit() {
-        this.textarea = await new Promise<HTMLTextAreaElement>(async (resolve, reject) => {
+        this.textarea = await new Promise<HTMLTextAreaElement>((resolve, reject) => {
             const e: HTMLElement = this.ref.nativeElement;
             logger.debug(() => `Creating ElasticTextarea in : ${e.nodeName}`);
             if (e.nodeName == 'TEXTAREA') {
@@ -24,11 +24,11 @@ export class ElasticTextareaDirective {
                 if (t) {
                     resolve(t);
                 } else {
-                    reject(`No 'textarea' in ${e}`);
+                    reject(`No 'textarea' in ${e}(${e.nodeName})`);
                 }
             }
         });
-        logger.debug(() => `Creating ElasticTextarea: ${this.textarea} '${this.textarea.value}'`);
+        logger.debug(() => `Creating ElasticTextarea: ${this.textarea}`);
         this.mirror = makeMirror(this.textarea);
 
         this.textarea.oninput = (event) => this.onChange();
@@ -38,7 +38,9 @@ export class ElasticTextareaDirective {
     private onChange() {
         this.mirror.value = this.textarea.value;
         const s = this.mirror.scrollHeight;
-        this.textarea.style.height = `${s}px`;
+        if (this.textarea.offsetHeight != s) {
+            this.textarea.style.height = `${s}px`;
+        }
     }
 }
 
