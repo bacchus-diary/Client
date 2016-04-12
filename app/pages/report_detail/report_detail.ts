@@ -69,7 +69,17 @@ export class ReportDetailPage {
     }
 
     private async remove() {
-        await this.cachedReports.remove(this.report);
+        if (await Dialog.confirm(this.nav, 'Delete', 'Are you sure to delete this report ?')) {
+            try {
+                await Spinner.within(this.nav, 'Deleting...', async () => {
+                    await this.cachedReports.remove(this.report);
+                    this.nav.pop();
+                });
+            } catch (ex) {
+                logger.warn(() => `Failed to delete report: ${ex}`);
+                Dialog.alert(this.nav, 'Error on deleting', 'Failed to delete this report.');
+            }
+        }
     }
 
     private async publish() {
