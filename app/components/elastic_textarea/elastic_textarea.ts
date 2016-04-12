@@ -43,11 +43,10 @@ export class ElasticTextareaDirective {
 }
 
 function makeMirror(origin: HTMLTextAreaElement): HTMLTextAreaElement {
-    const style = getComputedStyle(this.textarea);
     const m = document.createElement('textarea') as HTMLTextAreaElement;
 
-    m.style.cssText = style.cssText;
-    m.value = this.textarea.value;
+    m.style.cssText = getComputedStyle(origin).cssText;
+    m.value = origin.value;
     m.setAttribute('aria-hidden', 'true');
 
     document.body.appendChild(m);
