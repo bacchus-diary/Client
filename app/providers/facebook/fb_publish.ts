@@ -90,4 +90,56 @@ export class FBPublish {
             throw ex;
         }
     }
+
+    async getAction(id: string): Promise<FBPublishedAction> {
+        const ac = await this.con.getToken();
+        logger.debug(() => `Curent AccessToken for Facebook: ${JSON.stringify(ac)}`);
+        if (!ac) return null;
+        const token = ac['token'];
+
+        const fb = (await this.config.authorized).facebook;
+        try {
+            const url = `${fb.hostname}/${id}?access_token=${token}`;
+            const result = await toPromise(this.http.get(url));
+            const obj = result.json();
+            logger.debug(() => `Result of getting action info: ${JSON.stringify(obj)}`);
+            return obj;
+        } catch (ex) {
+            logger.warn(() => `Error on querying action info: ${JSON.stringify(ex, null, 4)}`);
+            return null;
+        }
+    }
+}
+
+/**
+EXAMPLE {
+    "end_time":"2016-04-12T02:53:02+0000",
+    "message":"ブルーサファイアと勝手に呼んでいます。",
+    "start_time":"2016-04-12T02:53:02+0000",
+    "type":"bacchus-diary-test:drink",
+    "data":{
+        "alcohol":{
+            "id":"1029792407115621",
+            "title":"Report:IU67E5SP2645GFDE6EDNUCXN1T5PZZVM",
+            "type":"bacchus-diary-test:alcohol",
+            "url":"https://api.fathens.org/bacchus-diary/open_graph/report/eyJvYmplY3ROYW1lIjo…QuTEVBRiIsICJyZXBvcnRJZCI6ICJJVTY3RTVTUDI2NDVHRkRFNkVETlVDWE4xVDVQWlpWTSJ9"
+        }
+    },
+    "id":"10209477822647324"
+}
+*/
+export type FBPublishedAction = {
+    "id": string,
+    "type": string,
+    "message": string,
+    "start_time": string,
+    "end_time": string,
+    "data": {
+        "alcohol": {
+            "id": string,
+            "title": string,
+            "type": string,
+            "url": string,
+        }
+    }
 }
