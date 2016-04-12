@@ -1,4 +1,4 @@
-import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
+import {Page, NavController, NavParams, ActionSheet, Loading} from 'ionic-angular';
 import {EventEmitter} from 'angular2/core';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
@@ -72,6 +72,21 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        await this.fbPublish.publish(this.report);
+        this.withinLoading('POSTING...', async () => {
+            // await this.fbPublish.publish(this.report);
+            await new Promise((resolve, reject) => {
+                setTimeout(() => resolve(), 3000);
+            })
+        });
+    }
+
+    private async withinLoading(msg: string, proc: () => Promise<void>) {
+        const loading = Loading.create({
+            content: msg,
+            dismissOnPageChange: true
+        });
+        this.nav.present(loading);
+        await proc();
+        loading.dismiss();
     }
 }

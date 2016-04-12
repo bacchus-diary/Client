@@ -1,3 +1,4 @@
+import {AppVersion} from 'ionic-native';
 
 function padLeft(v: string, d: number, c?: string): string {
     if (v.length > d) return v;
@@ -37,7 +38,7 @@ export class Logger {
     static lebel: Lebel = lebels[0];
     static async setLebelByVersionNumber() {
         try {
-            const version = await cordova.getAppVersion.getVersionNumber();
+            const version: string = await AppVersion.getVersionNumber();
             output(`Checking version number: ${version}`);
             const last = _.last(version.match(/[0-9]/g));
             const v = parseInt(last);

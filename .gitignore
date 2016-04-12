@@ -2,6 +2,7 @@
 node_modules/
 www/build/
 www/cache/
+www/facebook_app_id
 platforms/
 plugins/
 resources/
