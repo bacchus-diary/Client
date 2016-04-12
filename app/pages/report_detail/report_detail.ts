@@ -26,9 +26,12 @@ export class ReportDetailPage {
         const report: Report = params.get('report');
         this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
+        this.isPublished = this.fbPublish.getAction(this.report.publishedFacebook).then((x) => x != null);
     }
 
     report: Report;
+
+    private isPublished: Promise<boolean>;
 
     private updateLeaves = new EventEmitter<void>(true);
 
@@ -36,27 +39,28 @@ export class ReportDetailPage {
         await this.update();
     }
 
-    showMore() {
+    async showMore() {
+        const buttons = [{
+            text: 'Delete',
+            icon: 'trash',
+            cssClass: 'delete',
+            handler: () => {
+                this.remove();
+            }
+        }];
+        if (!(await this.isPublished)) {
+            buttons.splice(0, 0, {
+                text: 'Share on Facebook',
+                icon: 'share',
+                cssClass: 'publish',
+                handler: () => {
+                    this.publish();
+                }
+            });
+        }
         this.nav.present(ActionSheet.create({
             title: 'MORE ACTIONS',
-            buttons: [
-                {
-                    text: 'Share on Facebook',
-                    icon: 'share',
-                    cssClass: 'publish',
-                    handler: () => {
-                        this.publish();
-                    }
-                },
-                {
-                    text: 'Delete',
-                    icon: 'trash',
-                    cssClass: 'delete',
-                    handler: () => {
-                        this.remove();
-                    }
-                }
-            ]
+            buttons: buttons
         }));
     }
 
