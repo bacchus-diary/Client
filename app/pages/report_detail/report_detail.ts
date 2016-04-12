@@ -76,8 +76,7 @@ export class ReportDetailPage {
         if (await Dialog.confirm(this.nav, 'Share on Facebook', 'Are you sure to share on Facebook ?')) {
             try {
                 await Spinner.within(this.nav, 'Posting...', async () => {
-                    // await this.fbPublish.publish(this.report);
-                    await new Promise((resolve, reject) => setTimeout(() => reject('SampleError'), 3000));
+                    await this.fbPublish.publish(this.report);
                 });
             } catch (ex) {
                 logger.warn(() => `Failed to share on Facebook: ${ex}`);
