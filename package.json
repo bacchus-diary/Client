@@ -31,7 +31,7 @@
     "run-sequence": "^1.1.5",
     "strip-sourcemap-loader": "0.0.1",
     "ts-loader": "^0.8.2",
-    "typescript": "^1.8.7"
+    "typescript": "1.8.7"
   },
   "name": "bacchus-diary",
   "description": "Bacchus Diary: An Ionic project"
