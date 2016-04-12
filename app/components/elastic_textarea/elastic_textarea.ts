@@ -29,22 +29,10 @@ export class ElasticTextareaDirective {
             }
         });
         logger.debug(() => `Creating ElasticTextarea: ${this.textarea} '${this.textarea.value}'`);
-        this.mirror = this.makeMirror(this.textarea);
+        this.mirror = makeMirror(this.textarea);
 
         this.textarea.oninput = (event) => this.onChange();
         this.onChange();
-    }
-
-    private makeMirror(origin: HTMLTextAreaElement) {
-        const style = getComputedStyle(this.textarea);
-        const m = document.createElement('textarea') as HTMLTextAreaElement;
-
-        m.style.cssText = style.cssText;
-        m.value = this.textarea.value;
-        m.setAttribute('aria-hidden', 'true');
-
-        document.body.appendChild(m);
-        return m;
     }
 
     private onChange() {
@@ -52,4 +40,16 @@ export class ElasticTextareaDirective {
         const s = this.mirror.scrollHeight;
         this.textarea.style.height = `${s}px`;
     }
+}
+
+function makeMirror(origin: HTMLTextAreaElement): HTMLTextAreaElement {
+    const style = getComputedStyle(this.textarea);
+    const m = document.createElement('textarea') as HTMLTextAreaElement;
+
+    m.style.cssText = style.cssText;
+    m.value = this.textarea.value;
+    m.setAttribute('aria-hidden', 'true');
+
+    document.body.appendChild(m);
+    return m;
 }
