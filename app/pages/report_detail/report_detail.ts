@@ -1,6 +1,7 @@
-import {Page, NavController, NavParams, ActionSheet} from 'ionic-angular';
+import {Page, NavController, NavParams, ActionSheet, Modal} from 'ionic-angular';
 import {EventEmitter} from 'angular2/core';
 
+import {PublishPage} from '../publish/publish';
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
@@ -18,15 +19,15 @@ const logger = new Logger(ReportDetailPage);
 })
 export class ReportDetailPage {
     constructor(
+        params: NavParams,
         private nav: NavController,
-        private params: NavParams,
         private fbPublish: FBPublish,
         private cachedReports: CachedReports
     ) {
         const report: Report = params.get('report');
         this.report = report.clone();
         logger.debug(() => `Detail of report: ${this.report}`);
-        this.isPublished = this.fbPublish.getAction(this.report.publishedFacebook).then((x) => x != null);
+        this.updatePublishing();
     }
 
     report: Report;
@@ -87,15 +88,27 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        if (await Dialog.confirm(this.nav, 'Share on Facebook', 'Are you sure to share on Facebook ?')) {
+        const message = await new Promise<string>((resolve, reject) => {
+            const modal = Modal.create(PublishPage, { report: this.report });
+            modal.onDismiss((res) => {
+                resolve(res['message']);
+            });
+            this.nav.present(modal);
+        });
+        if (message) {
             try {
                 await Spinner.within(this.nav, 'Posting...', async () => {
-                    await this.fbPublish.publish(this.report);
+                    await this.fbPublish.publish(message, this.report);
+                    this.updatePublishing();
                 });
             } catch (ex) {
                 logger.warn(() => `Failed to share on Facebook: ${ex}`);
                 Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
             }
         }
+    }
+
+    private updatePublishing() {
+    this.isPublished = this.fbPublish.getAction(this.report.publishedFacebook).then((x) => x != null);
     }
 }

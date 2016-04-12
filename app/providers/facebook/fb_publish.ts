@@ -24,7 +24,7 @@ export class FBPublish {
         private con: FBConnect
     ) { }
 
-    async publish(report: Report) {
+    async publish(message: string, report: Report) {
         logger.info(() => `Publishing: ${report}`);
         const token = await this.con.grantPublish();
         const cred = await this.cognito.identity;
@@ -52,7 +52,7 @@ export class FBPublish {
             }
             const params: { [key: string]: string } = {
                 'fb:explicitly_shared': 'true',
-                message: report.comment || ""
+                message: message
             };
             params[fb.objectName] = await openGraph();
             await Promise.all(
