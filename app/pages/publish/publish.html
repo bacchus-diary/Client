@@ -1,13 +1,13 @@
-<ion-navbar *navbar>
+<ion-navbar *navbar class="publish-nav">
     <ion-buttons left>
-        <button (click)="dismiss(false)">
+        <button danger (click)="dismiss(false)">
             <span primary showWhen="ios">Cancel</span>
             <ion-icon name="md-close" showWhen="android,windows"></ion-icon>
         </button>
     </ion-buttons>
     <ion-title>Share on Facebook</ion-title>
-    <ion-buttons end *ngIf="message.length > 0">
-        <button (click)="dismiss(true)">
+    <ion-buttons end class="ng-animate" *ngIf="message.length > 0">
+        <button favorite (click)="dismiss(true)">
             <ion-icon name="checkmark"></ion-icon>OK
         </button>
     </ion-buttons>
