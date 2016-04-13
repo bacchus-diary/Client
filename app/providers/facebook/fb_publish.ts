@@ -86,7 +86,9 @@ export class FBPublish {
             report.publishedFacebook = obj.id;
             withFabric((fabric) => fabric.Answers.eventShare({ method: 'Facebook' }));
         } catch (ex) {
-            logger.warn(() => `Error on posting to Facebook: ${JSON.stringify(ex)}`);
+            if (ex['_body']) {
+                logger.warn(() => `Error on posting to Facebook: ${ex['_body']}`);
+            }
             throw ex;
         }
     }
