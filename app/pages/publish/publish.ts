@@ -16,9 +16,12 @@ export class PublishPage {
     constructor(params: NavParams, public viewCtrl: ViewController) {
         this.report = params.get('report');
         this.message = this.report.comment || "";
+        this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
     }
 
     private report: Report;
+
+    photos: Array<string>;
 
     message: string;
 

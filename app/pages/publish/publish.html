@@ -16,4 +16,9 @@
         <button danger (click)="dismiss(false)">Cancel</button>
         <button (click)="dismiss(true)">Ok</button>
     </div>
+    <ion-slides zoom>
+        <ion-slide *ngFor="#photo of photos">
+            <img [src]="photo" />
+        </ion-slide>
+    </ion-slides>
 </ion-content>
