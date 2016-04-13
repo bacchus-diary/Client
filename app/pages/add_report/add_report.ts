@@ -6,6 +6,7 @@ import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {Report} from '../../model/report';
+import {Dialog, Spinner} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(AddReportPage);
@@ -24,10 +25,21 @@ export class AddReportPage {
 
     async submit(publish: boolean) {
         logger.debug(() => `Submitting report: publish=${publish}`);
-        const next = !publish || await PublishPage.open(this.nav, this.report);
-        if (next) {
-            await this.cachedReports.add(this.report);
-            this.nav.pop();
+        const ok = await Spinner.within(this.nav, 'Adding...', async () => {
+            try {
+                await this.cachedReports.add(this.report);
+                this.nav.pop();
+                return true;
+            } catch (ex) {
+                logger.warn(() => `Failed to add report: ${ex}`);
+                await Dialog.alert(this.nav, 'Error', 'Failed to add your report. Please try again later.', 'OK');
+                return false;
+            }
+        });
+        if (ok) {
+            if (publish) {
+                await PublishPage.open(this.nav, this.report);
+            }
         }
     }
 }
