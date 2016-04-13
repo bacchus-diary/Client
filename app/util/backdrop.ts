@@ -47,13 +47,13 @@ export class Dialog {
 }
 
 export class Spinner {
-    static async within(nav: NavController, msg: string, proc: () => Promise<void>) {
+    static async within<T>(nav: NavController, msg: string, proc: () => Promise<T>) {
         const loading = Loading.create({
             content: msg
         });
         nav.present(loading);
         try {
-            await proc();
+            return await proc();
         } finally {
             loading.dismiss();
         }
