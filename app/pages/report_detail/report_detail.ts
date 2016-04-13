@@ -88,27 +88,11 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        const message = await new Promise<string>((resolve, reject) => {
-            const modal = Modal.create(PublishPage, { report: this.report });
-            modal.onDismiss((res) => {
-                resolve(res['message']);
-            });
-            this.nav.present(modal);
-        });
-        if (message) {
-            try {
-                await Spinner.within(this.nav, 'Posting...', async () => {
-                    await this.fbPublish.publish(message, this.report);
-                    this.updatePublishing();
-                });
-            } catch (ex) {
-                logger.warn(() => `Failed to share on Facebook: ${ex}`);
-                Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
-            }
-        }
+        const ok = await PublishPage.open(this.nav, this.report);
+        if (ok) this.updatePublishing();
     }
 
     private updatePublishing() {
-    this.isPublished = this.fbPublish.getAction(this.report.publishedFacebook).then((x) => x != null);
+        this.isPublished = this.fbPublish.getAction(this.report.publishedFacebook).then((x) => x != null);
     }
 }

@@ -1,6 +1,7 @@
 import {Page, NavController} from 'ionic-angular';
 import {EventEmitter} from 'angular2/core';
 
+import {PublishPage} from '../publish/publish';
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
@@ -21,9 +22,12 @@ export class AddReportPage {
 
     private updateLeaves = new EventEmitter<void>(true);
 
-    async submit() {
-        logger.debug(() => `Submitting report`);
-        await this.cachedReports.add(this.report);
-        this.nav.pop();
+    async submit(publish: boolean) {
+        logger.debug(() => `Submitting report: publish=${publish}`);
+        const next = !publish || await PublishPage.open(this.nav, this.report);
+        if (next) {
+            await this.cachedReports.add(this.report);
+            this.nav.pop();
+        }
     }
 }
