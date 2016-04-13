@@ -50,7 +50,7 @@ export class PublishPage {
 
     message: string;
 
-    dismiss(ok?: boolean) {
+    dismiss(ok: boolean) {
         this.viewCtrl.dismiss({
             message: (ok ? this.message : null)
         });
