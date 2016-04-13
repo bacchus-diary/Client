@@ -2,6 +2,7 @@ import {Page, Modal, NavController, NavParams, ViewController} from 'ionic-angul
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
+import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
 import {Dialog, Spinner} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
@@ -15,29 +16,21 @@ const logger = new Logger(PublishPage);
 })
 export class PublishPage {
     static async open(nav: NavController, report: Report): Promise<boolean> {
-        const message = await new Promise<string>((resolve, reject) => {
+        return await new Promise<boolean>((resolve, reject) => {
             const modal = Modal.create(PublishPage, { report: report });
             modal.onDismiss((res) => {
-                resolve(res['message']);
+                resolve(res['ok']);
             });
             nav.present(modal);
         });
-        if (message) {
-            try {
-                await Spinner.within(nav, 'Posting...', async () => {
-                    // await this.doPublish(message, report);
-                    await new Promise((ok, ng) => setTimeout(ok, 3000));
-                });
-                return true;
-            } catch (ex) {
-                logger.warn(() => `Failed to share on Facebook: ${ex}`);
-                await Dialog.alert(nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
-            }
-        }
-        return false;
     }
 
-    constructor(params: NavParams, public viewCtrl: ViewController) {
+    constructor(
+        private nav: NavController,
+        params: NavParams,
+        private fbPublish: FBPublish,
+        public viewCtrl: ViewController
+    ) {
         this.report = params.get('report');
         logger.debug(() => `Editing message of report: ${this.report}`);
         this.message = this.report.comment || "";
@@ -50,9 +43,24 @@ export class PublishPage {
 
     message: string;
 
-    dismiss(ok: boolean) {
-        this.viewCtrl.dismiss({
-            message: (ok ? this.message : null)
-        });
+    cancel() {
+        this.dismiss(false);
+    }
+
+    async submit() {
+        try {
+            await Spinner.within(this.nav, 'Posting...', async () => {
+                await this.fbPublish.publish(this.message, this.report);
+            });
+            this.dismiss(true);
+        } catch (ex) {
+            logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
+            await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
+            this.dismiss(false);
+        }
+    }
+
+    private dismiss(ok: boolean) {
+        this.viewCtrl.dismiss({ ok: ok });
     }
 }
