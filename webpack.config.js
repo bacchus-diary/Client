@@ -1,7 +1,5 @@
 var path = require('path');
-var webpack = require('webpack');
 
-var testMode = process.env.BUILD_MODE == null || process.env.BUILD_MODE === 'test';
 
 module.exports = {
   entry: [
@@ -16,9 +14,6 @@ module.exports = {
     filename: 'app.bundle.js',
     pathinfo: false // show module paths in the bundle, handy for debugging
   },
-  plugins: testMode ? [] : [
-      new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } })
-  ],
   module: {
     loaders: [
       {
