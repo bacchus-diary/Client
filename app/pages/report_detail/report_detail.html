@@ -10,7 +10,7 @@
     </ion-buttons>
 </ion-navbar>
 
-<ion-content padding class="report_detail">
+<ion-content class="report_detail">
     <fathens-rating [value]="report.rating" (changed)="report.rating = $event"></fathens-rating>
     <ion-item>
         <ion-textarea elastic placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
