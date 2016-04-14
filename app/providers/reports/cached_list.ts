@@ -91,6 +91,8 @@ class PagingReports {
 
     async more() {
         const adding = await this.pager.more(PAGE_SIZE);
-        adding.forEach((x) => this.list.push(x));
+        _.sortBy(adding, 'dateAt').reverse().forEach((x) => {
+            if (_.every(this.list, (o) => o.id() != x.id())) this.list.push(x);
+        });
     }
 }
