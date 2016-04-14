@@ -33,7 +33,11 @@ export class Leaf implements DBRecord<Leaf> {
                     logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
                     if (!src) return null;
                     const images = photo.images(src.REPORT_ID, src.LEAF_ID);
-                    if (!images.exists()) return null;
+                    if (!images.exists()) {
+                        logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
+                        (await this._table).remove(src.LEAF_ID);
+                        return null;
+                    }
                     return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT, images);
                 },
                 writer: (cognito: Cognito, photo: Photo) => async (obj) => {

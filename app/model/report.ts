@@ -41,7 +41,11 @@ export class Report implements DBRecord<Report> {
                         COGNITO_ID: (await cognito.identity).identityId,
                         REPORT_ID: src.REPORT_ID
                     }, 'COGNITO_ID-REPORT_ID-index');
-                    if (_.isEmpty(rels)) return null;
+                    if (_.isEmpty(rels)) {
+                        logger.debug(() => `This report has no leaves: ${JSON.stringify(src)}`);
+                        (await this._table).remove(src.REPORT_ID);
+                        return null;
+                    }
                     const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() == leafId));
                     const leaves = _.union(_.compact(indexed), rels);
                     return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);
