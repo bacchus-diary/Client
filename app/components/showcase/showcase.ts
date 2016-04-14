@@ -7,9 +7,11 @@ import {ElasticTextareaDirective} from '../elastic_textarea/elastic_textarea';
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
 import {EtiquetteVision} from '../../providers/cvision/etiquette';
+import {Preferences} from '../../providers/config/preferences';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
 import {assert} from '../../util/assertion';
+import {Dialog} from '../../util/backdrop';
 import * as BASE64 from '../../util/base64';
 import {Logger} from '../../util/logging';
 
@@ -26,6 +28,7 @@ export class ShowcaseComponent {
         private nav: NavController,
         private ab: AnimationBuilder,
         private s3file: S3File,
+        private pref: Preferences,
         private etiquetteVision: EtiquetteVision,
         private urlGenerator: Photo) { }
 
@@ -47,7 +50,7 @@ export class ShowcaseComponent {
         try {
             this.swiper.lockSwipes();
 
-            const base64image = await this.photo(true);
+            const base64image = await this.getPhoto();
             const blob = BASE64.decodeBase64(base64image);
             const url = URL.createObjectURL(blob, { oneTimeOnly: true });
             logger.debug(() => `Photo URL: ${url}`);
@@ -172,7 +175,15 @@ export class ShowcaseComponent {
         this.swiper.slideNext();
     }
 
-    public photo(take: boolean): Promise<string> {
+    private async getPhoto(): Promise<string> {
+        let take = await this.pref.getAlwaysTake();
+        if (!take) {
+            take = await Dialog.confirm(this.nav, 'Camera', 'Take photo or Choose from library', {ok: 'take', cancel: 'choose'});
+        }
+        return this.doGetPhoto(take);
+    }
+
+    private doGetPhoto(take: boolean): Promise<string> {
         if (Device.device.cordova) {
             return Camera.getPicture({
                 correctOrientation: true,
