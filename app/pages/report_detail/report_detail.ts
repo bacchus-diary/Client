@@ -37,7 +37,12 @@ export class ReportDetailPage {
     private updateLeaves = new EventEmitter<void>(true);
 
     async onPageWillLeave() {
-        await this.update();
+        logger.debug(() => `Checking empty leaves...`);
+        if (_.isEmpty(this.report.leaves)) {
+            await this.cachedReports.remove(this.report);
+        } else {
+            await this.update();
+        }
     }
 
     async showMore() {
