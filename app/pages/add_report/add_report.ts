@@ -28,7 +28,6 @@ export class AddReportPage {
         const ok = await Spinner.within(this.nav, 'Adding...', async () => {
             try {
                 await this.cachedReports.add(this.report);
-                this.nav.pop();
                 return true;
             } catch (ex) {
                 logger.warn(() => `Failed to add report: ${ex}`);
@@ -40,6 +39,10 @@ export class AddReportPage {
             if (publish) {
                 await PublishPage.open(this.nav, this.report);
             }
+            setTimeout(() => {
+                logger.debug(() => `Success to add. leaving this page...`);
+                this.nav.pop();
+            }, 10);
         }
     }
 }
