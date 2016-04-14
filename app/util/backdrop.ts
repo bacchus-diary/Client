@@ -1,5 +1,17 @@
 import {Alert, Loading, NavController} from 'ionic-angular';
 
+export class Overlay {
+    static async  wait(nav: NavController, interval?: number): Promise<void> {
+        await new Promise(async (resolve, reject) => {
+            const ms = interval || 100;
+            while (nav.hasOverlay()) {
+                await new Promise((ok, ng) => setTimeout(ok, ms));
+            }
+            resolve();
+        });
+    }
+}
+
 export class Dialog {
     static async alert(nav: NavController, title: string, msg: string, buttonText?: string): Promise<void> {
         buttonText = buttonText || 'OK';

@@ -6,7 +6,7 @@ import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {Report} from '../../model/report';
-import {Dialog, Spinner} from '../../util/backdrop';
+import {Dialog, Spinner, Overlay} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(AddReportPage);
@@ -44,10 +44,9 @@ export class AddReportPage {
             if (publish) {
                 await PublishPage.open(this.nav, this.report);
             }
-            setTimeout(() => {
-                logger.debug(() => `Success to add. leaving this page...`);
-                this.nav.pop();
-            }, 1000);
+            await Overlay.wait(this.nav);
+            logger.debug(() => `Success to add. leaving this page...`);
+            this.nav.pop();
         }
     }
 }
