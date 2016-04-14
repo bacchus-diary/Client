@@ -69,6 +69,9 @@ export interface DBRecord<T> {
 export type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => Promise<T>;
 export type RecordWriter<T extends DBRecord<T>> = (obj: T) => Promise<DC.Item>;
 
+type KeyValue = string;
+type Key = { [key: string]: KeyValue };
+
 function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
     return requestToPromise<R>(request, 'DynamoDB');
 }
@@ -85,7 +88,7 @@ export class DynamoTable<T extends DBRecord<T>> {
     ) {
         this.tableName = `${appName}.${tableName}`;
         Cognito.addChangingHook(async (oldId, newId) => {
-            const items = await this.query(toMap({ COGNITO_ID_COLUMN: oldId }));
+            const items = await this.query({ COGNITO_ID_COLUMN: oldId });
             await Promise.all(items.map(async (item) => {
                 await this.put(item, newId);
                 await this.remove(item.id(), oldId);
@@ -99,8 +102,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         return `DynamoTable[${this.tableName}]`;
     }
 
-    private async makeKey(id?: string, currentCognitoId?: string): Promise<DC.Key> {
-        const key = {};
+    private async makeKey(id?: string, currentCognitoId?: string): Promise<Key> {
+        const key: Key = {};
         key[COGNITO_ID_COLUMN] = currentCognitoId ? currentCognitoId : (await this.cognito.identity).identityId;
         if (id && this.ID_COLUMN) {
             key[this.ID_COLUMN] = id;
@@ -161,9 +164,9 @@ export class DynamoTable<T extends DBRecord<T>> {
         await toPromise(this.client.delete(params));
     }
 
-    async query(keys?: Map<string, any>, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
-        logger.debug(() => `Quering ${indexName}: ${keys}`);
-        const exp = ExpressionMap.joinAll(keys ? keys : toMap(await this.makeKey()));
+    async query(keys?: Key, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
+        logger.debug(() => `Quering ${indexName}: ${JSON.stringify(keys)}`);
+        const exp = ExpressionMap.joinAll(keys || await this.makeKey());
         const params: DC.QueryParams = {
             TableName: this.tableName,
             KeyConditionExpression: exp.express,
@@ -183,7 +186,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         return _.compact(await Promise.all(res.Items.map(this.reader)));
     }
 
-    queryPager(hashKey?: Map<string, any>, indexName?: string, isForward?: boolean): Pager<T> {
+    queryPager(hashKey?: Key, indexName?: string, isForward?: boolean): Pager<T> {
         return new PagingQuery<T>(this, indexName, hashKey, isForward);
     }
 
@@ -211,22 +214,6 @@ export class DynamoTable<T extends DBRecord<T>> {
 
 function isEmpty(obj: Object): boolean {
     return Object.keys(obj).length < 1;
-}
-
-function toObj(map: Map<string, any>): any {
-    const result: any = {};
-    Object.keys(map).forEach((key) => {
-        result[key] = map[key];
-    });
-    return result;
-}
-
-function toMap(obj: any): Map<string, any> {
-    const result = new Map<string, any>();
-    Object.keys(obj).forEach((key) => {
-        result[key] = obj[key];
-    });
-    return result;
 }
 
 class LastEvaluatedKey {
@@ -259,7 +246,7 @@ type Expression = {
 };
 
 class ExpressionMap {
-    static joinAll(pairs: Map<string, any>, join?: string, sign?: string): Expression {
+    static joinAll(pairs: Key, join?: string, sign?: string): Expression {
         if (!join) join = 'AND'
         if (!sign) sign = '=';
         const rels = new Array<string>();
@@ -272,8 +259,8 @@ class ExpressionMap {
         return { express: rels.join(` ${join} `), keys: result };
     }
 
-    private _names: Map<string, string> = new Map();
-    private _values: Map<string, any> = new Map();
+    private _names: { [key: string]: string } = {};
+    private _values: { [key: string]: KeyValue } = {};
 
     addName(name: string): string {
         const key = `#N${Object.keys(this._names).length}`;
@@ -281,18 +268,18 @@ class ExpressionMap {
         return key;
     }
 
-    addValue(value: any): string {
+    addValue(value: KeyValue): string {
         const key = `:V${Object.keys(this._values).length}`;
         this._values[key] = value;
         return key;
     }
 
     get names(): DC.ExpressionAttributeNames {
-        return toObj(this._names);
+        return this._names;
     }
 
     get values(): DC.ExpressionAttributeValues {
-        return toObj(this._values);
+        return this._values;
     }
 }
 
@@ -323,7 +310,7 @@ class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
     constructor(
         table: DynamoTable<T>,
         private indexName: string,
-        private hashKey: Map<string, any>,
+        private hashKey: Key,
         private isForward: boolean
     ) {
         super(table);
