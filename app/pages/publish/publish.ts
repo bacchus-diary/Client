@@ -17,9 +17,9 @@ const logger = new Logger(PublishPage);
 export class PublishPage {
     static async open(nav: NavController, report: Report): Promise<boolean> {
         return await new Promise<boolean>((resolve, reject) => {
-            const modal = Modal.create(PublishPage, { report: report });
-            modal.onDismiss((res) => {
-                resolve(res['ok']);
+            const modal = Modal.create(PublishPage, {
+                report: report,
+                callback: resolve
             });
             nav.present(modal);
         });
@@ -32,6 +32,7 @@ export class PublishPage {
         public viewCtrl: ViewController
     ) {
         this.report = params.get('report');
+        this.callback = params.get('callback');
         logger.debug(() => `Editing message of report: ${this.report}`);
         this.message = this.report.comment || "";
         this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
@@ -42,6 +43,16 @@ export class PublishPage {
     photos: Array<string>;
 
     message: string;
+
+    private isBacked: boolean = false;
+    private callback: (boolean) => void;
+
+    onPageWillLeave() {
+        if (!this.isBacked) {
+            this.isBacked = true;
+            this.callback(false);
+        }
+    }
 
     cancel() {
         this.dismiss(false);
@@ -61,6 +72,8 @@ export class PublishPage {
     }
 
     private dismiss(ok: boolean) {
-        this.viewCtrl.dismiss({ ok: ok });
+        this.isBacked = true;
+        this.callback(ok);
+        this.viewCtrl.dismiss();
     }
 }
