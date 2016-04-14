@@ -3,17 +3,20 @@
         <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title>Add New</ion-title>
-    <ion-buttons end>
-        <button danger (click)="submit()">
+    <ion-buttons end *ngIf="report.leaves.length > 0">
+        <button favorite (click)="submit(true)">
+            <ion-icon name="share"></ion-icon>
+        </button>
+        <button secondary (click)="submit(false)">
             <ion-icon name="checkmark"></ion-icon>
         </button>
     </ion-buttons>
 </ion-navbar>
 
-<ion-content padding class="add_report">
+<ion-content class="add_report">
     <fathens-rating [value]="report.rating" (changed)="report.rating = $event"></fathens-rating>
     <ion-item>
-        <ion-textarea placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
+        <ion-textarea elastic placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
     </ion-item>
     <fathens-suggestions [report]="report" [reloadEvent]="updateLeaves"></fathens-suggestions>
     <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" (update)="updateLeaves.emit(null)" [confirmDelete]="false"></fathens-showcase>

@@ -61,8 +61,8 @@ export class FBConnect {
         });
     }
 
-    getToken(): Promise<string> {
-        return this.invoke<string>((plugin, callback) => {
+    getToken(): Promise<{ token: string, permissions: string[] }> {
+        return this.invoke<{ token: string, permissions: string[] }>((plugin, callback) => {
             plugin.getToken(callback);
         });
     }

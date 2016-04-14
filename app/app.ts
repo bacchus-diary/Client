@@ -1,4 +1,4 @@
-import {App, IonicApp, Platform} from 'ionic-angular';
+import {App, IonicApp, Platform, NavController} from 'ionic-angular';
 import {Splashscreen} from 'ionic-native';
 
 import {AcceptancePage} from './pages/acceptance/acceptance';
@@ -30,6 +30,12 @@ class MyApp {
             await Logger.setLebelByVersionNumber();
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
             Splashscreen.hide();
+            document.addEventListener('backbutton', () => {
+                const nav = this.app.getComponent('nav');
+                if (nav.canGoBack()) {
+                    nav.pop();
+                }
+            });
         });
     }
 

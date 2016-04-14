@@ -1,0 +1,27 @@
+.publish {
+    .message {
+        padding: 1rem;
+    }
+
+    ion-slides {
+        height: 100vw;
+    }
+}
+
+.publish-nav {
+    ion-buttons[end] {
+        transition: all 300ms linear;
+        &.ng-enter {
+            opacity: 0.5;
+            transform: translateX(-100vw);
+        }
+        &.ng-enter-active {
+            opacity: 1;
+            transform: none;
+        }
+        &.ng-leave-active {
+            opacity: 0.5;
+            transform: translateX(-100vw);
+        }
+    }
+}

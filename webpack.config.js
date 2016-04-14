@@ -5,7 +5,8 @@ module.exports = {
   entry: [
     'babel-polyfill',
     'reflect-metadata',
-    path.normalize('zone.js/dist/zone-microtask'),
+    'lodash',
+    'zone.js',
     path.resolve('app/app')
   ],
   output: {
@@ -29,8 +30,7 @@ module.exports = {
     ],
     noParse: [
       /aws-sdk/,
-      /reflect-metadata/,
-      /zone\.js(\/|\\)dist(\/|\\)zone-microtask/
+      /reflect-metadata/
     ]
   },
   resolve: {

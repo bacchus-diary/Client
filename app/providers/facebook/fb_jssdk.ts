@@ -69,8 +69,19 @@ export class FBJSSDK implements FBConnectPlugin {
         callback('Unsupported oparation: getName', null);
     }
 
-    getToken(callback: PluginCallback<string>): void {
-        callback('Unsupported oparation: getToken', null);
+    getToken(callback: PluginCallback<{ token: string, permissions: string[] }>): void {
+        this.invoke(callback, (fb, callback) => {
+            fb.getLoginStatus((res) => {
+                if (res.status == 'connected') {
+                    callback({
+                        token: res.authResponse.accessToken,
+                        permissions: null
+                    });
+                } else {
+                    callback(null);
+                }
+            });
+        });
     }
 }
 
@@ -79,6 +90,7 @@ declare type FBJSCallback<T> = (res: T) => void;
 interface FBJSSDKPlugin {
     login(callback: FBJSCallback<LoginResponse>, param): void;
     logout(callback: FBJSCallback<void>): void;
+    getLoginStatus(callback: FBJSCallback<LoginResponse>): void;
 }
 
 interface LoginResponse {

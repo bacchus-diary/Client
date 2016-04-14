@@ -5,9 +5,9 @@ import {Cognito} from './aws/cognito';
 import {Dynamo} from './aws/dynamo';
 import {FBConnect} from './facebook/fb_connect';
 import {FBJSSDK} from './facebook/fb_jssdk';
+import {FBPublish} from './facebook/fb_publish';
 import {CachedReports} from './reports/cached_list';
 import {Photo} from './reports/photo';
-import {PhotoShop} from './photo_shop';
 import {CVision} from './cvision/cvision';
 import {EtiquetteVision} from './cvision/etiquette';
 import {Suggestions} from './suggestions/suggestions';
@@ -23,9 +23,9 @@ export const FATHENS_PROVIDERS = [
     Dynamo,
     FBConnect,
     FBJSSDK,
+    FBPublish,
     CachedReports,
     Photo,
-    PhotoShop,
     CVision,
     EtiquetteVision
 ];

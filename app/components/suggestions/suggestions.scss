@@ -1,6 +1,6 @@
 .fathens-suggestions {
-    margin-top: 2rem;
     &>h4 {
+        padding-left: 1rem;
         color: orange;
     }
 
@@ -15,9 +15,6 @@
             .product {
                 width: 60vw;
                 align-items: flex-start;
-                &:first-child {
-                    padding-left: 0;
-                }
 
                 .image {
                     margin-right: 0;

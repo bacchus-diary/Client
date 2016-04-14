@@ -1,14 +1,16 @@
 import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
+import {Camera, Device} from 'ionic-native';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, Output, EventEmitter} from 'angular2/core';
 
+import {ElasticTextareaDirective} from '../elastic_textarea/elastic_textarea';
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
 import {EtiquetteVision} from '../../providers/cvision/etiquette';
-import {PhotoShop} from '../../providers/photo_shop';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
 import {assert} from '../../util/assertion';
+import * as BASE64 from '../../util/base64';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
@@ -16,7 +18,7 @@ const logger = new Logger(ShowcaseComponent);
 @Component({
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
-    directives: [IONIC_DIRECTIVES],
+    directives: [IONIC_DIRECTIVES, ElasticTextareaDirective],
     providers: [FATHENS_PROVIDERS]
 })
 export class ShowcaseComponent {
@@ -25,7 +27,6 @@ export class ShowcaseComponent {
         private ab: AnimationBuilder,
         private s3file: S3File,
         private etiquetteVision: EtiquetteVision,
-        private photoShop: PhotoShop,
         private urlGenerator: Photo) { }
 
     @Input() reportId: string;
@@ -46,9 +47,9 @@ export class ShowcaseComponent {
         try {
             this.swiper.lockSwipes();
 
-            const base64image = await this.photoShop.photo(true);
-            const blob = this.photoShop.decodeBase64(base64image);
-            const url = this.photoShop.makeUrl(blob);
+            const base64image = await this.photo(true);
+            const blob = BASE64.decodeBase64(base64image);
+            const url = URL.createObjectURL(blob, { oneTimeOnly: true });
             logger.debug(() => `Photo URL: ${url}`);
 
             const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
@@ -170,6 +171,53 @@ export class ShowcaseComponent {
 
     slideNext() {
         this.swiper.slideNext();
+    }
+
+    public photo(take: boolean): Promise<string> {
+        if (Device.device.cordova) {
+            return Camera.getPicture({
+                correctOrientation: true,
+                destinationType: 0, // DATA_URL
+                sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
+            });
+        } else {
+            return new Promise<string>((resolve, reject) => {
+                this.nav.present(Alert.create({
+                    title: 'Choose image file',
+                    inputs: [
+                        {
+                            type: 'file',
+                            name: 'file'
+                        }
+                    ],
+                    buttons: [
+                        {
+                            text: 'Cancel',
+                            handler: (data) => {
+                                logger.debug(() => `Cenceled: ${JSON.stringify(data)}`);
+                                reject('Cancel');
+                            }
+                        },
+                        {
+                            text: 'Ok',
+                            handler: async (data) => {
+                                try {
+                                    const elm = document.querySelector("ion-alert input.alert-input[type='file']") as HTMLInputElement;
+                                    if (elm && elm.files.length > 0) {
+                                        const file = elm.files[0];
+                                        logger.debug(() => `Choosed file: ${JSON.stringify(file)}`);
+                                        resolve(await BASE64.encodeBase64(file));
+                                    }
+                                } catch (ex) {
+                                    logger.debug(() => `Error on read file: ${ex}`);
+                                    reject(ex);
+                                }
+                            }
+                        }
+                    ]
+                }));
+            });
+        }
     }
 }
 
