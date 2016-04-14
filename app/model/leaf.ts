@@ -32,8 +32,12 @@ export class Leaf implements DBRecord<Leaf> {
                 reader: (cognito: Cognito, photo: Photo) => async (src: LeafRecord) => {
                     logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
                     if (!src) return null;
-                    const images = photo.images(src.REPORT_ID, src.LEAF_ID);
-                    if (!images.exists()) return null;
+                    const images = await photo.images(src.REPORT_ID, src.LEAF_ID);
+                    if (!images.exists()) {
+                        logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
+                        (await this._table).remove(src.LEAF_ID);
+                        return null;
+                    }
                     return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT, images);
                 },
                 writer: (cognito: Cognito, photo: Photo) => async (obj) => {
@@ -50,7 +54,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this._table;
     }
 
-    static newEmpty(photo: Photo, reportId: string): Leaf {
+    static async withPhoto(original: string, reportId: string, photo: Photo): Promise<Leaf> {
         const id = createRandomKey();
         return new Leaf(
             reportId,
@@ -62,7 +66,7 @@ export class Leaf implements DBRecord<Leaf> {
                 description: null,
                 description_upper: null
             },
-            photo.images(reportId, id));
+            await photo.images(reportId, id, original));
     }
 
     constructor(
@@ -74,6 +78,7 @@ export class Leaf implements DBRecord<Leaf> {
         assert('reportId', reportId);
         assert('id', _id);
         assert('content', content);
+        assert('images', photo);
     }
 
     get table(): Promise<DynamoTable<Leaf>> {

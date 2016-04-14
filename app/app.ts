@@ -32,7 +32,7 @@ class MyApp {
             Splashscreen.hide();
             document.addEventListener('backbutton', () => {
                 const nav = this.app.getComponent('nav');
-                if (nav.canGoBack()) {
+                if (!nav.hasOverlay() && nav.canGoBack()) {
                     nav.pop();
                 }
             });

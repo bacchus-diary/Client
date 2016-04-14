@@ -238,13 +238,16 @@ export type ItemCollectionMetrics = any;
  */
 export type Item = any;
 
+export type ColumnValueElement = string | number | boolean;
+export type ColumnValue = ColumnValueElement | ColumnValueElement[] | { [key: string]: ColumnValue };
+
 /**
  * map {
  *    someKey: someValue "str" | 10 | true | false | null | [1, "a"] | {a: "b"},
  *    anotherKey: ...
  *}
  */
-export type Key = any;
+export type Key = { [key: string]: ColumnValue };
 
 /**
  * map {
@@ -252,7 +255,7 @@ export type Key = any;
  *    anotherKey: ...
  * }
  */
-export type ExpressionAttributeNames = any;
+export type ExpressionAttributeNames = { [key: string]: string };
 
 /**
  * map {
@@ -260,7 +263,7 @@ export type ExpressionAttributeNames = any;
  *    anotherKey: ...
  * }
  */
-export type ExpressionAttributeValues = any;
+export type ExpressionAttributeValues = { [key: string]: ColumnValue };
 
 export type ConditionalOperator = 'AND' | 'OR';
 

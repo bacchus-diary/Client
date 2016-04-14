@@ -32,37 +32,17 @@ export class ReportDetailPage {
 
     report: Report;
 
-    private isPublished: Promise<boolean>;
+    private isPublishable: boolean;
 
     private updateLeaves = new EventEmitter<void>(true);
 
     async onPageWillLeave() {
-        await this.update();
-    }
-
-    async showMore() {
-        const buttons = [{
-            text: 'Delete',
-            icon: 'trash',
-            cssClass: 'delete',
-            handler: () => {
-                this.remove();
-            }
-        }];
-        if (!(await this.isPublished)) {
-            buttons.splice(0, 0, {
-                text: 'Share on Facebook',
-                icon: 'share',
-                cssClass: 'publish',
-                handler: () => {
-                    this.publish();
-                }
-            });
+        logger.debug(() => `Checking empty leaves...`);
+        if (_.isEmpty(this.report.leaves)) {
+            await this.cachedReports.remove(this.report);
+        } else {
+            await this.update();
         }
-        this.nav.present(ActionSheet.create({
-            title: 'MORE ACTIONS',
-            buttons: buttons
-        }));
     }
 
     private async update() {
@@ -92,7 +72,9 @@ export class ReportDetailPage {
         if (ok) this.updatePublishing();
     }
 
-    private updatePublishing() {
-        this.isPublished = this.fbPublish.getAction(this.report.publishedFacebook).then((x) => x != null);
+    private async updatePublishing() {
+        const id = this.report.publishedFacebook;
+        const action = id == null ? null : await this.fbPublish.getAction(id);
+        this.isPublishable = action == null;
     }
 }

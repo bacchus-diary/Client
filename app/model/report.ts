@@ -37,11 +37,15 @@ export class Report implements DBRecord<Report> {
                     logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
                     if (!src) return null;
                     const leafTable = await Leaf.table(dynamo);
-                    const keys = new Map<string, string>();
-                    keys['COGNITO_ID'] = (await cognito.identity).identityId;
-                    keys['REPORT_ID'] = src.REPORT_ID;
-                    const rels = await leafTable.query(keys, 'COGNITO_ID-REPORT_ID-index');
-                    if (_.isEmpty(rels)) return null;
+                    const rels = await leafTable.query({
+                        COGNITO_ID: (await cognito.identity).identityId,
+                        REPORT_ID: src.REPORT_ID
+                    }, 'COGNITO_ID-REPORT_ID-index');
+                    if (_.isEmpty(rels)) {
+                        logger.debug(() => `This report has no leaves: ${JSON.stringify(src)}`);
+                        (await this._table).remove(src.REPORT_ID);
+                        return null;
+                    }
                     const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() == leafId));
                     const leaves = _.union(_.compact(indexed), rels);
                     return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);

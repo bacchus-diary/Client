@@ -6,7 +6,7 @@ import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {Report} from '../../model/report';
-import {Dialog, Spinner} from '../../util/backdrop';
+import {Dialog, Spinner, Overlay} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(AddReportPage);
@@ -23,8 +23,8 @@ export class AddReportPage {
 
     private updateLeaves = new EventEmitter<void>(true);
 
-    async submit(publish: boolean) {
-        logger.debug(() => `Submitting report: publish=${publish}`);
+    async submit() {
+        logger.debug(() => `Submitting report`);
         const ok = await Spinner.within(this.nav, 'Adding...', async () => {
             try {
                 await this.cachedReports.add(this.report);
@@ -36,13 +36,17 @@ export class AddReportPage {
             }
         });
         if (ok) {
+            const publish = await Dialog.confirm(this.nav,
+                'Share ?',
+                'You can share this report on Facebook.',
+                { ok: 'Yes, Share', cancel: 'No, through' }
+            );
             if (publish) {
                 await PublishPage.open(this.nav, this.report);
             }
-            setTimeout(() => {
-                logger.debug(() => `Success to add. leaving this page...`);
-                this.nav.pop();
-            }, 10);
+            await Overlay.wait(this.nav);
+            logger.debug(() => `Success to add. leaving this page...`);
+            this.nav.pop();
         }
     }
 }

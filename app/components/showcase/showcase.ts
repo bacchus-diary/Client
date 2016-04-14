@@ -52,8 +52,7 @@ export class ShowcaseComponent {
             const url = URL.createObjectURL(blob, { oneTimeOnly: true });
             logger.debug(() => `Photo URL: ${url}`);
 
-            const leaf = Leaf.newEmpty(this.urlGenerator, this.reportId);
-            leaf.photo.reduced.mainview.url = url;
+            const leaf = await Leaf.withPhoto(url, this.reportId, this.urlGenerator);
             const index = this.leaves.push(leaf) - 1;
             this.swiper.update();
 

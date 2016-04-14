@@ -3,9 +3,14 @@
         <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title>Detail</ion-title>
+    <ion-buttons end class="ng-animate" *ngIf="isPublishable">
+        <button favorite (click)="publish()">
+            <ion-icon name="share"></ion-icon>
+        </button>
+    </ion-buttons>
     <ion-buttons end>
-        <button secondary (click)="showMore()">
-            <ion-icon name="more"></ion-icon>
+        <button danger (click)="remove()">
+            <ion-icon name="trash"></ion-icon>
         </button>
     </ion-buttons>
 </ion-navbar>

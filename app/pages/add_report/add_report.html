@@ -3,11 +3,8 @@
         <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title>Add New</ion-title>
-    <ion-buttons end *ngIf="report.leaves.length > 0">
-        <button favorite (click)="submit(true)">
-            <ion-icon name="share"></ion-icon>
-        </button>
-        <button secondary (click)="submit(false)">
+    <ion-buttons end class="ng-animate" *ngIf="report.leaves.length > 0">
+        <button secondary (click)="submit()">
             <ion-icon name="checkmark"></ion-icon>
         </button>
     </ion-buttons>
