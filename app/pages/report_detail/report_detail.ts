@@ -32,7 +32,7 @@ export class ReportDetailPage {
 
     report: Report;
 
-    private isPublished: Promise<boolean>;
+    private isPublishable: boolean;
 
     private updateLeaves = new EventEmitter<void>(true);
 
@@ -72,7 +72,9 @@ export class ReportDetailPage {
         if (ok) this.updatePublishing();
     }
 
-    private updatePublishing() {
-        this.isPublished = this.fbPublish.getAction(this.report.publishedFacebook).then((x) => x != null);
+    private async updatePublishing() {
+        const id = this.report.publishedFacebook;
+        const action = id == null ? null : await this.fbPublish.getAction(id);
+        this.isPublishable = action == null;
     }
 }
