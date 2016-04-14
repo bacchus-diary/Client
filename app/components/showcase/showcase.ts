@@ -161,6 +161,11 @@ export class ShowcaseComponent {
         let take = await this.pref.getAlwaysTake();
         if (!take) {
             take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', {ok: 'take', cancel: 'choose'});
+            if (take) {
+                this.pref.incrementCountTake();
+            } else {
+                this.pref.clearCountTake();
+            }
         }
         return this.doGetPhoto(take);
     }
@@ -201,7 +206,7 @@ export class ShowcaseComponent {
                                         resolve(await BASE64.encodeBase64(file));
                                     }
                                 } catch (ex) {
-                                    logger.debug(() => `Error on read file: ${ex}`);
+                                    logger.warn(() => `Error on read file: ${ex}`);
                                     reject(ex);
                                 }
                             }

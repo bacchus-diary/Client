@@ -8,12 +8,15 @@ const logger = new Logger(Preferences);
 type PrefObj = {
     social: { [key: string]: boolean },
     photo: {
-        alwaysTake: boolean
+        alwaysTake: boolean,
+        countTake?: number
     }
 };
 
 const key = 'preferences';
 const storage = new Storage(SqlStorage);
+
+const COUNT_TAKE_THRESHOLD = 5;
 
 async function load(): Promise<PrefObj> {
     let json: PrefObj;
@@ -64,5 +67,18 @@ export class Preferences {
     }
     async setAlwaysTake(v: boolean): Promise<void> {
         (await this.cache).photo.alwaysTake = v;
+    }
+
+    async getCountTake(): Promise<number> {
+        return (await this.cache).photo.countTake || 0;
+    }
+    async incrementCountTake(): Promise<void> {
+        const v = (await this.cache).photo.countTake += 1;
+        if (COUNT_TAKE_THRESHOLD <= v) {
+            this.setAlwaysTake(true);
+        }
+    }
+    async clearCountTake(): Promise<void> {
+        (await this.cache).photo.countTake = 0;
     }
 }
