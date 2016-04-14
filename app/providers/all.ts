@@ -1,5 +1,6 @@
 import {BootSettings} from './config/boot_settings';
 import {Configuration} from './config/configuration';
+import {Preferences} from './config/preferences';
 import {S3File} from './aws/s3file';
 import {Cognito} from './aws/cognito';
 import {Dynamo} from './aws/dynamo';
@@ -18,6 +19,7 @@ export const FATHENS_PROVIDERS = [
     Suggestions,
     BootSettings,
     Configuration,
+    Preferences,
     S3File,
     Cognito,
     Dynamo,
