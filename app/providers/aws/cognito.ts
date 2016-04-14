@@ -3,6 +3,7 @@ import {Injectable} from 'angular2/core';
 
 import {BootSettings} from '../config/boot_settings';
 import {FBConnect} from '../facebook/fb_connect';
+import {Preferences} from '../config/preferences';
 import {withFabric} from '../../util/fabric';
 import {Logger} from '../../util/logging';
 
@@ -10,7 +11,7 @@ import {AWS, ClientConfig} from './aws';
 
 const logger = new Logger(Cognito);
 
-const PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
+export const PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 
 function setupCredentials(poolId: string): CognitoIdentityCredentials {
     return AWS.config.credentials = new AWS.CognitoIdentityCredentials({
@@ -40,7 +41,7 @@ export class Cognito {
         this.changedHooks.push(hook);
     }
 
-    constructor(private settings: BootSettings, private facebook: FBConnect) {
+    constructor(private settings: BootSettings, private pref: Preferences, private facebook: FBConnect) {
         if (Cognito.initialized == null) {
             Cognito.initialized = this.initialize();
         }
@@ -56,7 +57,7 @@ export class Cognito {
         const cred = setupCredentials(await this.settings.cognitoPoolId);
         logger.debug(() => `Refreshing credential: ${cred}`);
 
-        if (await ConnectedServices.get(PROVIDER_KEY_FACEBOOK)) {
+        if (await this.pref.getSocial(PROVIDER_KEY_FACEBOOK)) {
             await this.joinFacebook();
         } else {
             try {
@@ -125,8 +126,9 @@ export class Cognito {
             }
             p.IdentityId = null;
             const id = await this.refresh();
-            await ConnectedServices.set(service, id.isJoin(service));
-            if (id.isJoinFacebook()) {
+            await this.pref.setSocial(service, id.isJoin(service));
+            this.pref.save();
+            if (id.isJoin(service)) {
                 withFabric((fabric) => fabric.Answers.eventLogin({ method: service }));
             }
         }
@@ -139,7 +141,8 @@ export class Cognito {
             delete p.Logins[service];
             p.IdentityId = null;
             const id = await this.refresh();
-            await ConnectedServices.set(service, id.isJoin(service));
+            await this.pref.setSocial(service, id.isJoin(service));
+            this.pref.save();
         } else {
             logger.info(() => `Nothing to do, since not signed in: ${service}`);
         }
@@ -180,29 +183,5 @@ class CognitoIdentity {
 
     isJoinFacebook(): boolean {
         return this.isJoin(PROVIDER_KEY_FACEBOOK);
-    }
-}
-
-class ConnectedServices {
-    private static key = 'logins';
-    private static storage = new Storage(SqlStorage);
-
-    static async getMap(): Promise<any> {
-        const json = await this.storage.getJson(this.key);
-        logger.debug(() => `Connected services: ${json ? JSON.stringify(json) : null}`);
-        return (json != null) ? json : {};
-    }
-
-    static async get(name: string): Promise<boolean> {
-        logger.debug(() => `Asking connected service: ${name}`);
-        const logins = await this.getMap();
-        return hasKey(logins, name) ? logins[name] : false;
-    }
-
-    static async set(name: string, v: boolean) {
-        const logins = await this.getMap();
-        logins[name] = v;
-        logger.debug(() => `Set connected service: ${name}=${v}`);
-        await this.storage.setJson(this.key, logins);
     }
 }
