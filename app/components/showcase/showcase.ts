@@ -95,30 +95,12 @@ export class ShowcaseComponent {
         }
     }
 
-    private confirmDeletion(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            if (this.confirmDelete) {
-                this.nav.present(Alert.create({
-                    title: 'Remove Photo',
-                    message: 'Are you sure to remove this photo ?',
-                    buttons: [
-                        {
-                            text: 'Cancel',
-                            role: 'cancel',
-                            handler: () => {
-                                resolve(false);
-                            }
-                        },
-                        {
-                            text: 'Delete',
-                            handler: () => {
-                                resolve(true);
-                            }
-                        }
-                    ]
-                }));
-            } else resolve(true);
-        });
+    private async confirmDeletion(): Promise<boolean> {
+        if (this.confirmDelete) {
+            return await Dialog.confirm(this.nav, 'Remove Photo', 'Are you sure to remove this photo ?', {ok: 'delete'});
+        } else {
+            return true;
+        }
     }
 
     private async doDeletePhoto(index: number): Promise<Leaf> {
@@ -178,7 +160,7 @@ export class ShowcaseComponent {
     private async getPhoto(): Promise<string> {
         let take = await this.pref.getAlwaysTake();
         if (!take) {
-            take = await Dialog.confirm(this.nav, 'Camera', 'Take photo or Choose from library', {ok: 'take', cancel: 'choose'});
+            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', {ok: 'take', cancel: 'choose'});
         }
         return this.doGetPhoto(take);
     }
