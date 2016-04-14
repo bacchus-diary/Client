@@ -32,7 +32,7 @@ export class Leaf implements DBRecord<Leaf> {
                 reader: (cognito: Cognito, photo: Photo) => async (src: LeafRecord) => {
                     logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
                     if (!src) return null;
-                    const images = photo.images(src.REPORT_ID, src.LEAF_ID);
+                    const images = await photo.images(src.REPORT_ID, src.LEAF_ID);
                     if (!images.exists()) {
                         logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
                         (await this._table).remove(src.LEAF_ID);
@@ -54,7 +54,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this._table;
     }
 
-    static withPhoto(original: string, reportId: string, photo: Photo): Leaf {
+    static async withPhoto(original: string, reportId: string, photo: Photo): Promise<Leaf> {
         const id = createRandomKey();
         return new Leaf(
             reportId,
@@ -66,7 +66,7 @@ export class Leaf implements DBRecord<Leaf> {
                 description: null,
                 description_upper: null
             },
-            photo.images(reportId, id, original));
+            await photo.images(reportId, id, original));
     }
 
     constructor(

@@ -18,30 +18,27 @@ const localRefresh = 10 * 60 * 1000; // 10 minuites
 export class Photo {
     constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) { }
 
-    images(reportId: string, leafId: string, original?: string): Images {
-        return new Images(this.s3file, this, reportId, leafId, original);
-    }
-
-    get cognitoId(): Promise<string> {
-        return this.cognito.identity.then((x) => x.identityId);
-    }
-
-    get expiresInSeconds(): Promise<number> {
-        return this.config.server.then((s) => s.photo.urlTimeout);
-    }
-
-    async makeUrl(path: string): Promise<string> {
-        return await this.s3file.url(path, await this.expiresInSeconds);
+    async images(reportId: string, leafId: string, localUrl?: string): Promise<Images> {
+        const cognitoId = (await this.cognito.identity).identityId;
+        const expiring = (await this.config.server).photo.urlTimeout;
+        return new Images(this.s3file, cognitoId, expiring, reportId, leafId, localUrl);
     }
 }
 
 export class Images {
-    constructor(private s3file: S3File, private photo: Photo, private reportId: string, private leafId: string, original: string) {
-        const newImage = (path: string) => new Image(photo, reportId, leafId, path, original);
+    constructor(
+        private s3file: S3File,
+        private cognitoId: string,
+        public expiresInSeconds: number,
+        private reportId: string,
+        private leafId: string,
+        localUrl: string
+    ) {
+        const newImage = (path: string, parent?: Image) => new Image(this, path, localUrl);
         this.original = newImage(PATH_ORIGINAL);
         this.reduced = {
-            mainview: newImage(PATH_MAINVIEW),
-            thumbnail: newImage(PATH_THUMBNAIL)
+            mainview: newImage(PATH_MAINVIEW, this.original),
+            thumbnail: newImage(PATH_THUMBNAIL, this.original)
         };
     }
     original: Image;
@@ -52,6 +49,18 @@ export class Images {
 
     async exists(): Promise<boolean> {
         return await this.s3file.exists(await this.original.storagePath);
+    }
+
+    async makeStoragePath(relativePath: string) {
+        return `photo/${relativePath}/${this.cognitoId}/${this.reportId}/${this.leafId}.jpg`;
+    }
+
+    async makeUrl(relativePath: string) {
+        const path = await this.makeStoragePath(relativePath);
+        const target = (await this.s3file.exists(path)) ?
+            path :
+            await this.original.storagePath;
+        return await this.s3file.url(target, this.expiresInSeconds);
     }
 
     async remove() {
@@ -66,22 +75,19 @@ export class Images {
 
 export class Image {
     constructor(
-        private photo: Photo,
-        private reportId: string,
-        private leafId: string,
-        private path: string,
-        url: string
+        private parent: Images,
+        private relativePath: string,
+        localUrl: string
     ) {
-        if (url) this.setUrl(url);
+        if (localUrl) this.setUrl(localUrl);
     }
 
     get storagePath(): Promise<string> {
-        return this.photo.cognitoId.then((cognitoId) =>
-            `photo/${this.path}/${cognitoId}/${this.reportId}/${this.leafId}.jpg`);
+        return this.parent.makeStoragePath(this.relativePath);
     }
 
     async makeUrl(): Promise<string> {
-        return await this.photo.makeUrl(await this.storagePath);
+        return this.parent.makeUrl(this.relativePath);
     }
 
     private makingUrl: Promise<string>;
@@ -104,7 +110,7 @@ export class Image {
     private async setClearTimer() {
         const dur = !this._url ? 0 :
             (this._url.startsWith('http') ?
-                (await this.photo.expiresInSeconds) * 900 :
+                (await this.parent.expiresInSeconds) * 900 :
                 localRefresh);
         setTimeout(() => {
             this.makingUrl = null;
