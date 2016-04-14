@@ -78,6 +78,7 @@ export class Leaf implements DBRecord<Leaf> {
         assert('reportId', reportId);
         assert('id', _id);
         assert('content', content);
+        assert('images', photo);
     }
 
     get table(): Promise<DynamoTable<Leaf>> {

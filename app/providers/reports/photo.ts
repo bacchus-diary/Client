@@ -79,7 +79,11 @@ export class Image {
         private relativePath: string,
         localUrl: string
     ) {
-        if (localUrl) this.setUrl(localUrl);
+        if (localUrl) {
+            this.setUrl(localUrl);
+        } else {
+            const waste = this.url; // 予め URL を取得しておく
+        }
     }
 
     get storagePath(): Promise<string> {
