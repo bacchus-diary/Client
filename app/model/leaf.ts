@@ -54,7 +54,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this._table;
     }
 
-    static newEmpty(photo: Photo, reportId: string): Leaf {
+    static withPhoto(original: string, reportId: string, photo: Photo): Leaf {
         const id = createRandomKey();
         return new Leaf(
             reportId,
@@ -66,7 +66,7 @@ export class Leaf implements DBRecord<Leaf> {
                 description: null,
                 description_upper: null
             },
-            photo.images(reportId, id));
+            photo.images(reportId, id, original));
     }
 
     constructor(

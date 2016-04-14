@@ -18,8 +18,8 @@ const localRefresh = 10 * 60 * 1000; // 10 minuites
 export class Photo {
     constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) { }
 
-    images(reportId: string, leafId: string): Images {
-        return new Images(this.s3file, this, reportId, leafId);
+    images(reportId: string, leafId: string, original?: string): Images {
+        return new Images(this.s3file, this, reportId, leafId, original);
     }
 
     get cognitoId(): Promise<string> {
@@ -36,8 +36,8 @@ export class Photo {
 }
 
 export class Images {
-    constructor(private s3file: S3File, private photo: Photo, private reportId: string, private leafId: string) {
-        const newImage = (path: string) => new Image(photo, reportId, leafId, path);
+    constructor(private s3file: S3File, private photo: Photo, private reportId: string, private leafId: string, original: string) {
+        const newImage = (path: string) => new Image(photo, reportId, leafId, path, original);
         this.original = newImage(PATH_ORIGINAL);
         this.reduced = {
             mainview: newImage(PATH_MAINVIEW),
@@ -69,7 +69,10 @@ export class Image {
         private photo: Photo,
         private reportId: string,
         private leafId: string,
-        private path: string) {
+        private path: string,
+        url: string
+    ) {
+        if (url) this.setUrl(url);
     }
 
     get storagePath(): Promise<string> {
@@ -86,11 +89,11 @@ export class Image {
     get url(): string {
         if (!this.makingUrl) {
             this.makingUrl = this.makeUrl();
-            this.makingUrl.then((v) => this.url = v);
+            this.makingUrl.then((v) => this.setUrl(v));
         }
         return this._url;
     }
-    set url(v: string) {
+    private setUrl(v: string) {
         if (!this.makingUrl) {
             this.makingUrl = Promise.resolve(v);
         }
