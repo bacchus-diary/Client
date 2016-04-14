@@ -45,31 +45,6 @@ export class ReportDetailPage {
         }
     }
 
-    async showMore() {
-        const buttons = [{
-            text: 'Delete',
-            icon: 'trash',
-            cssClass: 'delete',
-            handler: () => {
-                this.remove();
-            }
-        }];
-        if (!(await this.isPublished)) {
-            buttons.splice(0, 0, {
-                text: 'Share on Facebook',
-                icon: 'share',
-                cssClass: 'publish',
-                handler: () => {
-                    this.publish();
-                }
-            });
-        }
-        this.nav.present(ActionSheet.create({
-            title: 'MORE ACTIONS',
-            buttons: buttons
-        }));
-    }
-
     private async update() {
         try {
             await this.cachedReports.update(this.report);
