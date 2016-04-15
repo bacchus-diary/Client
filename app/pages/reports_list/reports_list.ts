@@ -1,4 +1,5 @@
 import {Page, NavController} from 'ionic-angular';
+import * as Rx from 'rxjs';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {AddReportPage} from '../add_report/add_report';
@@ -25,10 +26,13 @@ export class ReportsListPage {
     isReady = false;
 
     searchText: string = "";
+    private searchTextInputing: Rx.Subscription;
 
     async search() {
-        await new Promise((ok, ng) => setTimeout(ok, 100));
-        logger.debug(() => `Searching: ${this.searchText}`);
+        if (this.searchTextInputing) this.searchTextInputing.unsubscribe();
+        this.searchTextInputing = Rx.Observable.of(null).delay(1000).subscribe(() => {
+            logger.debug(() => `Searching: ${this.searchText}`);
+        });
     }
 
     async onPageWillEnter() {
