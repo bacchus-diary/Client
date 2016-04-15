@@ -5,53 +5,23 @@ import {Logger} from '../../util/logging';
 
 const logger = new Logger(Preferences);
 
-type PrefObj = {
-    photo: {
-        alwaysTake: boolean,
-        countTake?: number
-    }
-};
-
-const key = 'preferences';
+type PhotoTake = {
+    always: boolean,
+    count?: number
+}
 
 const COUNT_TAKE_THRESHOLD = 5;
 
 @Injectable()
 export class Preferences {
     constructor() {
-        this.storage = new Storage(SqlStorage);
-        this.cache = this.load();
-        this.social = new SocialConnections(this.storage, 'social_connections');
+        const storage = new Storage(SqlStorage, { name: 'preferences' });
+        this.photoTake = new KeyValueJson<PhotoTake>(storage, 'photo_take', { always: false });
+        this.social = new SocialConnections(storage, 'social_connections');
     }
 
-    private storage: Storage;
-    private cache: Promise<PrefObj>;
+    private photoTake: KeyValueJson<PhotoTake>;
     private social: SocialConnections;
-
-    private async load(): Promise<PrefObj> {
-        let json: PrefObj;
-        try {
-            json = await this.storage.getJson(key)
-        } catch (ex) {
-            logger.warn(() => `Failed to get preferences: ${ex}`);
-        }
-        if (!json) {
-            json = {
-                photo: {
-                    alwaysTake: false
-                }
-            };
-            this.save(json);
-        }
-        logger.debug(() => `Loaded preferences: ${JSON.stringify(json)}`);
-        return json;
-    }
-
-    private async save(pref?: PrefObj): Promise<void> {
-        pref = pref || await this.cache;
-        logger.debug(() => `Saving preferences: ${JSON.stringify(pref)}`);
-        await this.storage.setJson(key, pref);
-    }
 
     async getSocial(name: string): Promise<boolean> {
         const rows = await this.social.select(name);
@@ -69,31 +39,64 @@ export class Preferences {
     }
 
     async getAlwaysTake(): Promise<boolean> {
-        return (await this.cache).photo.alwaysTake;
+        return (await this.photoTake.cache).always;
     }
     async setAlwaysTake(v: boolean): Promise<void> {
-        (await this.cache).photo.alwaysTake = v;
-        if (!v) (await this.cache).photo.countTake = 0;
-        await this.save();
+        (await this.photoTake.cache).always = v;
+        if (!v) (await this.photoTake.cache).count = 0;
+        await this.photoTake.save();
     }
 
     async getCountTake(): Promise<number> {
-        return (await this.cache).photo.countTake || 0;
+        return (await this.photoTake.cache).count || 0;
     }
     async incrementCountTake(): Promise<void> {
         if (!this.getAlwaysTake()) {
             const v = (await this.getCountTake()) + 1;
-            (await this.cache).photo.countTake = v;
+            (await this.photoTake.cache).count = v;
             logger.debug(() => `Incremented countTake: ${v}`);
             if (COUNT_TAKE_THRESHOLD <= v) {
                 this.setAlwaysTake(true);
             }
-            await this.save();
+            await this.photoTake.save();
         }
     }
     async clearCountTake(): Promise<void> {
-        (await this.cache).photo.countTake = 0;
-        await this.save();
+        (await this.photoTake.cache).count = 0;
+        await this.photoTake.save();
+    }
+}
+
+class KeyValueJson<T> {
+    constructor(private storage: Storage, private key: string, defaultValue: T) {
+        this._cache = this.load(defaultValue);
+    }
+
+    private _cache: Promise<T>;
+
+    get cache(): Promise<T> {
+        return this._cache;
+    }
+
+    async load(defaultValue?: T): Promise<T> {
+        let json: T;
+        try {
+            json = await this.storage.getJson(this.key);
+        } catch (ex) {
+            logger.warn(() => `Failed to get Local Storage ${this.key}: ${ex}`);
+        }
+        if (!json && defaultValue) {
+            json = defaultValue;
+            this.save(json);
+        }
+        logger.debug(() => `Loaded Local Storage ${this.key}: ${JSON.stringify(json)}`);
+        return json;
+    }
+
+    async save(v?: T): Promise<void> {
+        v = v || await this._cache;
+        logger.debug(() => `Saving ${this.key}: ${JSON.stringify(v)}`);
+        await this.storage.setJson(this.key, v);
     }
 }
 
