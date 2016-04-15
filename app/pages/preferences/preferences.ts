@@ -1,7 +1,8 @@
 import {Page, Storage, SqlStorage} from 'ionic-angular';
 
 import {FATHENS_PROVIDERS} from '../../providers/all';
-import {Cognito} from '../../providers/aws/cognito';
+import {Cognito, PROVIDER_KEY_FACEBOOK} from '../../providers/aws/cognito';
+import {Preferences} from '../../providers/config/preferences';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(PreferencesPage);
@@ -11,65 +12,45 @@ const logger = new Logger(PreferencesPage);
     providers: [FATHENS_PROVIDERS]
 })
 export class PreferencesPage {
-    constructor(private cognito: Cognito) { }
+    constructor(private cognito: Cognito, private pref: Preferences) { }
 
-    private key = 'preferences';
-    private storage = new Storage(SqlStorage);
-
-    private pref = {
-        social: {
-            facebook: false
-        },
-        photo: {
-            alwaysTake: false
-        }
-    };
-
-    private async load() {
-        const json = await this.storage.getJson(this.key);
-        logger.debug(() => `Loaded initial value: ${JSON.stringify(json)}`);
-        if (json) this.pref = json;
-        this.pref.social.facebook = (await this.cognito.identity).isJoinFacebook();
-        logger.debug(() => `Loaded values: ${JSON.stringify(this.pref)}`);
+    async onPageWillEnter() {
+        this._alwaysTake = await this.pref.getAlwaysTake();
+        this._facebook = await this.pref.getSocial(PROVIDER_KEY_FACEBOOK);
     }
 
-    private async save() {
-        logger.debug(() => `Saving values: ${JSON.stringify(this.pref)}`);
-        await this.storage.setJson(this.key, this.pref);
-    }
-
-    onPageWillEnter() {
-        this.load();
-    }
-
-    onPageWillLeave() {
-        this.save();
-    }
+    private _facebook: boolean = false;
 
     get facebook(): boolean {
-        return this.pref.social.facebook;
+        return this._facebook;
     }
     set facebook(v: boolean) {
         logger.debug(() => `Setting 'facebook': ${v}`);
-        this.pref.social.facebook = v;
+        this.pref.setSocial(PROVIDER_KEY_FACEBOOK, this._facebook = v);
+
         const update = async () => {
             if (v) {
                 await this.cognito.joinFacebook();
             } else {
                 await this.cognito.dropFacebook();
             }
-            const id = await this.cognito.identity;
-            this.pref.social.facebook = id.isJoinFacebook();
-            logger.debug(() => `Updated 'facebook': ${this.pref.social.facebook}`);
+            const joined = (await this.cognito.identity).isJoinFacebook();
+            if (joined != this._facebook) {
+                this.pref.setSocial(PROVIDER_KEY_FACEBOOK, this._facebook = joined);
+                logger.debug(() => `Updated 'facebook': ${this.facebook}`);
+            }
         }
         update();
     }
 
+    private _alwaysTake: boolean = false;
+
     get alwaysTake(): boolean {
-        return this.pref.photo.alwaysTake;
+        return this._alwaysTake;
     }
     set alwaysTake(v: boolean) {
         logger.debug(() => `Setting 'alwaysTake': ${v}`);
-        this.pref.photo.alwaysTake = v;
+        this._alwaysTake = v;
+        this.pref.setAlwaysTake(v);
     }
 }

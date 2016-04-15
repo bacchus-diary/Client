@@ -7,9 +7,11 @@ import {ElasticTextareaDirective} from '../elastic_textarea/elastic_textarea';
 import {S3File} from '../../providers/aws/s3file';
 import {Photo} from '../../providers/reports/photo';
 import {EtiquetteVision} from '../../providers/cvision/etiquette';
+import {Preferences} from '../../providers/config/preferences';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
 import {assert} from '../../util/assertion';
+import {Dialog} from '../../util/backdrop';
 import * as BASE64 from '../../util/base64';
 import {Logger} from '../../util/logging';
 
@@ -26,6 +28,7 @@ export class ShowcaseComponent {
         private nav: NavController,
         private ab: AnimationBuilder,
         private s3file: S3File,
+        private pref: Preferences,
         private etiquetteVision: EtiquetteVision,
         private urlGenerator: Photo) { }
 
@@ -47,7 +50,7 @@ export class ShowcaseComponent {
         try {
             this.swiper.lockSwipes();
 
-            const base64image = await this.photo(true);
+            const base64image = await this.getPhoto();
             const blob = BASE64.decodeBase64(base64image);
             const url = URL.createObjectURL(blob, { oneTimeOnly: true });
             logger.debug(() => `Photo URL: ${url}`);
@@ -92,30 +95,12 @@ export class ShowcaseComponent {
         }
     }
 
-    private confirmDeletion(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            if (this.confirmDelete) {
-                this.nav.present(Alert.create({
-                    title: 'Remove Photo',
-                    message: 'Are you sure to remove this photo ?',
-                    buttons: [
-                        {
-                            text: 'Cancel',
-                            role: 'cancel',
-                            handler: () => {
-                                resolve(false);
-                            }
-                        },
-                        {
-                            text: 'Delete',
-                            handler: () => {
-                                resolve(true);
-                            }
-                        }
-                    ]
-                }));
-            } else resolve(true);
-        });
+    private async confirmDeletion(): Promise<boolean> {
+        if (this.confirmDelete) {
+            return await Dialog.confirm(this.nav, 'Remove Photo', 'Are you sure to remove this photo ?', {ok: 'delete'});
+        } else {
+            return true;
+        }
     }
 
     private async doDeletePhoto(index: number): Promise<Leaf> {
@@ -172,7 +157,20 @@ export class ShowcaseComponent {
         this.swiper.slideNext();
     }
 
-    public photo(take: boolean): Promise<string> {
+    private async getPhoto(): Promise<string> {
+        let take = await this.pref.getAlwaysTake();
+        if (!take) {
+            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', {ok: 'take', cancel: 'choose'});
+            if (take) {
+                this.pref.incrementCountTake();
+            } else {
+                this.pref.clearCountTake();
+            }
+        }
+        return this.doGetPhoto(take);
+    }
+
+    private doGetPhoto(take: boolean): Promise<string> {
         if (Device.device.cordova) {
             return Camera.getPicture({
                 correctOrientation: true,
@@ -208,7 +206,7 @@ export class ShowcaseComponent {
                                         resolve(await BASE64.encodeBase64(file));
                                     }
                                 } catch (ex) {
-                                    logger.debug(() => `Error on read file: ${ex}`);
+                                    logger.warn(() => `Error on read file: ${ex}`);
                                     reject(ex);
                                 }
                             }

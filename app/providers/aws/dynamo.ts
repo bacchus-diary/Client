@@ -88,7 +88,9 @@ export class DynamoTable<T extends DBRecord<T>> {
     ) {
         this.tableName = `${appName}.${tableName}`;
         Cognito.addChangingHook(async (oldId, newId) => {
-            const items = await this.query({ COGNITO_ID_COLUMN: oldId });
+            const key: Key = {};
+            key[COGNITO_ID_COLUMN] = oldId;
+            const items = await this.query(key);
             await Promise.all(items.map(async (item) => {
                 await this.put(item, newId);
                 await this.remove(item.id(), oldId);
