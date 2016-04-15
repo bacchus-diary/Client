@@ -19,10 +19,6 @@ export class PreferencesPage {
         this._facebook = await this.pref.getSocial(PROVIDER_KEY_FACEBOOK);
     }
 
-    onPageWillLeave() {
-        this.pref.save();
-    }
-
     private _facebook: boolean = false;
 
     get facebook(): boolean {

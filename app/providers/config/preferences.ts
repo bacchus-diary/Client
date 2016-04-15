@@ -51,7 +51,7 @@ export class Preferences {
 
     private cache: Promise<PrefObj>;
 
-    async save(): Promise<void> {
+    private async save(): Promise<void> {
         await save(await this.cache);
     }
 
@@ -60,6 +60,7 @@ export class Preferences {
     }
     async setSocial(name: string, v: boolean): Promise<void> {
         (await this.cache).social[name] = v;
+        await this.save();
     }
 
     async getAlwaysTake(): Promise<boolean> {
@@ -68,6 +69,7 @@ export class Preferences {
     async setAlwaysTake(v: boolean): Promise<void> {
         (await this.cache).photo.alwaysTake = v;
         if (!v) (await this.cache).photo.countTake = 0;
+        await this.save();
     }
 
     async getCountTake(): Promise<number> {
@@ -86,5 +88,6 @@ export class Preferences {
     }
     async clearCountTake(): Promise<void> {
         (await this.cache).photo.countTake = 0;
+        await this.save();
     }
 }
