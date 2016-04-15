@@ -5,6 +5,11 @@ import {Logger} from '../../util/logging';
 
 const logger = new Logger(Preferences);
 
+type SocialRecord = {
+    name: string,
+    connected: number
+}
+
 type PhotoTake = {
     always: boolean,
     count?: number
@@ -26,8 +31,7 @@ export class Preferences {
     async getSocial(name: string): Promise<boolean> {
         const rows = await this.social.select(name);
         if (rows.length < 1) return false;
-        const record = rows.item(0);
-        return record.connected == 1;
+        return rows[0].connected == 1;
     }
     async setSocial(name: string, v: boolean): Promise<void> {
         const rows = await this.social.select(name);
@@ -118,10 +122,11 @@ class SocialConnections {
         }
     }
 
-    async select(name: string): Promise<Rows> {
+    async select(name: string): Promise<Array<SocialRecord>> {
         const result = await this.query(`SELECT * FROM ${this.tableName} WHERE name = ?`, [name]);
-        logger.debug(() => `Reading response from ${this.tableName}: ${result.res.rows.length}`);
-        return result.res.rows;
+        const rows = result.res.rows;
+        logger.debug(() => `Reading response from ${this.tableName}: ${rows.length}`);
+        return _.range(rows.length).map((i) => rows.item(i));
     }
 
     async insert(name: string, v: boolean): Promise<void> {
@@ -135,14 +140,4 @@ class SocialConnections {
     async delete(name: string): Promise<void> {
         await this.query(`DELETE FROM ${this.tableName} WHERE name = ?`, [name]);
     }
-}
-
-interface Rows {
-    length: number;
-    item(i: number): SocialRecord;
-}
-
-type SocialRecord = {
-    name: string,
-    connected: number
 }
