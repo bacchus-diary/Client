@@ -55,12 +55,12 @@ export class Preferences {
         return (await this.photoTake.cache).count || 0;
     }
     async incrementCountTake(): Promise<void> {
-        if (!this.getAlwaysTake()) {
-            const v = (await this.getCountTake()) + 1;
-            (await this.photoTake.cache).count = v;
-            logger.debug(() => `Incremented countTake: ${v}`);
-            if (COUNT_TAKE_THRESHOLD <= v) {
-                this.setAlwaysTake(true);
+        const cache = await this.photoTake.cache;
+        if (!cache.always) {
+            cache.count = (cache.count || 0) + 1;
+            logger.debug(() => `Incremented countTake: ${cache.count}`);
+            if (COUNT_TAKE_THRESHOLD <= cache.count) {
+                cache.always = true;
             }
             await this.photoTake.save();
         }
