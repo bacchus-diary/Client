@@ -127,7 +127,6 @@ export class Cognito {
             p.IdentityId = null;
             const id = await this.refresh();
             await this.pref.setSocial(service, id.isJoin(service));
-            this.pref.save();
             if (id.isJoin(service)) {
                 withFabric((fabric) => fabric.Answers.eventLogin({ method: service }));
             }
@@ -142,7 +141,6 @@ export class Cognito {
             p.IdentityId = null;
             const id = await this.refresh();
             await this.pref.setSocial(service, id.isJoin(service));
-            this.pref.save();
         } else {
             logger.info(() => `Nothing to do, since not signed in: ${service}`);
         }
