@@ -7,6 +7,8 @@ import {ReportDetailPage} from '../report_detail/report_detail';
 import {Report} from '../../model/report';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
+import {SearchReports} from '../../providers/reports/search';
+import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportsListPage);
@@ -19,30 +21,49 @@ const logger = new Logger(ReportsListPage);
 export class ReportsListPage {
     constructor(
         private nav: NavController,
+        private searchReports: SearchReports,
         private cachedReports: CachedReports) { }
+
+    private pager: PagingList<Report>;
 
     reports: Array<Report>;
 
     isReady = false;
 
-    searchText: string = "";
+    searchText: string;
     private searchTextInputing: Rx.Subscription;
 
-    async search() {
+    get isSearchMode(): boolean {
+        return this.searchText.length > 0;
+    }
+
+    search() {
         if (this.searchTextInputing) this.searchTextInputing.unsubscribe();
-        this.searchTextInputing = Rx.Observable.of(null).delay(1000).subscribe(() => {
-            logger.debug(() => `Searching: ${this.searchText}`);
+        this.searchTextInputing = Rx.Observable.of(null).delay(1000).subscribe(async () => {
+            if (this.searchText.length < 1) {
+                this.clearSearch();
+            } else {
+                logger.debug(() => `Searching: ${this.searchText}`);
+                this.pager = await this.searchReports.byWord(this.searchText);
+                await this.more();
+            }
         });
     }
 
-    async onPageWillEnter() {
+    async clearSearch() {
+        this.searchText = '';
+        this.pager = await this.cachedReports.pagingList;
         await this.more();
+    }
+
+    async onPageWillEnter() {
+        await this.clearSearch();
         logger.debug(() => `Loaded initial reports: ${this.reports}`)
         this.isReady = true;
     }
 
     async doRefresh(event) {
-        this.cachedReports.reset();
+        this.pager.reset();
         await this.more();
         logger.debug(() => `Refreshed reports: ${this.reports}`)
         event.complete();
@@ -58,8 +79,9 @@ export class ReportsListPage {
     private async more() {
         try {
             logger.info(() => `Getting reports list...`);
-            await this.cachedReports.more();
-            this.reports = await this.cachedReports.currentList;
+            await this.pager.more();
+            this.reports = await this.pager.currentList();
+            logger.debug(() => `CurrentList: ${this.reports}`);
         } catch (ex) {
             logger.warn(() => `Failed to get reports list: ${ex}`);
         }

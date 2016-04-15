@@ -11,7 +11,7 @@ import {Photo} from '../reports/photo';
 
 const logger = new Logger(Dynamo);
 
-const COGNITO_ID_COLUMN = "COGNITO_ID";
+export const COGNITO_ID_COLUMN = "COGNITO_ID";
 
 @Injectable()
 export class Dynamo {
@@ -202,6 +202,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         if (pageSize > 0) params.Limit = pageSize;
         if (last) params.ExclusiveStartKey = last.value;
 
+        logger.debug(() => `Scaning: ${JSON.stringify(params)}`);
         const res = await toPromise(this.client.scan(params));
 
         if (last) last.value = res.LastEvaluatedKey;
@@ -212,10 +213,6 @@ export class DynamoTable<T extends DBRecord<T>> {
     scanPager(exp: Expression): Pager<T> {
         return new PagingScan(this, exp);
     }
-}
-
-function isEmpty(obj: Object): boolean {
-    return Object.keys(obj).length < 1;
 }
 
 class LastEvaluatedKey {
@@ -231,7 +228,7 @@ class LastEvaluatedKey {
     }
 
     get isOver(): boolean {
-        return this._value && isEmpty(this._value);
+        return this._value && _.isEmpty(this._value);
     }
 
     reset() {
@@ -239,7 +236,7 @@ class LastEvaluatedKey {
     }
 }
 
-type Expression = {
+export type Expression = {
     express: string,
     keys: {
         names: DC.ExpressionAttributeNames,
@@ -247,7 +244,7 @@ type Expression = {
     }
 };
 
-class ExpressionMap {
+export class ExpressionMap {
     static joinAll(pairs: Key, join?: string, sign?: string): Expression {
         if (!join) join = 'AND'
         if (!sign) sign = '=';

@@ -43,7 +43,7 @@ export class Leaf implements DBRecord<Leaf> {
                 writer: (cognito: Cognito, photo: Photo) => async (obj) => {
                     const m: LeafRecord = {
                         COGNITO_ID: (await cognito.identity).identityId,
-                        REPORT_ID: obj.reportId,
+                        REPORT_ID: obj._reportId,
                         LEAF_ID: obj.id(),
                         CONTENT: obj.toMap()
                     };
@@ -70,12 +70,12 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     constructor(
-        private reportId: string,
+        private _reportId: string,
         private _id: string,
         private content: LeafContent,
         public photo: Images
     ) {
-        assert('reportId', reportId);
+        assert('reportId', _reportId);
         assert('id', _id);
         assert('content', content);
         assert('images', photo);
@@ -84,6 +84,10 @@ export class Leaf implements DBRecord<Leaf> {
     get table(): Promise<DynamoTable<Leaf>> {
         assert('Leaf$Table', Leaf._table);
         return Leaf._table;
+    }
+
+    get reportId(): string {
+        return this._reportId;
     }
 
     get logos(): Array<string> {
@@ -119,7 +123,7 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     toString(): string {
-        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap(), null, 4)}`;
+        return `REPORT_ID=${this._reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap(), null, 4)}`;
     }
 
     id(): string {
@@ -141,7 +145,7 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     clone(): Leaf {
-        return new Leaf(this.reportId, this._id, this.toMap(), this.photo);
+        return new Leaf(this._reportId, this._id, this.toMap(), this.photo);
     }
 
     async add() {

@@ -8,6 +8,7 @@ import {FBConnect} from './facebook/fb_connect';
 import {FBJSSDK} from './facebook/fb_jssdk';
 import {FBPublish} from './facebook/fb_publish';
 import {CachedReports} from './reports/cached_list';
+import {SearchReports} from './reports/search';
 import {Photo} from './reports/photo';
 import {CVision} from './cvision/cvision';
 import {EtiquetteVision} from './cvision/etiquette';
@@ -27,6 +28,7 @@ export const FATHENS_PROVIDERS = [
     FBJSSDK,
     FBPublish,
     CachedReports,
+    SearchReports,
     Photo,
     CVision,
     EtiquetteVision

@@ -2,8 +2,6 @@ import {Injectable} from 'angular2/core';
 
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
-import {Photo} from './photo';
-import {Cognito} from '../aws/cognito';
 import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
 import {Pager} from '../../util/pager';
@@ -17,7 +15,7 @@ const PAGE_SIZE = 10;
 export class CachedReports {
     private static pagingList: Promise<PagingReports>;
 
-    constructor(private cognito: Cognito, private dynamo: Dynamo, private photo: Photo) { }
+    constructor(private dynamo: Dynamo) { }
 
     private async load() {
         const table = await Report.table(this.dynamo);
@@ -26,24 +24,15 @@ export class CachedReports {
         return new PagingReports(pager);
     }
 
-    private get pagingList(): Promise<PagingReports> {
+    get pagingList(): Promise<PagingReports> {
         if (!CachedReports.pagingList) {
             CachedReports.pagingList = this.load();
         }
         return CachedReports.pagingList;
     }
 
-    get currentList(): Promise<Array<Report>> {
-        return this.pagingList.then((x) => x.list);
-    }
-
-    async more() {
-        const paging = await this.pagingList;
-        if (paging.hasMore()) await paging.more();
-    }
-
-    reset() {
-        CachedReports.pagingList = null;
+    private get currentList(): Promise<Array<Report>> {
+        return this.pagingList.then((x) => x.currentList());
     }
 
     async add(report: Report) {
@@ -81,18 +70,31 @@ export class CachedReports {
     }
 }
 
-class PagingReports {
+export class PagingReports {
     constructor(private pager: Pager<Report>) { }
-    list: Array<Report> = new Array();
+
+    private list: Array<Report> = [];
+
+    currentList(): Array<Report> {
+        return this.list;
+    }
 
     hasMore(): boolean {
         return this.pager.hasMore();
     }
 
     async more() {
-        const adding = await this.pager.more(PAGE_SIZE);
-        _.sortBy(adding, 'dateAt').reverse().forEach((x) => {
-            if (_.every(this.list, (o) => o.id() != x.id())) this.list.push(x);
-        });
+        const limit = this.list.length + PAGE_SIZE;
+        while (this.hasMore() && this.list.length < limit) {
+            (await this.pager.more(PAGE_SIZE)).forEach((x) => {
+                if (_.every(this.list, (report) => report.id() != x.id())) {
+                    this.list.push(x);
+                }
+            });
+        }
+    }
+
+    reset() {
+        this.list = [];
     }
 }
