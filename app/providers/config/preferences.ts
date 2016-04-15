@@ -67,15 +67,21 @@ export class Preferences {
     }
     async setAlwaysTake(v: boolean): Promise<void> {
         (await this.cache).photo.alwaysTake = v;
+        if (!v) (await this.cache).photo.countTake = 0;
     }
 
     async getCountTake(): Promise<number> {
         return (await this.cache).photo.countTake || 0;
     }
     async incrementCountTake(): Promise<void> {
-        const v = (await this.cache).photo.countTake += 1;
-        if (COUNT_TAKE_THRESHOLD <= v) {
-            this.setAlwaysTake(true);
+        if (!this.getAlwaysTake()) {
+            const v = (await this.getCountTake()) + 1;
+            (await this.cache).photo.countTake = v;
+            logger.debug(() => `Incremented countTake: ${v}`);
+            if (COUNT_TAKE_THRESHOLD <= v) {
+                this.setAlwaysTake(true);
+            }
+            await this.save();
         }
     }
     async clearCountTake(): Promise<void> {
