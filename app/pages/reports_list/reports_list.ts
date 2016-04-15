@@ -24,6 +24,13 @@ export class ReportsListPage {
 
     isReady = false;
 
+    searchText: string = "";
+
+    async search() {
+        await new Promise((ok, ng) => setTimeout(ok, 100));
+        logger.debug(() => `Searching: ${this.searchText}`);
+    }
+
     async onPageWillEnter() {
         await this.more();
         logger.debug(() => `Loaded initial reports: ${this.reports}`)

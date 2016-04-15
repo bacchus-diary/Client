@@ -1,4 +1,14 @@
 .reports_list {
+    .search-box {
+        border-radius: 3rem;
+        .item-inner {
+            margin-left: 0;
+        }
+        ion-icon {
+            color: gray;
+        }
+    }
+
     .spinner {
         display: flex;
         justify-content: center;

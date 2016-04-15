@@ -1,8 +1,13 @@
-<ion-navbar *navbar>
+<ion-navbar *navbar class="reports_list">
     <button menuToggle>
         <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Journal</ion-title>
+    <ion-item class="search-box">
+        <ion-icon name="search" item-left></ion-icon>
+        <ion-input type="text" placeholder="Search" [(ngModel)]="searchText" (input)="search()">
+        </ion-input>
+        <ion-icon item-right clear name="close-circle" (click)="searchText = ''" *ngIf="searchText.length > 0"></ion-icon>
+    </ion-item>
     <ion-buttons end>
         <button favorite (click)="addNew()">
             <ion-icon name="add"></ion-icon>
