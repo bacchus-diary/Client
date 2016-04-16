@@ -33,7 +33,7 @@ export class ReportsListPage {
         this.isLoading = true;
         try {
             this._pager = await v;
-            await this.more();
+            if (_.isEmpty(this._pager.currentList())) await this.more();
         } finally {
             logger.debug(() => `Finish loading.`);
             this.isLoading = false;

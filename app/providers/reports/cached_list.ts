@@ -2,6 +2,7 @@ import {Injectable} from 'angular2/core';
 
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
+import {Cognito} from '../aws/cognito';
 import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
 import {Pager, PagingList} from '../../util/pager';
@@ -71,7 +72,11 @@ export class CachedReports {
 }
 
 export class PagingReports implements PagingList<Report> {
-    constructor(private pager: Pager<Report>) { }
+    constructor(private pager: Pager<Report>) {
+        Cognito.addChangingHook(async (oldId, newId) => {
+            this.reset();
+        });
+    }
 
     private _list: Array<Report> = [];
 
