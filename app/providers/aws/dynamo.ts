@@ -80,20 +80,35 @@ export class DynamoTable<T extends DBRecord<T>> {
     constructor(
         private cognito: Cognito,
         private client: DC.DocumentClient,
-        appName: string,
-        tableName: string,
+        _appName: string,
+        _tableName: string,
         private ID_COLUMN: string,
         private reader: RecordReader<T>,
         private writer: RecordWriter<T>
     ) {
-        this.tableName = `${appName}.${tableName}`;
+        this.tableName = `${_appName}.${_tableName}`;
+
         Cognito.addChangingHook(async (oldId, newId) => {
-            const key: Key = {};
-            key[COGNITO_ID_COLUMN] = oldId;
-            const items = await this.query(key);
-            await Promise.all(items.map(async (item) => {
-                await this.put(item, newId);
-                await this.remove(item.id(), oldId);
+            const exp = new ExpressionMap();
+            const expName = exp.addName(COGNITO_ID_COLUMN);
+            const expValue = exp.addValue(oldId);
+            const res = await toPromise(this.client.query({
+                TableName: this.tableName,
+                KeyConditionExpression: `${expName} = ${expValue}`,
+                ExpressionAttributeNames: exp.names,
+                ExpressionAttributeValues: exp.values
+            }));
+            await Promise.all(res.Items.map(async (item) => {
+                try {
+                    item[COGNITO_ID_COLUMN] = newId;
+                    await toPromise(this.client.put({
+                        TableName: this.tableName,
+                        Item: item
+                    }));
+                    await this.remove(item[ID_COLUMN], oldId);
+                } catch (ex) {
+                    logger.warn(() => `Error on moving ${this.tableName}: ${JSON.stringify(item)}`);
+                }
             }));
         });
     }
