@@ -87,10 +87,13 @@ export class Cognito {
                         const newId = new CognitoIdentity();
                         logger.debug(() => `Created CognitoIdentity: ${newId}`);
                         if (oldId != null) {
-                            await Promise.all(Cognito.changedHooks.map((hook) =>
-                                hook(oldId.identityId, newId.identityId))).catch((ex) => {
+                            await Promise.all(Cognito.changedHooks.map(async (hook) => {
+                                try {
+                                    await hook(oldId.identityId, newId.identityId);
+                                } catch (ex) {
                                     logger.warn(() => `Error on hook: ${ex}`);
-                                });
+                                }
+                            }));
                         }
                         resolve(newId);
                     } catch (ex) {
