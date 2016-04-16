@@ -16,7 +16,27 @@ const localRefresh = 10 * 60 * 1000; // 10 minuites
 
 @Injectable()
 export class Photo {
-    constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) { }
+    private static hookSetuped = false;
+
+    constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) {
+        if (!Photo.hookSetuped) {
+            Cognito.addChangingHook(async (oldId, newId) => {
+                await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
+                    const prev = `photo/${relativePath}/${oldId}`;
+                    const next = `photo/${relativePath}/${newId}`;
+                    logger.debug(() => `Moving image file: ${prev} => ${next}`);
+
+                    const files = await s3file.list(prev);
+                    await Promise.all(files.map(async (src) => {
+                        const path = src.substring(prev.length);
+                        await s3file.move(src, `${next}${path}`);
+                    }));
+                }));
+            });
+            Photo.hookSetuped = true;
+            logger.info(() => `Photo cognitoId hook is set.`);
+        }
+    }
 
     async images(reportId: string, leafId: string, localUrl?: string): Promise<Images> {
         const cognitoId = (await this.cognito.identity).identityId;

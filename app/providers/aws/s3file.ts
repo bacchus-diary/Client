@@ -31,7 +31,7 @@ export class S3File {
         return String.fromCharCode.apply(null, res.Body);
     }
 
-    async upload(path: string, blob: Blob) {
+    async upload(path: string, blob: Blob): Promise<void> {
         const bucketName = await this.settings.s3Bucket;
         logger.debug(() => `Uploading file: ${bucketName}:${path}`);
         await this.invoke((s3) => s3.putObject({
@@ -41,13 +41,34 @@ export class S3File {
         }));
     }
 
-    async remove(path: string) {
+    async remove(path: string): Promise<void> {
         const bucketName = await this.settings.s3Bucket;
         logger.debug(() => `Removing file: ${bucketName}:${path}`);
         await this.invoke((s3) => s3.deleteObject({
             Bucket: bucketName,
             Key: path
         }));
+    }
+
+    async copy(src: string, dst: string): Promise<void> {
+        const bucketName = await this.settings.s3Bucket;
+        await this.invoke((s3) => s3.copyObject({
+            Bucket: bucketName,
+            CopySource: `${bucketName}/${src}`,
+            Key: dst}));
+    }
+
+    async move(src: string, dst: string): Promise<void> {
+        await this.copy(src, dst);
+        await this.remove(src);
+    }
+
+    async list(path: string): Promise<Array<string>> {
+        const bucketName = await this.settings.s3Bucket;
+        const res = await this.invoke<{Contents: {Key: string}[]}>((s3) => s3.listObjects({
+            Bucket: bucketName,
+            Prefix: path}));
+        return res.Contents.map((x) => x.Key);
     }
 
     async exists(path: string): Promise<boolean> {
