@@ -4,7 +4,7 @@ import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
 import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
-import {Pager} from '../../util/pager';
+import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(CachedReports);
@@ -70,31 +70,46 @@ export class CachedReports {
     }
 }
 
-export class PagingReports {
+export class PagingReports implements PagingList<Report> {
     constructor(private pager: Pager<Report>) { }
 
-    private list: Array<Report> = [];
+    private _list: Array<Report> = [];
 
     currentList(): Array<Report> {
-        return this.list;
+        return this._list;
     }
 
     hasMore(): boolean {
         return this.pager.hasMore();
     }
 
-    async more() {
-        const limit = this.list.length + PAGE_SIZE;
-        while (this.hasMore() && this.list.length < limit) {
-            (await this.pager.more(PAGE_SIZE)).forEach((x) => {
-                if (_.every(this.list, (report) => report.id() != x.id())) {
-                    this.list.push(x);
-                }
-            });
+    reset() {
+        this.pager.reset();
+        this._list = [];
+    }
+
+    async more(): Promise<void> {
+        const start = this._list.length;
+        const goal = start + PAGE_SIZE;
+        await this.doMore(start + 1);
+        this.doMore(goal); // これ以降はバックグラウンドで追加
+    }
+
+    private async doMore(satis: number): Promise<void> {
+        while (this.hasMore() && this._list.length < satis) {
+            this.add(await this.pager.more(PAGE_SIZE));
         }
     }
 
-    reset() {
-        this.list = [];
+    private add(adding: Array<Report>) {
+        _.sortBy(adding, 'dateAt').reverse().forEach((x) => {
+            try {
+                if (_.every(this._list, (o) => o.id() != x.id())) {
+                    this._list.push(x);
+                }
+            } catch (ex) {
+                logger.warn(() => `Error on addng ${x} to ${this._list}`);
+            }
+        });
     }
 }

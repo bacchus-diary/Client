@@ -118,8 +118,8 @@ export class DynamoTable<T extends DBRecord<T>> {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         };
-        logger.debug(() => `Getting: ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Getting: ${JSON.stringify(params)}`);
         const res = await toPromise(this.client.get(params));
         return this.reader(res.Item);
     }
@@ -133,8 +133,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         Object.keys(key).forEach((name) => {
             params.Item[name] = key[name];
         });
-        logger.debug(() => `Putting ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Putting ${JSON.stringify(params)}`);
         await toPromise(this.client.put(params));
     }
 
@@ -151,8 +151,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         Object.keys(item).forEach((name) => {
             params.AttributeUpdates[name] = { Action: 'PUT', Value: item[name] };
         });
-        logger.debug(() => `Updating ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Updating ${JSON.stringify(params)}`);
         await toPromise(this.client.update(params))
     }
 
@@ -161,13 +161,12 @@ export class DynamoTable<T extends DBRecord<T>> {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         };
-        logger.debug(() => `Removing ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Removing ${JSON.stringify(params)}`);
         await toPromise(this.client.delete(params));
     }
 
     async query(keys?: Key, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
-        logger.debug(() => `Quering ${indexName}: ${JSON.stringify(keys)}`);
         const exp = ExpressionMap.joinAll(keys || await this.makeKey());
         const params: DC.QueryParams = {
             TableName: this.tableName,
@@ -179,8 +178,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
         if (last) params.ExclusiveStartKey = last.value;
-        logger.debug(() => `Quering: ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Quering: ${JSON.stringify(params)}`);
         const res = await toPromise(this.client.query(params));
 
         if (last) last.value = res.LastEvaluatedKey;

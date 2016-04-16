@@ -24,18 +24,42 @@ export class ReportsListPage {
         private searchReports: SearchReports,
         private cachedReports: CachedReports) { }
 
-    private pager: PagingList<Report>;
+    private _pager: PagingList<Report>;
+    get pager(): PagingList<Report> {
+        return this._pager;
+    }
+    async setPager(v: Promise<PagingList<Report>>) {
+        logger.debug(() => `Start loading.`);
+        this.isLoading = true;
+        try {
+            this._pager = await v;
+            await this.more();
+        } finally {
+            logger.debug(() => `Finish loading.`);
+            this.isLoading = false;
+        }
+    }
 
-    reports: Array<Report>;
+    isLoading: boolean = true;
+    isRefreshing: boolean = false;
 
-    isReady = false;
+    get isEmpty(): boolean {
+        return !(
+            this.isLoading ||
+            this.isRefreshing ||
+            this.pager.hasMore()
+        ) && _.isEmpty(this.reports);
+    }
+
+    get reports(): Array<Report> {
+        if (!this.pager) return [];
+        return this.pager.currentList();
+    }
 
     searchText: string;
     private searchTextInputing: Rx.Subscription;
 
-    get isSearchMode(): boolean {
-        return this.searchText.length > 0;
-    }
+    isSearchMode: boolean = false;
 
     search() {
         if (this.searchTextInputing) this.searchTextInputing.unsubscribe();
@@ -43,30 +67,34 @@ export class ReportsListPage {
             if (this.searchText.length < 1) {
                 this.clearSearch();
             } else {
+                this.isSearchMode = true;
                 logger.debug(() => `Searching: ${this.searchText}`);
-                this.pager = await this.searchReports.byWord(this.searchText);
-                await this.more();
+                this.setPager(this.searchReports.byWord(this.searchText));
             }
         });
     }
 
     async clearSearch() {
+        this.isSearchMode = false;
         this.searchText = '';
-        this.pager = await this.cachedReports.pagingList;
-        await this.more();
+        this.setPager(this.cachedReports.pagingList);
     }
 
     async onPageWillEnter() {
         await this.clearSearch();
         logger.debug(() => `Loaded initial reports: ${this.reports}`)
-        this.isReady = true;
     }
 
     async doRefresh(event) {
-        this.pager.reset();
-        await this.more();
-        logger.debug(() => `Refreshed reports: ${this.reports}`)
-        event.complete();
+        this.isRefreshing = true;
+        try {
+            this.pager.reset();
+            await this.more();
+            logger.debug(() => `Refreshed reports: ${this.reports}`)
+        } finally {
+            event.complete();
+            this.isRefreshing = false;
+        }
     }
 
     async doInfinite(event) {
@@ -80,7 +108,6 @@ export class ReportsListPage {
         try {
             logger.info(() => `Getting reports list...`);
             await this.pager.more();
-            this.reports = await this.pager.currentList();
             logger.debug(() => `CurrentList: ${this.reports}`);
         } catch (ex) {
             logger.warn(() => `Failed to get reports list: ${ex}`);

@@ -2,19 +2,21 @@ import {Injectable} from 'angular2/core';
 
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
-import {PagingReports} from './cached_list';
 import {Cognito} from '../aws/cognito';
 import {COGNITO_ID_COLUMN, Dynamo, DynamoTable, DBRecord, ExpressionMap} from '../aws/dynamo';
-import {Pager} from '../../util/pager';
+import {PagingReports} from './cached_list';
+import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(SearchReports);
+
+const PAGE_SIZE = 10;
 
 @Injectable()
 export class SearchReports {
     constructor(private cognito: Cognito, private dynamo: Dynamo) { }
 
-    async byWord(word: string): Promise<PagingReports> {
+    async byWord(word: string): Promise<PagingList<Report>> {
         const upper = word.toUpperCase();
         const table = await Report.table(this.dynamo)
         const pagerReports = await this.pagerByWord(upper, 'comment_upper', table);
@@ -52,19 +54,24 @@ class MargedPager implements Pager<Report> {
         return this.reportPager.hasMore() || this.leafPager.hasMore();
     }
 
+    reset() {
+        this.reportPager.reset();
+        this.leafPager.reset();
+    }
+
     async more(pageSize: number): Promise<Array<Report>> {
         const reportsAwait = this.reportPager.more(pageSize / 2);
         const leaves = await this.leafPager.more(pageSize / 2)
         const reports = await reportsAwait;
         logger.debug(() => `Marging items: reports=${reports.length}, leaves=${leaves.length}`);
 
-        const listId = _.filter(_.uniq(leaves.map((leaf) => leaf.reportId)),
-            (id) => _.every(reports, (report) => report.id() != id));
+        const addings = _.filter(_.uniq(leaves.map((leaf) => leaf.reportId)),
+            (id) => _.every(reports, (x) => x.id() != id)
+        ).map(async (id) => await this.reportTable.get(id));
 
-        await Promise.all(listId.map(async (reportId) =>
-            reports.push(await this.reportTable.get(reportId))));
+        _.compact(await Promise.all(addings)).forEach((x) => reports.push(x));
 
-        logger.debug(() => `Fount reports: ${reports.length}/${pageSize}`);
+        logger.debug(() => `Found reports: ${reports.length}/${pageSize}`);
         return reports;
     }
 }
