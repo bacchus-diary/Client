@@ -25,16 +25,16 @@ export class AddReportPage {
 
     async submit() {
         logger.debug(() => `Submitting report`);
-        const ok = await Spinner.within(this.nav, 'Adding...', async () => {
-            try {
+        let ok = true;
+        try {
+            await Spinner.within(this.nav, 'Adding...', async () => {
                 await this.cachedReports.add(this.report);
-                return true;
-            } catch (ex) {
-                logger.warn(() => `Failed to add report: ${ex}`);
-                await Dialog.alert(this.nav, 'Error', 'Failed to add your report. Please try again later.', 'OK');
-                return false;
-            }
-        });
+            });
+        } catch (ex) {
+            logger.warn(() => `Failed to add report: ${ex}`);
+            await Dialog.alert(this.nav, 'Error', 'Failed to add your report. Please try again later.', 'OK');
+            ok = false;
+        }
         if (ok) {
             const publish = await Dialog.confirm(this.nav,
                 'Share ?',

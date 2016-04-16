@@ -59,7 +59,7 @@ export class Dialog {
 }
 
 export class Spinner {
-    static async within<T>(nav: NavController, msg: string, proc: () => Promise<T>) {
+    static async within<T>(nav: NavController, msg: string, proc: () => Promise<T>): Promise<T> {
         const loading = Loading.create({
             content: msg
         });
