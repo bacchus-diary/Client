@@ -16,22 +16,78 @@ const localRefresh = 10 * 60 * 1000; // 10 minuites
 
 @Injectable()
 export class Photo {
-    constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) { }
+    private static hookSetuped = false;
+
+    constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) {
+        if (!Photo.hookSetuped) {
+            Cognito.addChangingHook(this.changeCognitoId);
+            Photo.hookSetuped = true;
+            logger.info(() => `Photo cognitoId hook is set.`);
+        }
+    }
 
     async images(reportId: string, leafId: string, localUrl?: string): Promise<Images> {
         const cognitoId = (await this.cognito.identity).identityId;
         const expiring = (await this.config.server).photo.urlTimeout;
         return new Images(this.s3file, cognitoId, expiring, reportId, leafId, localUrl);
     }
+
+    async cleanup(cond: (images: Images) => Promise<boolean>) {
+        const cognitoId = (await this.cognito.identity).identityId;
+        const check = (relativePath: string) => async (proc: (images: Images) => Promise<boolean>): Promise<void> => {
+            const prefix = `photo/${relativePath}/${cognitoId}/`;
+            const files = await this.s3file.list(prefix);
+            await Promise.all(files.map(async (file) => {
+                const st = Images.destractStoragePath(file);
+                const ok = st != null && await proc(await this.images(st.reportId, st.leafId))
+                if (!ok) {
+                    await this.s3file.remove(file);
+                }
+            }));
+        };
+        await check(PATH_ORIGINAL)(cond);
+        await Promise.all([PATH_MAINVIEW, PATH_THUMBNAIL].map(check).map(
+            (check) => check((images) => images.exists())
+        ));
+    }
+
+    private async changeCognitoId(oldId, newId) {
+        await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
+            const prev = `photo/${relativePath}/${oldId}/`;
+            const next = `photo/${relativePath}/${newId}/`;
+            logger.debug(() => `Moving image file: ${prev} => ${next}`);
+
+            const files = await this.s3file.list(prev);
+            await Promise.all(files.map(async (src) => {
+                const dst = `${next}${src.substring(prev.length)}`;
+                try {
+                    await this.s3file.move(src, dst);
+                } catch (ex) {
+                    logger.warn(() => `Error on moving S3 file: (${src} => ${dst}): ${ex}`);
+                }
+            }));
+        }));
+    }
 }
 
 export class Images {
+    static destractStoragePath(filePath: string): { relativePath: string, cognitoId: string, reportId: string, leafId: string } {
+        const m = filePath.match('^photo/\((?:[^/]+\|[^/]+/[^/]+))/\([^/]+\)/\([^/]+\)/\([^/]+\)\.jpg$');
+        if (!m) return null;
+        return {
+            relativePath: m[1],
+            cognitoId: m[2],
+            reportId: m[3],
+            leafId: m[4]
+        }
+    }
+
     constructor(
         private s3file: S3File,
-        private cognitoId: string,
+        private _cognitoId: string,
         public expiresInSeconds: number,
-        private reportId: string,
-        private leafId: string,
+        private _reportId: string,
+        private _leafId: string,
         localUrl: string
     ) {
         const newImage = (path: string, parent?: Image) => new Image(this, path, localUrl);
@@ -46,6 +102,16 @@ export class Images {
         mainview: Image,
         thumbnail: Image
     };
+
+    get cognitoId(): string {
+        return this._cognitoId;
+    }
+    get reportId(): string {
+        return this._reportId;
+    }
+    get leafId(): string {
+        return this._leafId;
+    }
 
     async exists(): Promise<boolean> {
         return await this.s3file.exists(await this.original.storagePath);

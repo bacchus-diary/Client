@@ -15,19 +15,22 @@ export class Overlay {
 export class Dialog {
     static async alert(nav: NavController, title: string, msg: string, buttonText?: string): Promise<void> {
         buttonText = buttonText || 'OK';
-
-        await new Promise((resolve, reject) => {
-            nav.present(Alert.create({
-                title: title,
-                message: msg,
-                buttons: [
-                    {
-                        text: buttonText,
-                        handler: resolve
-                    }
-                ]
-            }));
-        });
+        try {
+            await new Promise((resolve, reject) => {
+                nav.present(Alert.create({
+                    title: title,
+                    message: msg,
+                    buttons: [
+                        {
+                            text: buttonText,
+                            handler: resolve
+                        }
+                    ]
+                }));
+            });
+        } finally {
+            await Overlay.wait(nav);
+        }
     }
 
     static async confirm(nav: NavController, title: string, msg: string, buttonText?: { ok?: string, cancel?: string }): Promise<boolean> {
@@ -37,29 +40,32 @@ export class Dialog {
             if (buttonText.ok) okButton = buttonText.ok;
             if (buttonText.cancel) cancelButton = buttonText.cancel;
         }
-
-        return await new Promise<boolean>((resolve, reject) => {
-            nav.present(Alert.create({
-                title: title,
-                message: msg,
-                buttons: [
-                    {
-                        text: cancelButton,
-                        role: 'cancel',
-                        handler: () => resolve(false)
-                    },
-                    {
-                        text: okButton,
-                        handler: () => resolve(true)
-                    }
-                ]
-            }));
-        });
+        try {
+            return await new Promise<boolean>((resolve, reject) => {
+                nav.present(Alert.create({
+                    title: title,
+                    message: msg,
+                    buttons: [
+                        {
+                            text: cancelButton,
+                            role: 'cancel',
+                            handler: () => resolve(false)
+                        },
+                        {
+                            text: okButton,
+                            handler: () => resolve(true)
+                        }
+                    ]
+                }));
+            });
+        } finally {
+            await Overlay.wait(nav);
+        }
     }
 }
 
 export class Spinner {
-    static async within<T>(nav: NavController, msg: string, proc: () => Promise<T>) {
+    static async within<T>(nav: NavController, msg: string, proc: () => Promise<T>): Promise<T> {
         const loading = Loading.create({
             content: msg
         });
@@ -68,6 +74,7 @@ export class Spinner {
             return await proc();
         } finally {
             loading.dismiss();
+            await Overlay.wait(nav);
         }
     }
 }

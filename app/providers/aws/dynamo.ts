@@ -11,7 +11,7 @@ import {Photo} from '../reports/photo';
 
 const logger = new Logger(Dynamo);
 
-const COGNITO_ID_COLUMN = "COGNITO_ID";
+export const COGNITO_ID_COLUMN = "COGNITO_ID";
 
 @Injectable()
 export class Dynamo {
@@ -23,14 +23,15 @@ export class Dynamo {
     private client: Promise<DC.DocumentClient>;
 
     async createTable<T extends DBRecord<T>>(maker: DBTableMaker<T>): Promise<DynamoTable<T>> {
+        const m = maker(this.cognito, this.photo);
         return new DynamoTable(
             this.cognito,
             await this.client,
             (await this.config.server).appName,
-            maker.tableName,
-            maker.idColumnName,
-            maker.reader(this.cognito, this.photo),
-            maker.writer(this.cognito, this.photo));
+            m.tableName,
+            m.idColumnName,
+            m.reader,
+            m.writer);
     }
 }
 
@@ -40,14 +41,11 @@ export function createRandomKey(): string {
     return _.range(32).map((i) => char(_.random(0, 35))).join('');
 }
 
-interface DBTableMaker<T extends DBRecord<T>> {
-    tableName: string;
-
-    idColumnName: string;
-
-    reader(cognito: Cognito, photo: Photo): RecordReader<T>;
-
-    writer(cognito: Cognito, photo: Photo): RecordWriter<T>;
+type DBTableMaker<T extends DBRecord<T>> = (cognito: Cognito, photo: Photo) => {
+    tableName: string,
+    idColumnName: string,
+    reader: RecordReader<T>,
+    writer: RecordWriter<T>
 }
 
 export interface DBRecord<T> {
@@ -80,22 +78,38 @@ export class DynamoTable<T extends DBRecord<T>> {
     constructor(
         private cognito: Cognito,
         private client: DC.DocumentClient,
-        appName: string,
-        tableName: string,
+        _appName: string,
+        _tableName: string,
         private ID_COLUMN: string,
         private reader: RecordReader<T>,
         private writer: RecordWriter<T>
     ) {
-        this.tableName = `${appName}.${tableName}`;
+        this.tableName = `${_appName}.${_tableName}`;
+
         Cognito.addChangingHook(async (oldId, newId) => {
-            const key: Key = {};
-            key[COGNITO_ID_COLUMN] = oldId;
-            const items = await this.query(key);
-            await Promise.all(items.map(async (item) => {
-                await this.put(item, newId);
-                await this.remove(item.id(), oldId);
+            const exp = new ExpressionMap();
+            const expName = exp.addName(COGNITO_ID_COLUMN);
+            const expValue = exp.addValue(oldId);
+            const res = await toPromise(this.client.query({
+                TableName: this.tableName,
+                KeyConditionExpression: `${expName} = ${expValue}`,
+                ExpressionAttributeNames: exp.names,
+                ExpressionAttributeValues: exp.values
+            }));
+            await Promise.all(res.Items.map(async (item) => {
+                try {
+                    item[COGNITO_ID_COLUMN] = newId;
+                    await toPromise(this.client.put({
+                        TableName: this.tableName,
+                        Item: item
+                    }));
+                    await this.remove(item[ID_COLUMN], oldId);
+                } catch (ex) {
+                    logger.warn(() => `Error on moving ${this.tableName}: ${JSON.stringify(item)}`);
+                }
             }));
         });
+        logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
 
     private tableName: string;
@@ -118,8 +132,8 @@ export class DynamoTable<T extends DBRecord<T>> {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         };
-        logger.debug(() => `Getting: ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Getting: ${JSON.stringify(params)}`);
         const res = await toPromise(this.client.get(params));
         return this.reader(res.Item);
     }
@@ -133,8 +147,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         Object.keys(key).forEach((name) => {
             params.Item[name] = key[name];
         });
-        logger.debug(() => `Putting ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Putting ${JSON.stringify(params)}`);
         await toPromise(this.client.put(params));
     }
 
@@ -151,8 +165,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         Object.keys(item).forEach((name) => {
             params.AttributeUpdates[name] = { Action: 'PUT', Value: item[name] };
         });
-        logger.debug(() => `Updating ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Updating ${JSON.stringify(params)}`);
         await toPromise(this.client.update(params))
     }
 
@@ -161,13 +175,12 @@ export class DynamoTable<T extends DBRecord<T>> {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         };
-        logger.debug(() => `Removing ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Removing ${JSON.stringify(params)}`);
         await toPromise(this.client.delete(params));
     }
 
     async query(keys?: Key, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
-        logger.debug(() => `Quering ${indexName}: ${JSON.stringify(keys)}`);
         const exp = ExpressionMap.joinAll(keys || await this.makeKey());
         const params: DC.QueryParams = {
             TableName: this.tableName,
@@ -179,8 +192,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
         if (last) params.ExclusiveStartKey = last.value;
-        logger.debug(() => `Quering: ${JSON.stringify(params)}`);
 
+        logger.debug(() => `Quering: ${JSON.stringify(params)}`);
         const res = await toPromise(this.client.query(params));
 
         if (last) last.value = res.LastEvaluatedKey;
@@ -202,6 +215,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         if (pageSize > 0) params.Limit = pageSize;
         if (last) params.ExclusiveStartKey = last.value;
 
+        logger.debug(() => `Scaning: ${JSON.stringify(params)}`);
         const res = await toPromise(this.client.scan(params));
 
         if (last) last.value = res.LastEvaluatedKey;
@@ -212,10 +226,6 @@ export class DynamoTable<T extends DBRecord<T>> {
     scanPager(exp: Expression): Pager<T> {
         return new PagingScan(this, exp);
     }
-}
-
-function isEmpty(obj: Object): boolean {
-    return Object.keys(obj).length < 1;
 }
 
 class LastEvaluatedKey {
@@ -231,7 +241,7 @@ class LastEvaluatedKey {
     }
 
     get isOver(): boolean {
-        return this._value && isEmpty(this._value);
+        return this._value && _.isEmpty(this._value);
     }
 
     reset() {
@@ -239,7 +249,7 @@ class LastEvaluatedKey {
     }
 }
 
-type Expression = {
+export type Expression = {
     express: string,
     keys: {
         names: DC.ExpressionAttributeNames,
@@ -247,7 +257,7 @@ type Expression = {
     }
 };
 
-class ExpressionMap {
+export class ExpressionMap {
     static joinAll(pairs: Key, join?: string, sign?: string): Expression {
         if (!join) join = 'AND'
         if (!sign) sign = '=';

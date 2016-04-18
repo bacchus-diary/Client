@@ -1,7 +1,18 @@
 .reports_list {
+    .search-box {
+        border-radius: 3rem;
+        .item-inner {
+            margin-left: 0;
+        }
+        ion-icon {
+            color: gray;
+        }
+    }
+
     .spinner {
         display: flex;
         justify-content: center;
+        margin-top: 3rem;
     }
     .empty {
         margin-top: 20vh;

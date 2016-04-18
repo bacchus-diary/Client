@@ -2,11 +2,10 @@ import {Injectable} from 'angular2/core';
 
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
-import {Photo} from './photo';
 import {Cognito} from '../aws/cognito';
 import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
 import {assert} from '../../util/assertion';
-import {Pager} from '../../util/pager';
+import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(CachedReports);
@@ -17,7 +16,7 @@ const PAGE_SIZE = 10;
 export class CachedReports {
     private static pagingList: Promise<PagingReports>;
 
-    constructor(private cognito: Cognito, private dynamo: Dynamo, private photo: Photo) { }
+    constructor(private dynamo: Dynamo) { }
 
     private async load() {
         const table = await Report.table(this.dynamo);
@@ -26,44 +25,31 @@ export class CachedReports {
         return new PagingReports(pager);
     }
 
-    private get pagingList(): Promise<PagingReports> {
+    get pagingList(): Promise<PagingReports> {
         if (!CachedReports.pagingList) {
             CachedReports.pagingList = this.load();
         }
         return CachedReports.pagingList;
     }
 
-    get currentList(): Promise<Array<Report>> {
-        return this.pagingList.then((x) => x.list);
-    }
-
-    async more() {
-        const paging = await this.pagingList;
-        if (paging.hasMore()) await paging.more();
-    }
-
-    reset() {
-        CachedReports.pagingList = null;
+    private get currentList(): Promise<Array<Report>> {
+        return this.pagingList.then((x) => x.currentList());
     }
 
     async add(report: Report) {
         report = report.clone();
         logger.debug(() => `Adding report: ${report}`);
 
-        const puttings = report.add();
+        await report.add();
         (await this.currentList).unshift(report);
-
-        await puttings;
     }
 
     async remove(report: Report) {
         report = report.clone();
         logger.debug(() => `Removing report: ${report}`);
 
-        const removings = report.remove();
+        await report.remove();
         _.remove(await this.currentList, (x) => x.id() == report.id());
-
-        await removings;
     }
 
     async update(report: Report) {
@@ -81,18 +67,50 @@ export class CachedReports {
     }
 }
 
-class PagingReports {
-    constructor(private pager: Pager<Report>) { }
-    list: Array<Report> = new Array();
+export class PagingReports implements PagingList<Report> {
+    constructor(private pager: Pager<Report>) {
+        Cognito.addChangingHook(async (oldId, newId) => {
+            this.reset();
+        });
+    }
+
+    private _list: Array<Report> = [];
+
+    currentList(): Array<Report> {
+        return this._list;
+    }
 
     hasMore(): boolean {
         return this.pager.hasMore();
     }
 
-    async more() {
-        const adding = await this.pager.more(PAGE_SIZE);
+    reset() {
+        this.pager.reset();
+        this._list = [];
+    }
+
+    async more(): Promise<void> {
+        const start = this._list.length;
+        const goal = start + PAGE_SIZE;
+        await this.doMore(start + 1);
+        this.doMore(goal); // これ以降はバックグラウンドで追加
+    }
+
+    private async doMore(satis: number): Promise<void> {
+        while (this.hasMore() && this._list.length < satis) {
+            this.add(await this.pager.more(PAGE_SIZE));
+        }
+    }
+
+    private add(adding: Array<Report>) {
         _.sortBy(adding, 'dateAt').reverse().forEach((x) => {
-            if (_.every(this.list, (o) => o.id() != x.id())) this.list.push(x);
+            try {
+                if (_.every(this._list, (o) => o.id() != x.id())) {
+                    this._list.push(x);
+                }
+            } catch (ex) {
+                logger.warn(() => `Error on addng ${x} to ${this._list}`);
+            }
         });
     }
 }

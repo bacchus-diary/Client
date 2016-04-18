@@ -1,4 +1,5 @@
 import {Page, NavController} from 'ionic-angular';
+import * as Rx from 'rxjs';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {AddReportPage} from '../add_report/add_report';
@@ -6,6 +7,8 @@ import {ReportDetailPage} from '../report_detail/report_detail';
 import {Report} from '../../model/report';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
+import {SearchReports} from '../../providers/reports/search';
+import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportsListPage);
@@ -18,23 +21,80 @@ const logger = new Logger(ReportsListPage);
 export class ReportsListPage {
     constructor(
         private nav: NavController,
+        private searchReports: SearchReports,
         private cachedReports: CachedReports) { }
 
-    reports: Array<Report>;
+    private _pager: PagingList<Report>;
+    get pager(): PagingList<Report> {
+        return this._pager;
+    }
+    async setPager(v: Promise<PagingList<Report>>) {
+        logger.debug(() => `Start loading.`);
+        this.isLoading = true;
+        try {
+            this._pager = await v;
+            if (_.isEmpty(this._pager.currentList())) await this.more();
+        } finally {
+            logger.debug(() => `Finish loading.`);
+            this.isLoading = false;
+        }
+    }
 
-    isReady = false;
+    isLoading: boolean = true;
+    isRefreshing: boolean = false;
+
+    get isEmpty(): boolean {
+        return !(
+            this.isLoading ||
+            this.isRefreshing ||
+            this.pager.hasMore()
+        ) && _.isEmpty(this.reports);
+    }
+
+    get reports(): Array<Report> {
+        if (!this.pager) return [];
+        return this.pager.currentList();
+    }
+
+    searchText: string;
+    private searchTextInputing: Rx.Subscription;
+
+    isSearchMode: boolean = false;
+
+    search() {
+        if (this.searchTextInputing) this.searchTextInputing.unsubscribe();
+        this.searchTextInputing = Rx.Observable.of(null).delay(1000).subscribe(async () => {
+            if (this.searchText.length < 1) {
+                this.clearSearch();
+            } else {
+                this.isSearchMode = true;
+                logger.debug(() => `Searching: ${this.searchText}`);
+                this.setPager(this.searchReports.byWord(this.searchText));
+            }
+        });
+    }
+
+    async clearSearch() {
+        this.isSearchMode = false;
+        this.searchText = '';
+        this.setPager(this.cachedReports.pagingList);
+    }
 
     async onPageWillEnter() {
-        await this.more();
+        await this.clearSearch();
         logger.debug(() => `Loaded initial reports: ${this.reports}`)
-        this.isReady = true;
     }
 
     async doRefresh(event) {
-        this.cachedReports.reset();
-        await this.more();
-        logger.debug(() => `Refreshed reports: ${this.reports}`)
-        event.complete();
+        this.isRefreshing = true;
+        try {
+            this.pager.reset();
+            await this.more();
+            logger.debug(() => `Refreshed reports: ${this.reports}`)
+        } finally {
+            event.complete();
+            this.isRefreshing = false;
+        }
     }
 
     async doInfinite(event) {
@@ -47,8 +107,8 @@ export class ReportsListPage {
     private async more() {
         try {
             logger.info(() => `Getting reports list...`);
-            await this.cachedReports.more();
-            this.reports = await this.cachedReports.currentList;
+            await this.pager.more();
+            logger.debug(() => `CurrentList: ${this.reports}`);
         } catch (ex) {
             logger.warn(() => `Failed to get reports list: ${ex}`);
         }

@@ -26,29 +26,33 @@ export class Leaf implements DBRecord<Leaf> {
     private static _table: Promise<DynamoTable<Leaf>>;
     static async table(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
         if (!this._table) {
-            this._table = dynamo.createTable<Leaf>({
-                tableName: 'LEAF',
-                idColumnName: 'LEAF_ID',
-                reader: (cognito: Cognito, photo: Photo) => async (src: LeafRecord) => {
-                    logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
-                    if (!src) return null;
-                    const images = await photo.images(src.REPORT_ID, src.LEAF_ID);
-                    if (!images.exists()) {
-                        logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
-                        (await this._table).remove(src.LEAF_ID);
-                        return null;
+            this._table = dynamo.createTable<Leaf>((cognito, photo) => {
+                this.cleanup(photo);
+                return {
+                    tableName: 'LEAF',
+                    idColumnName: 'LEAF_ID',
+                    reader: async (src: LeafRecord) => {
+                        logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
+                        if (!src) return null;
+                        const images = await photo.images(src.REPORT_ID, src.LEAF_ID);
+                        const ok = await images.exists();
+                        if (!ok) {
+                            logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
+                            (await this._table).remove(src.LEAF_ID);
+                            return null;
+                        }
+                        return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT, images);
+                    },
+                    writer: async (obj) => {
+                        const m: LeafRecord = {
+                            COGNITO_ID: (await cognito.identity).identityId,
+                            REPORT_ID: obj._reportId,
+                            LEAF_ID: obj.id(),
+                            CONTENT: obj.toMap()
+                        };
+                        return m;
                     }
-                    return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT, images);
-                },
-                writer: (cognito: Cognito, photo: Photo) => async (obj) => {
-                    const m: LeafRecord = {
-                        COGNITO_ID: (await cognito.identity).identityId,
-                        REPORT_ID: obj.reportId,
-                        LEAF_ID: obj.id(),
-                        CONTENT: obj.toMap()
-                    };
-                    return m;
-                }
+                };
             });
         }
         return this._table;
@@ -69,13 +73,23 @@ export class Leaf implements DBRecord<Leaf> {
             await photo.images(reportId, id, original));
     }
 
+    private static cleanuped: Promise<void> = null;
+    private static async cleanup(photo: Photo) {
+        if (!this.cleanuped) {
+            this.cleanuped = photo.cleanup(async (images) => {
+                const leaf = await (await Leaf._table).get(images.leafId);
+                return (leaf != null && leaf.reportId == images.reportId)
+            });
+        }
+    }
+
     constructor(
-        private reportId: string,
+        private _reportId: string,
         private _id: string,
         private content: LeafContent,
         public photo: Images
     ) {
-        assert('reportId', reportId);
+        assert('reportId', _reportId);
         assert('id', _id);
         assert('content', content);
         assert('images', photo);
@@ -84,6 +98,10 @@ export class Leaf implements DBRecord<Leaf> {
     get table(): Promise<DynamoTable<Leaf>> {
         assert('Leaf$Table', Leaf._table);
         return Leaf._table;
+    }
+
+    get reportId(): string {
+        return this._reportId;
     }
 
     get logos(): Array<string> {
@@ -119,7 +137,7 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     toString(): string {
-        return `REPORT_ID=${this.reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap(), null, 4)}`;
+        return `REPORT_ID=${this._reportId}, LEAF_ID=${this.id()}, ${JSON.stringify(this.toMap(), null, 4)}`;
     }
 
     id(): string {
@@ -141,7 +159,7 @@ export class Leaf implements DBRecord<Leaf> {
     }
 
     clone(): Leaf {
-        return new Leaf(this.reportId, this._id, this.toMap(), this.photo);
+        return new Leaf(this._reportId, this._id, this.toMap(), this.photo);
     }
 
     async add() {
