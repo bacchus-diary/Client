@@ -32,18 +32,23 @@ export class Photo {
         return new Images(this.s3file, cognitoId, expiring, reportId, leafId, localUrl);
     }
 
-    async cleanup(cond: (file: string) => Promise<boolean>) {
+    async cleanup(cond: (images: Images) => Promise<boolean>) {
         const cognitoId = (await this.cognito.identity).identityId;
-        await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
+        const check = (relativePath: string) => async (proc: (images: Images) => Promise<boolean>): Promise<void> => {
             const prefix = `photo/${relativePath}/${cognitoId}/`;
             const files = await this.s3file.list(prefix);
             await Promise.all(files.map(async (file) => {
-                const del = await cond(file)
-                if (del) {
+                const st = Images.destractStoragePath(file);
+                const ok = st != null && await proc(await this.images(st.reportId, st.leafId))
+                if (!ok) {
                     await this.s3file.remove(file);
                 }
             }));
-        }));
+        };
+        await check(PATH_ORIGINAL)(cond);
+        await Promise.all([PATH_MAINVIEW, PATH_THUMBNAIL].map(check).map(
+            (check) => check((images) => images.exists())
+        ));
     }
 
     private async changeCognitoId(oldId, newId) {
