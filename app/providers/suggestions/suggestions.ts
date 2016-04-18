@@ -30,7 +30,7 @@ export class Suggestions {
                 const label = _.head(leaf.labels);
                 if (!_.isEmpty(label) && !_.isEmpty(leaf.keywords)) {
                     return _.flatten(_.take(leaf.keywords, 2).map(
-                        (keyword) => [keyword, `${label} ${keyword}`]));
+                        (keyword) => [`${label} ${keyword}`, keyword]));
                 } else if (_.isEmpty(label)) {
                     return _.take(leaf.keywords, 3);
                 } else {
