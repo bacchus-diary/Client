@@ -78,6 +78,7 @@ export class Leaf implements DBRecord<Leaf> {
         if (!this.cleanuped) {
             this.cleanuped = photo.cleanup(async (file) => {
                 const st = Images.destractStoragePath(file);
+                if (_.isEmpty(st)) return true;
                 const leaf = await (await Leaf._table).get(st.leafId);
                 return (leaf == null || leaf.reportId != st.reportId)
             });
