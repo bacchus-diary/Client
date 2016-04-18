@@ -79,10 +79,10 @@ export class Images {
 
     constructor(
         private s3file: S3File,
-        private cognitoId: string,
+        private _cognitoId: string,
         public expiresInSeconds: number,
-        private reportId: string,
-        private leafId: string,
+        private _reportId: string,
+        private _leafId: string,
         localUrl: string
     ) {
         const newImage = (path: string, parent?: Image) => new Image(this, path, localUrl);
@@ -97,6 +97,16 @@ export class Images {
         mainview: Image,
         thumbnail: Image
     };
+
+    get cognitoId(): string {
+        return this._cognitoId;
+    }
+    get reportId(): string {
+        return this._reportId;
+    }
+    get leafId(): string {
+        return this._leafId;
+    }
 
     async exists(): Promise<boolean> {
         return await this.s3file.exists(await this.original.storagePath);
