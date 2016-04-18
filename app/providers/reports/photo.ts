@@ -20,19 +20,7 @@ export class Photo {
 
     constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) {
         if (!Photo.hookSetuped) {
-            Cognito.addChangingHook(async (oldId, newId) => {
-                await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
-                    const prev = `photo/${relativePath}/${oldId}`;
-                    const next = `photo/${relativePath}/${newId}`;
-                    logger.debug(() => `Moving image file: ${prev} => ${next}`);
-
-                    const files = await s3file.list(prev);
-                    await Promise.all(files.map(async (src) => {
-                        const path = src.substring(prev.length);
-                        await s3file.move(src, `${next}${path}`);
-                    }));
-                }));
-            });
+            Cognito.addChangingHook(this.changeCognitoId);
             Photo.hookSetuped = true;
             logger.info(() => `Photo cognitoId hook is set.`);
         }
@@ -42,6 +30,24 @@ export class Photo {
         const cognitoId = (await this.cognito.identity).identityId;
         const expiring = (await this.config.server).photo.urlTimeout;
         return new Images(this.s3file, cognitoId, expiring, reportId, leafId, localUrl);
+    }
+
+    private async changeCognitoId(oldId, newId) {
+        await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
+            const prev = `photo/${relativePath}/${oldId}/`;
+            const next = `photo/${relativePath}/${newId}/`;
+            logger.debug(() => `Moving image file: ${prev} => ${next}`);
+
+            const files = await this.s3file.list(prev);
+            await Promise.all(files.map(async (src) => {
+                const dst = `${next}${src.substring(prev.length)}`;
+                try {
+                    await this.s3file.move(src, dst);
+                } catch (ex) {
+                    logger.warn(() => `Error on moving S3 file: (${src} => ${dst}): ${ex}`);
+                }
+            }));
+        }));
     }
 }
 
