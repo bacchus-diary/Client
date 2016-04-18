@@ -35,7 +35,7 @@ export class Leaf implements DBRecord<Leaf> {
                         logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
                         if (!src) return null;
                         const images = await photo.images(src.REPORT_ID, src.LEAF_ID);
-                        const ok = await images.exists()
+                        const ok = await images.exists();
                         if (!ok) {
                             logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
                             (await this._table).remove(src.LEAF_ID);
