@@ -32,6 +32,19 @@ export class Photo {
         return new Images(this.s3file, cognitoId, expiring, reportId, leafId, localUrl);
     }
 
+    async cleanup(cond: (file: string) => Promise<boolean>) {
+        const cognitoId = (await this.cognito.identity).identityId;
+        await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
+            const prefix = `photo/${relativePath}/${cognitoId}/`;
+            const files = await this.s3file.list(prefix);
+            await Promise.all(files.map(async (file) => {
+                if (cond(file)) {
+                    await this.s3file.remove(file);
+                }
+            }));
+        }));
+    }
+
     private async changeCognitoId(oldId, newId) {
         await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
             const prev = `photo/${relativePath}/${oldId}/`;
@@ -52,6 +65,17 @@ export class Photo {
 }
 
 export class Images {
+    static destractStoragePath(filePath: string): { relativePath: string, cognitoId: string, reportId: string, leafId: string } {
+        const m = filePath.match(`^photo/\([^/]+\)/\([^/]+\)/\([^/]+\)/\([^/]+\)\.jpg$`);
+        if (!m) return null;
+        return {
+            relativePath: m[1],
+            cognitoId: m[2],
+            reportId: m[3],
+            leafId: m[4]
+        }
+    }
+
     constructor(
         private s3file: S3File,
         private cognitoId: string,

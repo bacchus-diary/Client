@@ -27,6 +27,7 @@ export class Leaf implements DBRecord<Leaf> {
     static async table(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
         if (!this._table) {
             this._table = dynamo.createTable<Leaf>((cognito, photo) => {
+                this.cleanup(photo);
                 return {
                     tableName: 'LEAF',
                     idColumnName: 'LEAF_ID',
@@ -69,6 +70,17 @@ export class Leaf implements DBRecord<Leaf> {
                 description_upper: null
             },
             await photo.images(reportId, id, original));
+    }
+
+    private static cleanuped: Promise<void> = null;
+    private static async cleanup(photo: Photo) {
+        if (!this.cleanuped) {
+            this.cleanuped = photo.cleanup(async (file) => {
+                const st = Images.destractStoragePath(file);
+                const leaf = await (await Leaf._table).get(st.leafId);
+                return (leaf == null || leaf.reportId != st.reportId)
+            });
+        }
     }
 
     constructor(
