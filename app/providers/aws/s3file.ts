@@ -57,7 +57,8 @@ export class S3File {
         await this.invoke((s3) => s3.copyObject({
             Bucket: bucketName,
             CopySource: `${bucketName}/${src}`,
-            Key: dst}));
+            Key: dst
+        }));
     }
 
     async move(src: string, dst: string): Promise<void> {
@@ -67,9 +68,10 @@ export class S3File {
 
     async list(path: string): Promise<Array<string>> {
         const bucketName = await this.settings.s3Bucket;
-        const res = await this.invoke<{Contents: {Key: string}[]}>((s3) => s3.listObjects({
+        const res = await this.invoke<{ Contents: { Key: string }[] }>((s3) => s3.listObjects({
             Bucket: bucketName,
-            Prefix: path}));
+            Prefix: path
+        }));
         return res.Contents.map((x) => x.Key);
     }
 
