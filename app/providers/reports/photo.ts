@@ -67,7 +67,7 @@ export class Photo {
 
 export class Images {
     static destractStoragePath(filePath: string): { relativePath: string, cognitoId: string, reportId: string, leafId: string } {
-        const m = filePath.match(`^photo/\([^/]+\)/\([^/]+\)/\([^/]+\)/\([^/]+\)\.jpg$`);
+        const m = filePath.match('^photo/\((?:[^/]+\|[^/]+/[^/]+))/\([^/]+\)/\([^/]+\)/\([^/]+\)\.jpg$');
         if (!m) return null;
         return {
             relativePath: m[1],
