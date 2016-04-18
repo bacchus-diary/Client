@@ -133,7 +133,27 @@ export class Leaf implements DBRecord<Leaf> {
     }
     set description(v: string) {
         assert('description', v);
+        const original = this.description;
         this.content.description = v;
+
+        if (original.length > 0 && this.keywords.length > 0) {
+            logger.debug(() => `Changed description: ${original} => ${v}`);
+            const srcList = original.split('\n');
+            const dstList = v.split('\n');
+            if (srcList.length == dstList.length) {
+                _.zip(srcList, dstList).map(([src, dst]) => {
+                    if (src != dst && _.includes(this.keywords, src)) {
+                        logger.debug(() => `Change keyword: ${src} => ${dst}`);
+                        this.keywords.splice(this.keywords.indexOf(src), 1, dst);
+                    }
+                })
+            } else if (srcList.length > dstList.length) {
+                srcList.filter((line) => _.every(dstList, (dst) => dst != line)).forEach((word) => {
+                    logger.debug(() => `Remove keyword: ${word}`);
+                    _.pull(this.keywords, word);
+                });
+            }
+        }
     }
 
     toString(): string {

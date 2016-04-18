@@ -12,8 +12,8 @@
             </div>
             <div class="deletable">
                 <img [src]="leaf.photo.reduced.mainview.url" />
-                <ion-item>
-                    <ion-textarea elastic placeholder="NO TEXT" [(ngModel)]="leaf.description"></ion-textarea>
+                <ion-item class="description">
+                    <ion-textarea elastic placeholder="NO TEXT" [(ngModel)]="leaf.description" (change)="update.emit(null)"></ion-textarea>
                 </ion-item>
             </div>
         </ion-slide>

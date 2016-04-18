@@ -61,9 +61,17 @@ export class ShowcaseComponent {
 
             const etiquette = await this.etiquetteVision.read(base64image);
             if (!etiquette || etiquette.isSafe()) {
-                if (etiquette) etiquette.writeContent(leaf);
+                if (etiquette) {
+                    etiquette.writeContent(leaf);
+                    const slide = this.swiper.slides[index];
+                    const textarea = slide.querySelector('ion-item.description ion-textarea textarea') as HTMLTextAreaElement;
+                    if (textarea) setTimeout(() => {
+                        logger.debug(() => `Kick event 'onInput' on ${textarea}(value=${textarea.value})`);
+                        textarea.oninput(null);
+                    }, 100);
+                }
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
-                if (this.update) this.update.emit(null);
+                this.update.emit(null);
             } else {
                 await new Promise<void>((resolve, reject) => {
                     this.nav.present(Alert.create({
@@ -91,7 +99,7 @@ export class ShowcaseComponent {
         if (ok) {
             const leaf = await this.doDeletePhoto(index);
             await leaf.remove();
-            if (this.update) this.update.emit(null);
+            this.update.emit(null);
         }
     }
 
