@@ -26,29 +26,31 @@ export class Leaf implements DBRecord<Leaf> {
     private static _table: Promise<DynamoTable<Leaf>>;
     static async table(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
         if (!this._table) {
-            this._table = dynamo.createTable<Leaf>({
-                tableName: 'LEAF',
-                idColumnName: 'LEAF_ID',
-                reader: (cognito: Cognito, photo: Photo) => async (src: LeafRecord) => {
-                    logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
-                    if (!src) return null;
-                    const images = await photo.images(src.REPORT_ID, src.LEAF_ID);
-                    if (!images.exists()) {
-                        logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
-                        (await this._table).remove(src.LEAF_ID);
-                        return null;
+            this._table = dynamo.createTable<Leaf>((cognito, photo) => {
+                return {
+                    tableName: 'LEAF',
+                    idColumnName: 'LEAF_ID',
+                    reader: async (src: LeafRecord) => {
+                        logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
+                        if (!src) return null;
+                        const images = await photo.images(src.REPORT_ID, src.LEAF_ID);
+                        if (!images.exists()) {
+                            logger.debug(() => `This leaf has no images: ${JSON.stringify(src)}`);
+                            (await this._table).remove(src.LEAF_ID);
+                            return null;
+                        }
+                        return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT, images);
+                    },
+                    writer: async (obj) => {
+                        const m: LeafRecord = {
+                            COGNITO_ID: (await cognito.identity).identityId,
+                            REPORT_ID: obj._reportId,
+                            LEAF_ID: obj.id(),
+                            CONTENT: obj.toMap()
+                        };
+                        return m;
                     }
-                    return new Leaf(src.REPORT_ID, src.LEAF_ID, src.CONTENT, images);
-                },
-                writer: (cognito: Cognito, photo: Photo) => async (obj) => {
-                    const m: LeafRecord = {
-                        COGNITO_ID: (await cognito.identity).identityId,
-                        REPORT_ID: obj._reportId,
-                        LEAF_ID: obj.id(),
-                        CONTENT: obj.toMap()
-                    };
-                    return m;
-                }
+                };
             });
         }
         return this._table;

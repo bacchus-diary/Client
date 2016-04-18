@@ -23,14 +23,15 @@ export class Dynamo {
     private client: Promise<DC.DocumentClient>;
 
     async createTable<T extends DBRecord<T>>(maker: DBTableMaker<T>): Promise<DynamoTable<T>> {
+        const m = maker(this.cognito, this.photo);
         return new DynamoTable(
             this.cognito,
             await this.client,
             (await this.config.server).appName,
-            maker.tableName,
-            maker.idColumnName,
-            maker.reader(this.cognito, this.photo),
-            maker.writer(this.cognito, this.photo));
+            m.tableName,
+            m.idColumnName,
+            m.reader,
+            m.writer);
     }
 }
 
@@ -40,14 +41,11 @@ export function createRandomKey(): string {
     return _.range(32).map((i) => char(_.random(0, 35))).join('');
 }
 
-interface DBTableMaker<T extends DBRecord<T>> {
-    tableName: string;
-
-    idColumnName: string;
-
-    reader(cognito: Cognito, photo: Photo): RecordReader<T>;
-
-    writer(cognito: Cognito, photo: Photo): RecordWriter<T>;
+type DBTableMaker<T extends DBRecord<T>> = (cognito: Cognito, photo: Photo) => {
+    tableName: string,
+    idColumnName: string,
+    reader: RecordReader<T>,
+    writer: RecordWriter<T>
 }
 
 export interface DBRecord<T> {

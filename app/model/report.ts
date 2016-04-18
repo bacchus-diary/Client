@@ -30,35 +30,37 @@ export class Report implements DBRecord<Report> {
     private static _table: Promise<DynamoTable<Report>>;
     static async table(dynamo: Dynamo): Promise<DynamoTable<Report>> {
         if (!this._table) {
-            this._table = dynamo.createTable<Report>({
-                tableName: 'REPORT',
-                idColumnName: 'REPORT_ID',
-                reader: (cognito: Cognito, photo: Photo) => async (src: ReportRecord) => {
-                    logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
-                    if (!src) return null;
-                    const leafTable = await Leaf.table(dynamo);
-                    const rels = await leafTable.query({
-                        COGNITO_ID: (await cognito.identity).identityId,
-                        REPORT_ID: src.REPORT_ID
-                    }, 'COGNITO_ID-REPORT_ID-index');
-                    if (_.isEmpty(rels)) {
-                        logger.debug(() => `This report has no leaves: ${JSON.stringify(src)}`);
-                        (await this._table).remove(src.REPORT_ID);
-                        return null;
+            this._table = dynamo.createTable<Report>((cognito: Cognito, photo: Photo) => {
+                return {
+                    tableName: 'REPORT',
+                    idColumnName: 'REPORT_ID',
+                    reader: async (src: ReportRecord) => {
+                        logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
+                        if (!src) return null;
+                        const leafTable = await Leaf.table(dynamo);
+                        const rels = await leafTable.query({
+                            COGNITO_ID: (await cognito.identity).identityId,
+                            REPORT_ID: src.REPORT_ID
+                        }, 'COGNITO_ID-REPORT_ID-index');
+                        if (_.isEmpty(rels)) {
+                            logger.debug(() => `This report has no leaves: ${JSON.stringify(src)}`);
+                            (await this._table).remove(src.REPORT_ID);
+                            return null;
+                        }
+                        const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() == leafId));
+                        const leaves = _.union(_.compact(indexed), rels);
+                        return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);
+                    },
+                    writer: async (obj) => {
+                        const m: ReportRecord = {
+                            COGNITO_ID: (await cognito.identity).identityId,
+                            REPORT_ID: obj.id(),
+                            DATE_AT: obj.dateAt.getTime(),
+                            CONTENT: obj.toMap()
+                        };
+                        return m;
                     }
-                    const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() == leafId));
-                    const leaves = _.union(_.compact(indexed), rels);
-                    return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);
-                },
-                writer: (cognito: Cognito, photo: Photo) => async (obj) => {
-                    const m: ReportRecord = {
-                        COGNITO_ID: (await cognito.identity).identityId,
-                        REPORT_ID: obj.id(),
-                        DATE_AT: obj.dateAt.getTime(),
-                        CONTENT: obj.toMap()
-                    };
-                    return m;
-                }
+                };
             });
         }
         return this._table;
