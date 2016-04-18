@@ -109,6 +109,7 @@ export class DynamoTable<T extends DBRecord<T>> {
                 }
             }));
         });
+        logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
 
     private tableName: string;

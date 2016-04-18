@@ -30,6 +30,7 @@ export class Report implements DBRecord<Report> {
     private static _table: Promise<DynamoTable<Report>>;
     static async table(dynamo: Dynamo): Promise<DynamoTable<Report>> {
         if (!this._table) {
+            const leafTable = await Leaf.table(dynamo);
             this._table = dynamo.createTable<Report>((cognito: Cognito, photo: Photo) => {
                 return {
                     tableName: 'REPORT',
@@ -37,7 +38,6 @@ export class Report implements DBRecord<Report> {
                     reader: async (src: ReportRecord) => {
                         logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
                         if (!src) return null;
-                        const leafTable = await Leaf.table(dynamo);
                         const rels = await leafTable.query({
                             COGNITO_ID: (await cognito.identity).identityId,
                             REPORT_ID: src.REPORT_ID
