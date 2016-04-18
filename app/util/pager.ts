@@ -9,4 +9,5 @@ export interface PagingList<T> {
     hasMore(): boolean;
     more(): Promise<void>;
     reset(): void;
+    isLoading(): boolean;
 }

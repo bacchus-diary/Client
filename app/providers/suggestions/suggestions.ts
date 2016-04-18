@@ -2,6 +2,7 @@ import {Injectable} from 'angular2/core';
 
 import {Report} from '../../model/report';
 import {AmazonPAA} from './amazon_paa';
+import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(Suggestions);
@@ -39,7 +40,7 @@ export class Suggestions {
         }));
     }
 
-    async upon(report: Report): Promise<PagingList> {
+    async upon(report: Report): Promise<PagingList<Product>> {
         const keywords = this.makeKeywords(report);
         return new PagingSuggestions(this.paa, keywords);
     }
@@ -55,26 +56,28 @@ export class Suggestions {
     }
 }
 
-export interface PagingList {
-    list: Array<Product>;
-    hasMore(): boolean;
-    more(): Promise<void>;
-    isLoading(): boolean;
-}
-
-class PagingSuggestions implements PagingList {
+class PagingSuggestions implements PagingList<Product> {
     constructor(private paa: AmazonPAA, private keywords: Array<string>) { }
     private pageIndex = 0;
     private loading: Promise<void>;
+
+    private _list: Array<Product> = [];
+
+    currentList(): Array<Product> {
+        return this._list;
+    }
+
+    hasMore(): boolean {
+        return this.pageIndex < 5;
+    }
 
     isLoading(): boolean {
         return this.loading != null;
     }
 
-    list: Array<Product> = [];
-
-    hasMore(): boolean {
-        return this.pageIndex < 5;
+    reset() {
+        this._list.length = 0;
+        this.pageIndex = 0;
     }
 
     async more(): Promise<void> {
@@ -95,8 +98,8 @@ class PagingSuggestions implements PagingList {
                 const products = await this.paa.itemSearch(word, this.pageIndex);
                 const sorted = _.sortBy(products, (x) => x.priceValue).reverse();
                 sorted.forEach((x) => {
-                    const same = _.find(this.list, (o) => x.title == o.title);
-                    if (!same) this.list.push(x);
+                    const same = _.find(this._list, (o) => x.title == o.title);
+                    if (!same) this._list.push(x);
                 });
             } catch (ex) {
                 logger.warn(() => `Error on searching items: ${ex}`);
