@@ -38,7 +38,8 @@ export class Photo {
             const prefix = `photo/${relativePath}/${cognitoId}/`;
             const files = await this.s3file.list(prefix);
             await Promise.all(files.map(async (file) => {
-                if (cond(file)) {
+                const del = await cond(file)
+                if (del) {
                     await this.s3file.remove(file);
                 }
             }));
