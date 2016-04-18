@@ -37,7 +37,8 @@ export class S3File {
         await this.invoke((s3) => s3.putObject({
             Bucket: bucketName,
             Key: path,
-            Body: blob
+            Body: blob,
+            ContentType: blob.type
         }));
     }
 
