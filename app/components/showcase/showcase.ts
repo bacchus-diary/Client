@@ -63,7 +63,7 @@ export class ShowcaseComponent {
             if (!etiquette || etiquette.isSafe()) {
                 if (etiquette) etiquette.writeContent(leaf);
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
-                if (this.update) this.update.emit(null);
+                this.update.emit(null);
             } else {
                 await new Promise<void>((resolve, reject) => {
                     this.nav.present(Alert.create({
@@ -91,7 +91,7 @@ export class ShowcaseComponent {
         if (ok) {
             const leaf = await this.doDeletePhoto(index);
             await leaf.remove();
-            if (this.update) this.update.emit(null);
+            this.update.emit(null);
         }
     }
 
