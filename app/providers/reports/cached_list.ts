@@ -40,20 +40,16 @@ export class CachedReports {
         report = report.clone();
         logger.debug(() => `Adding report: ${report}`);
 
-        const puttings = report.add();
+        await report.add();
         (await this.currentList).unshift(report);
-
-        await puttings;
     }
 
     async remove(report: Report) {
         report = report.clone();
         logger.debug(() => `Removing report: ${report}`);
 
-        const removings = report.remove();
+        await report.remove();
         _.remove(await this.currentList, (x) => x.id() == report.id());
-
-        await removings;
     }
 
     async update(report: Report) {
