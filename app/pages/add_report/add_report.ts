@@ -23,6 +23,14 @@ export class AddReportPage {
 
     private updateLeaves = new EventEmitter<void>(true);
 
+    private isSubmitted = false;
+
+    async onPageWillLeave() {
+        if (!this.isSubmitted) {
+            this.report.remove();
+        }
+    }
+
     async submit() {
         logger.debug(() => `Submitting report`);
         try {
@@ -39,6 +47,7 @@ export class AddReportPage {
             }
             await Overlay.wait(this.nav);
             logger.debug(() => `Success to add. leaving this page...`);
+            this.isSubmitted = true;
             this.nav.pop();
         } catch (ex) {
             logger.warn(() => `Failed to add report: ${ex}`);
