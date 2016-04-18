@@ -26,7 +26,15 @@ export class Suggestions {
             if (leaf.logos.length > 0) {
                 return leaf.logos;
             } else {
-                return _.take(leaf.keywords, 3);
+                const label = _.head(leaf.labels);
+                if (!_.isEmpty(label) && !_.isEmpty(leaf.keywords)) {
+                    return _.flatten(_.take(leaf.keywords, 2).map(
+                        (keyword) => [keyword, `${label} ${keyword}`]));
+                } else if (_.isEmpty(label)) {
+                    return _.take(leaf.keywords, 3);
+                } else {
+                    return _.take(leaf.labels, 3);
+                }
             }
         }));
     }
