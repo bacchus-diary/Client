@@ -52,6 +52,7 @@ export class S3File {
 
     async copy(src: string, dst: string): Promise<void> {
         const bucketName = await this.settings.s3Bucket;
+        logger.debug(() => `Copying file: ${bucketName}:${src}=>${dst}`);
         await this.invoke((s3) => s3.copyObject({
             Bucket: bucketName,
             CopySource: `${bucketName}/${src}`,

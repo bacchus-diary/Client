@@ -94,6 +94,7 @@ export class Cognito {
                                     logger.warn(() => `Error on hook: ${ex}`);
                                 }
                             }));
+                            logger.info(() => `Done hooking of changing cognitoId`);
                         }
                         resolve(newId);
                     } catch (ex) {
