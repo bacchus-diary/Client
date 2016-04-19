@@ -86,6 +86,7 @@ export class ShowcaseComponent {
                         sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
                     });
                 }
+                const vision = this.etiquetteVision.read(base64image);
                 const blob = BASE64.decodeBase64(base64image);
                 const url = URL.createObjectURL(blob, { oneTimeOnly: true });
                 logger.debug(() => `Photo URL: ${url}`);
@@ -94,7 +95,7 @@ export class ShowcaseComponent {
                 const index = this.leaves.push(leaf) - 1;
                 this.swiper.update();
 
-                return { blob: blob, index: index, leaf: leaf, etiquette: await this.etiquetteVision.read(base64image) };
+                return { blob: blob, index: index, leaf: leaf, etiquette: await vision };
             });
             if (!etiquette || etiquette.isSafe()) {
                 if (etiquette) {
