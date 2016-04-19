@@ -35,6 +35,11 @@ export class ElasticTextareaDirective {
         this.onChange();
     }
 
+    async ngOnDestroy() {
+        logger.debug(() => `Destroying ElasticTextarea...`);
+        this.mirror.remove();
+    }
+
     private onChange() {
         this.mirror.value = this.textarea.value;
         const s = this.mirror.scrollHeight;
