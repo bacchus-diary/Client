@@ -1,4 +1,4 @@
-import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
+import {NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {Camera, Device} from 'ionic-native';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, Output, EventEmitter} from 'angular2/core';
@@ -73,19 +73,7 @@ export class ShowcaseComponent {
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
                 this.update.emit(null);
             } else {
-                await new Promise<void>((resolve, reject) => {
-                    this.nav.present(Alert.create({
-                        title: 'Delete Photo',
-                        message: 'This photo is seems to be inappropriate',
-                        buttons: [{
-                            text: 'Delete',
-                            handler: async (data) => {
-                                await this.doDeletePhoto(index);
-                                resolve();
-                            }
-                        }]
-                    }));
-                });
+                await Dialog.alert(this.nav, 'Delete Photo', 'This photo is seems to be inappropriate', 'Delete');
             }
         } catch (ex) {
             logger.warn(() => `Error on adding photo: ${ex}`);
@@ -178,7 +166,7 @@ export class ShowcaseComponent {
         return this.doGetPhoto(take);
     }
 
-    private doGetPhoto(take: boolean): Promise<string> {
+    private async doGetPhoto(take: boolean): Promise<string> {
         if (Device.device.cordova) {
             return Camera.getPicture({
                 correctOrientation: true,
@@ -186,42 +174,8 @@ export class ShowcaseComponent {
                 sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
             });
         } else {
-            return new Promise<string>((resolve, reject) => {
-                this.nav.present(Alert.create({
-                    title: 'Choose image file',
-                    inputs: [
-                        {
-                            type: 'file',
-                            name: 'file'
-                        }
-                    ],
-                    buttons: [
-                        {
-                            text: 'Cancel',
-                            handler: (data) => {
-                                logger.debug(() => `Cenceled: ${JSON.stringify(data)}`);
-                                reject('Cancel');
-                            }
-                        },
-                        {
-                            text: 'Ok',
-                            handler: async (data) => {
-                                try {
-                                    const elm = document.querySelector("ion-alert input.alert-input[type='file']") as HTMLInputElement;
-                                    if (elm && elm.files.length > 0) {
-                                        const file = elm.files[0];
-                                        logger.debug(() => `Choosed file: ${JSON.stringify(file)}`);
-                                        resolve(await BASE64.encodeBase64(file));
-                                    }
-                                } catch (ex) {
-                                    logger.warn(() => `Error on read file: ${ex}`);
-                                    reject(ex);
-                                }
-                            }
-                        }
-                    ]
-                }));
-            });
+            const file = await Dialog.file(this.nav, 'Choose image file');
+            return await BASE64.encodeBase64(file);
         }
     }
 }

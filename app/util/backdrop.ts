@@ -54,6 +54,41 @@ export class Dialog {
             }));
         });
     }
+
+    static async file(nav: NavController, title: string): Promise<File> {
+        return new Promise<File>((resolve, reject) => {
+            nav.present(Alert.create({
+                title: 'Choose image file',
+                inputs: [
+                    {
+                        type: 'file',
+                        name: 'file'
+                    }
+                ],
+                buttons: [
+                    {
+                        text: 'Cancel',
+                        handler: (data) => {
+                            reject('Cancel');
+                        }
+                    },
+                    {
+                        text: 'Ok',
+                        handler: async (data) => {
+                            try {
+                                const elm = document.querySelector("ion-alert input.alert-input[type='file']") as HTMLInputElement;
+                                if (elm && elm.files.length > 0) {
+                                    resolve(elm.files[0]);
+                                }
+                            } catch (ex) {
+                                reject(ex);
+                            }
+                        }
+                    }
+                ]
+            }));
+        });
+    }
 }
 
 export class Spinner {
