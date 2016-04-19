@@ -1,4 +1,5 @@
 import {Page, Modal, NavController, NavParams, ViewController} from 'ionic-angular';
+import {Toast} from 'ionic-native';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
@@ -15,12 +16,10 @@ const logger = new Logger(PublishPage);
     providers: [FATHENS_PROVIDERS]
 })
 export class PublishPage {
-    static async open(nav: NavController, report: Report): Promise<boolean> {
-        return await new Promise<boolean>((resolve, reject) => {
-            const modal = Modal.create(PublishPage, { report: report });
-            modal.onDismiss((res) => {
-                resolve(res['ok']);
-            });
+    static async open(nav: NavController, report: Report, callback: (ok: boolean) => any): Promise<void> {
+        return await new Promise<void>((resolve, reject) => {
+            const modal = Modal.create(PublishPage, { report: report, callback: callback });
+            modal.onDismiss(resolve);
             nav.present(modal);
         });
     }
@@ -32,10 +31,13 @@ export class PublishPage {
         public viewCtrl: ViewController
     ) {
         this.report = params.get('report');
+        this.callback = params.get('callback');
         logger.debug(() => `Editing message of report: ${this.report}`);
         this.message = this.report.comment || "";
         this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
     }
+
+    private callback: (ok: boolean) => any;
 
     private report: Report;
 
@@ -44,23 +46,24 @@ export class PublishPage {
     message: string;
 
     cancel() {
-        this.dismiss(false);
+        this.close();
+        this.callback(false);
     }
 
     async submit() {
+        this.close();
         try {
-            await Spinner.within(this.nav, 'Posting...', async () => {
-                await this.fbPublish.publish(this.message, this.report);
-            });
-            this.dismiss(true);
+            await this.fbPublish.publish(this.message, this.report);
+            Toast.show('Complete to share', 'long', 'top');
+            this.callback(true);
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
             await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
-            this.dismiss(false);
+            this.callback(false);
         }
     }
 
-    private dismiss(ok: boolean) {
-        this.viewCtrl.dismiss({ ok: ok });
+    private close() {
+        this.viewCtrl.dismiss();
     }
 }

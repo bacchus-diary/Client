@@ -68,8 +68,9 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        const ok = await PublishPage.open(this.nav, this.report);
-        if (ok) this.updatePublishing();
+        await PublishPage.open(this.nav, this.report, (ok) => {
+            if (ok) this.updatePublishing();
+        });
     }
 
     private async updatePublishing() {
