@@ -26,9 +26,25 @@ export type Lebel = "DEBUG" | "INFO" | "WARN" | "FATAL";
 
 const lebels: Array<Lebel> = ["DEBUG", "INFO", "WARN", "FATAL"];
 
+let isDEVEL: boolean = true;
+
+async function versionDevel() {
+    try {
+        const version: string = await AppVersion.getVersionNumber();
+        output(`Checking version number: ${version}`);
+        const last = _.last(version.match(/[0-9]/g));
+        const v = parseInt(last);
+        isDEVEL = v % 2 != 0;
+    } catch (ex) {
+        isDEVEL = true;
+    }
+}
+versionDevel();
+
 function output(text: string) {
     if (typeof plugin !== 'undefined' && plugin.Fabric) {
         plugin.Fabric.Crashlytics.log(text);
+        if (isDEVEL) console.log(text);
     } else {
         console.log(text);
     }
@@ -37,19 +53,8 @@ function output(text: string) {
 export class Logger {
     static lebel: Lebel = lebels[0];
     static async setLebelByVersionNumber() {
-        try {
-            const version: string = await AppVersion.getVersionNumber();
-            output(`Checking version number: ${version}`);
-            const last = _.last(version.match(/[0-9]/g));
-            const v = parseInt(last);
-            if (v % 2 == 0) {
-                this.lebel = "INFO";
-            } else {
-                this.lebel = "DEBUG";
-            }
-        } catch (ex) {
-            this.lebel = lebels[0];
-        }
+        await versionDevel();
+        this.lebel = isDEVEL ? "DEBUG" : "INFO";
         output(`Set log lebel: ${this.lebel}`);
     }
 

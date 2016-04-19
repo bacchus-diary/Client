@@ -5,6 +5,7 @@ import {FATHENS_PROVIDERS} from '../../providers/all';
 import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
 import {Dialog, Spinner} from '../../util/backdrop';
+import {Toast} from '../../util/toast';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(PublishPage);
@@ -15,12 +16,10 @@ const logger = new Logger(PublishPage);
     providers: [FATHENS_PROVIDERS]
 })
 export class PublishPage {
-    static async open(nav: NavController, report: Report): Promise<boolean> {
-        return await new Promise<boolean>((resolve, reject) => {
-            const modal = Modal.create(PublishPage, { report: report });
-            modal.onDismiss((res) => {
-                resolve(res['ok']);
-            });
+    static async open(nav: NavController, report: Report, callback?: (ok: boolean) => any): Promise<void> {
+        return await new Promise<void>((resolve, reject) => {
+            const modal = Modal.create(PublishPage, { report: report, callback: callback });
+            modal.onDismiss(resolve);
             nav.present(modal);
         });
     }
@@ -32,10 +31,13 @@ export class PublishPage {
         public viewCtrl: ViewController
     ) {
         this.report = params.get('report');
+        this._callback = params.get('callback');
         logger.debug(() => `Editing message of report: ${this.report}`);
         this.message = this.report.comment || "";
         this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
     }
+
+    private _callback: (ok: boolean) => any;
 
     private report: Report;
 
@@ -43,24 +45,31 @@ export class PublishPage {
 
     message: string;
 
+    private callback(ok: boolean) {
+        if (this._callback) this._callback(ok);
+    }
+
     cancel() {
-        this.dismiss(false);
+        this.close();
+        this.callback(false);
     }
 
     async submit() {
+        this.close();
         try {
-            await Spinner.within(this.nav, 'Posting...', async () => {
-                await this.fbPublish.publish(this.message, this.report);
-            });
-            this.dismiss(true);
+            const clone = this.report.clone();
+            clone.publishedFacebook = await this.fbPublish.publish(this.message, clone);
+            await this.report.update(clone);
+            Toast.showLongTop('Share is completed');
+            this.callback(true);
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
             await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
-            this.dismiss(false);
+            this.callback(false);
         }
     }
 
-    private dismiss(ok: boolean) {
-        this.viewCtrl.dismiss({ ok: ok });
+    private close() {
+        this.viewCtrl.dismiss();
     }
 }

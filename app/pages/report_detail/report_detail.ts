@@ -7,7 +7,7 @@ import {FATHENS_PROVIDERS} from '../../providers/all';
 import {CachedReports} from '../../providers/reports/cached_list';
 import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
-import {Dialog, Spinner} from '../../util/backdrop';
+import {Dialog, Spinner, Overlay} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ReportDetailPage);
@@ -58,8 +58,9 @@ export class ReportDetailPage {
             try {
                 await Spinner.within(this.nav, 'Deleting...', async () => {
                     await this.cachedReports.remove(this.report);
-                    this.nav.pop();
                 });
+                await Overlay.wait(this.nav);
+                this.nav.pop();
             } catch (ex) {
                 logger.warn(() => `Failed to delete report: ${ex}`);
                 Dialog.alert(this.nav, 'Error on deleting', 'Failed to delete this report.');
@@ -68,8 +69,9 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        const ok = await PublishPage.open(this.nav, this.report);
-        if (ok) this.updatePublishing();
+        await PublishPage.open(this.nav, this.report, (ok) => {
+            if (ok) this.updatePublishing();
+        });
     }
 
     private async updatePublishing() {

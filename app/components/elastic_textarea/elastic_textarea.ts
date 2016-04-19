@@ -53,6 +53,7 @@ function makeMirror(origin: HTMLTextAreaElement): HTMLTextAreaElement {
     const m = document.createElement('textarea') as HTMLTextAreaElement;
 
     m.style.cssText = getComputedStyle(origin).cssText;
+    m.style.visibility = 'hidden';
     m.value = origin.value;
     m.setAttribute('aria-hidden', 'true');
 

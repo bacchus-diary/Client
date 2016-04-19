@@ -37,6 +37,8 @@ export class AddReportPage {
             await Spinner.within(this.nav, 'Adding...', async () => {
                 await this.cachedReports.add(this.report);
             });
+            this.isSubmitted = true;
+
             const publish = await Dialog.confirm(this.nav,
                 "Share this ?",
                 'You can share this report on Facebook.',
@@ -44,11 +46,9 @@ export class AddReportPage {
             );
             if (publish) {
                 await PublishPage.open(this.nav, this.report);
-                await this.cachedReports.update(this.report);
             }
-            await Overlay.wait(this.nav);
             logger.debug(() => `Success to add. leaving this page...`);
-            this.isSubmitted = true;
+            await Overlay.wait(this.nav);
             this.nav.pop();
         } catch (ex) {
             logger.warn(() => `Failed to add report: ${ex}`);

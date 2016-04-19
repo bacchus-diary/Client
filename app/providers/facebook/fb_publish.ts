@@ -24,7 +24,7 @@ export class FBPublish {
         private con: FBConnect
     ) { }
 
-    async publish(message: string, report: Report) {
+    async publish(message: string, report: Report): Promise<string> {
         logger.info(() => `Publishing: ${report}`);
         const token = await this.con.grantPublish();
         const cred = await this.cognito.identity;
@@ -83,8 +83,8 @@ export class FBPublish {
                 }));
             const obj = result.json();
             logger.debug(() => `Result of Facebook posting: ${JSON.stringify(obj)}`);
-            report.publishedFacebook = obj.id;
             withFabric((fabric) => fabric.Answers.eventShare({ method: 'Facebook' }));
+            return obj.id;
         } catch (ex) {
             if (ex['_body']) {
                 logger.warn(() => `Error on posting to Facebook: ${ex['_body']}`);
