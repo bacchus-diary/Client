@@ -18,6 +18,9 @@ import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
 
+const WIDTH_MIN = 480;
+const HEIGHT_MIN = 480;
+
 @Component({
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
@@ -87,6 +90,7 @@ export class ShowcaseComponent {
                     });
                 }
                 const vision = this.etiquetteVision.read(base64image);
+
                 const blob = BASE64.decodeBase64(base64image);
                 const url = URL.createObjectURL(blob, { oneTimeOnly: true });
                 logger.debug(() => `Photo URL: ${url}`);
@@ -97,10 +101,25 @@ export class ShowcaseComponent {
 
                 return { blob: blob, index: index, leaf: leaf, etiquette: await vision };
             });
-            if (!etiquette || etiquette.isSafe()) {
+            const slide = this.swiper.slides[index];
+
+            const img = slide.querySelector('.deletable img') as HTMLImageElement;
+            logger.debug(() => `img=${img}`);
+            const size = {
+                w: img.naturalWidth,
+                h: img.naturalHeight
+            };
+            logger.debug(() => `Img size: ${JSON.stringify(size)}`);
+
+            if (size.w < WIDTH_MIN || size.h < HEIGHT_MIN) {
+                await Dialog.alert(this.nav, 'Delete Photo', 'This photo is too small', 'Delete');
+                await this.doDeletePhoto(index);
+            } else if (etiquette && !etiquette.isSafe()) {
+                await Dialog.alert(this.nav, 'Delete Photo', 'This photo is seems to be inappropriate', 'Delete');
+                await this.doDeletePhoto(index);
+            } else {
                 if (etiquette) {
                     etiquette.writeContent(leaf);
-                    const slide = this.swiper.slides[index];
                     const textarea = slide.querySelector('ion-item.description ion-textarea textarea') as HTMLTextAreaElement;
                     if (textarea) setTimeout(() => {
                         logger.debug(() => `Kick event 'onInput' on ${textarea}(value=${textarea.value})`);
@@ -109,9 +128,6 @@ export class ShowcaseComponent {
                 }
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
                 this.update.emit(null);
-            } else {
-                await Dialog.alert(this.nav, 'Delete Photo', 'This photo is seems to be inappropriate', 'Delete');
-                await this.doDeletePhoto(index);
             }
         } catch (ex) {
             logger.warn(() => `Error on adding photo: ${ex}`);
