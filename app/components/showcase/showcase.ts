@@ -11,7 +11,7 @@ import {Preferences} from '../../providers/config/preferences';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
 import {assert} from '../../util/assertion';
-import {Dialog} from '../../util/backdrop';
+import {Dialog, Spinner} from '../../util/backdrop';
 import * as BASE64 from '../../util/base64';
 import {Swiper} from '../../util/swiper.d';
 import {Logger} from '../../util/logging';
@@ -55,20 +55,47 @@ export class ShowcaseComponent {
         this.swiper.slideNext();
     }
 
+    private async isTakePhoto(): Promise<boolean> {
+        let take = await this.pref.getAlwaysTake();
+        if (!take) {
+            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', { ok: 'TAKE', cancel: 'CHOOSE' });
+            if (take) {
+                this.pref.incrementCountTake();
+            } else {
+                this.pref.clearCountTake();
+            }
+        }
+        return take;
+    }
+
     async addPhoto() {
         try {
             this.swiper.lockSwipes();
 
-            const base64image = await this.getPhoto();
-            const blob = BASE64.decodeBase64(base64image);
-            const url = URL.createObjectURL(blob, { oneTimeOnly: true });
-            logger.debug(() => `Photo URL: ${url}`);
+            const take = await this.isTakePhoto();
+            let base64image;
+            if (!Device.device.cordova) {
+                const file = await Dialog.file(this.nav, 'Choose image file');
+                base64image = await BASE64.encodeBase64(file);
+            }
+            const {blob, index, leaf, etiquette} = await Spinner.within(this.nav, 'Loading...', async () => {
+                if (Device.device.cordova) {
+                    base64image = await Camera.getPicture({
+                        correctOrientation: true,
+                        destinationType: 0, // DATA_URL
+                        sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
+                    });
+                }
+                const blob = BASE64.decodeBase64(base64image);
+                const url = URL.createObjectURL(blob, { oneTimeOnly: true });
+                logger.debug(() => `Photo URL: ${url}`);
 
-            const leaf = await Leaf.withPhoto(url, this.reportId, this.urlGenerator);
-            const index = this.leaves.push(leaf) - 1;
-            this.swiper.update();
+                const leaf = await Leaf.withPhoto(url, this.reportId, this.urlGenerator);
+                const index = this.leaves.push(leaf) - 1;
+                this.swiper.update();
 
-            const etiquette = await this.etiquetteVision.read(base64image);
+                return { blob: blob, index: index, leaf: leaf, etiquette: await this.etiquetteVision.read(base64image) };
+            });
             if (!etiquette || etiquette.isSafe()) {
                 if (etiquette) {
                     etiquette.writeContent(leaf);
@@ -153,31 +180,5 @@ export class ShowcaseComponent {
                 resolve(leaf);
             }, dur);
         });
-    }
-
-    private async getPhoto(): Promise<string> {
-        let take = await this.pref.getAlwaysTake();
-        if (!take) {
-            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', { ok: 'TAKE', cancel: 'CHOOSE' });
-            if (take) {
-                this.pref.incrementCountTake();
-            } else {
-                this.pref.clearCountTake();
-            }
-        }
-        return this.doGetPhoto(take);
-    }
-
-    private async doGetPhoto(take: boolean): Promise<string> {
-        if (Device.device.cordova) {
-            return Camera.getPicture({
-                correctOrientation: true,
-                destinationType: 0, // DATA_URL
-                sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
-            });
-        } else {
-            const file = await Dialog.file(this.nav, 'Choose image file');
-            return await BASE64.encodeBase64(file);
-        }
     }
 }
