@@ -16,7 +16,7 @@ const logger = new Logger(PublishPage);
     providers: [FATHENS_PROVIDERS]
 })
 export class PublishPage {
-    static async open(nav: NavController, report: Report, callback: (ok: boolean) => any): Promise<void> {
+    static async open(nav: NavController, report: Report, callback?: (ok: boolean) => any): Promise<void> {
         return await new Promise<void>((resolve, reject) => {
             const modal = Modal.create(PublishPage, { report: report, callback: callback });
             modal.onDismiss(resolve);
@@ -31,19 +31,23 @@ export class PublishPage {
         public viewCtrl: ViewController
     ) {
         this.report = params.get('report');
-        this.callback = params.get('callback');
+        this._callback = params.get('callback');
         logger.debug(() => `Editing message of report: ${this.report}`);
         this.message = this.report.comment || "";
         this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
     }
 
-    private callback: (ok: boolean) => any;
+    private _callback: (ok: boolean) => any;
 
     private report: Report;
 
     photos: Array<string>;
 
     message: string;
+
+    private callback(ok: boolean) {
+        if (this._callback) this._callback(ok);
+    }
 
     cancel() {
         this.close();
@@ -53,7 +57,9 @@ export class PublishPage {
     async submit() {
         this.close();
         try {
-            await this.fbPublish.publish(this.message, this.report);
+            const clone = this.report.clone();
+            clone.publishedFacebook = await this.fbPublish.publish(this.message, clone);
+            await this.report.update(clone);
             Toast.showLongTop('Share is completed');
             this.callback(true);
         } catch (ex) {

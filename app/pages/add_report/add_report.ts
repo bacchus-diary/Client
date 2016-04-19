@@ -45,9 +45,7 @@ export class AddReportPage {
                 { ok: 'Yes, Share', cancel: 'No, Thru' }
             );
             if (publish) {
-                await PublishPage.open(this.nav, this.report, (ok) => {
-                    if (ok) this.cachedReports.update(this.report);
-                });
+                await PublishPage.open(this.nav, this.report);
             }
             logger.debug(() => `Success to add. leaving this page...`);
             await Overlay.wait(this.nav);
