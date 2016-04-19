@@ -1,5 +1,4 @@
 import {Page, Modal, NavController, NavParams, ViewController} from 'ionic-angular';
-import {Toast} from 'ionic-native';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
@@ -54,7 +53,7 @@ export class PublishPage {
         this.close();
         try {
             await this.fbPublish.publish(this.message, this.report);
-            Toast.showLongTop('Share is completed');
+            (window as any).plugins.toast.showLongTop('Share is completed');
             this.callback(true);
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
