@@ -44,6 +44,7 @@ export class AddReportPage {
             );
             if (publish) {
                 await PublishPage.open(this.nav, this.report);
+                await this.cachedReports.update(this.report);
             }
             await Overlay.wait(this.nav);
             logger.debug(() => `Success to add. leaving this page...`);
