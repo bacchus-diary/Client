@@ -14,7 +14,7 @@ export class Overlay {
 
 export class Dialog {
     static async alert(nav: NavController, title: string, msg: string, buttonText?: string): Promise<void> {
-        buttonText = buttonText || 'OK';
+        buttonText = buttonText || 'Ok';
         await new Promise((resolve, reject) => {
             nav.present(Alert.create({
                 title: title,

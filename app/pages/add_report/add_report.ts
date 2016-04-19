@@ -51,7 +51,7 @@ export class AddReportPage {
             this.nav.pop();
         } catch (ex) {
             logger.warn(() => `Failed to add report: ${ex}`);
-            await Dialog.alert(this.nav, 'Error', 'Failed to add your report. Please try again later.', 'OK');
+            await Dialog.alert(this.nav, 'Error', 'Failed to add your report. Please try again later.');
         }
     }
 }

@@ -105,7 +105,7 @@ export class ShowcaseComponent {
 
     private async confirmDeletion(): Promise<boolean> {
         if (this.confirmDelete) {
-            return await Dialog.confirm(this.nav, 'Remove Photo', 'Are you sure to remove this photo ?', { ok: 'delete' });
+            return await Dialog.confirm(this.nav, 'Remove Photo', 'Are you sure to remove this photo ?', { ok: 'Delete' });
         } else {
             return true;
         }
@@ -168,7 +168,7 @@ export class ShowcaseComponent {
     private async getPhoto(): Promise<string> {
         let take = await this.pref.getAlwaysTake();
         if (!take) {
-            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', { ok: 'take', cancel: 'choose' });
+            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', { ok: 'TAKE', cancel: 'CHOOSE' });
             if (take) {
                 this.pref.incrementCountTake();
             } else {
