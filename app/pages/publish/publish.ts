@@ -5,6 +5,7 @@ import {FATHENS_PROVIDERS} from '../../providers/all';
 import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
 import {Dialog, Spinner} from '../../util/backdrop';
+import {Toast} from '../../util/toast';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(PublishPage);
@@ -53,7 +54,7 @@ export class PublishPage {
         this.close();
         try {
             await this.fbPublish.publish(this.message, this.report);
-            (window as any).plugins.toast.showLongTop('Share is completed');
+            Toast.showLongTop('Share is completed');
             this.callback(true);
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
