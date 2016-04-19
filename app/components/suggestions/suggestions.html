@@ -2,7 +2,7 @@
     <h4>Suggestions for you ...</h4>
     <div class="products" (scroll)="onScroll($event)">
         <ion-list no-lines>
-            <ion-item class="product" *ngFor="#product of products.list" (click)="open(product)">
+            <ion-item class="product" *ngFor="#product of products" (click)="open(product)">
                 <ion-thumbnail item-left class="image">
                     <img [src]="product.imageUrl" />
                 </ion-thumbnail>

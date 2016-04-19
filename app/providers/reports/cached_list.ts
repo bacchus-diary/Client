@@ -75,6 +75,7 @@ export class PagingReports implements PagingList<Report> {
     }
 
     private _list: Array<Report> = [];
+    private loading: boolean;
 
     currentList(): Array<Report> {
         return this._list;
@@ -84,21 +85,32 @@ export class PagingReports implements PagingList<Report> {
         return this.pager.hasMore();
     }
 
+    isLoading(): boolean {
+        return this.loading;
+    }
+
     reset() {
         this.pager.reset();
         this._list = [];
     }
 
     async more(): Promise<void> {
-        const start = this._list.length;
-        const goal = start + PAGE_SIZE;
-        await this.doMore(start + 1);
-        this.doMore(goal); // これ以降はバックグラウンドで追加
+        if (this.hasMore() && !this.isLoading()) {
+            const start = this._list.length;
+            const goal = start + PAGE_SIZE;
+            await this.doMore(start + 1);
+            this.doMore(goal);// これ以降はバックグラウンドで追加
+        }
     }
 
     private async doMore(satis: number): Promise<void> {
-        while (this.hasMore() && this._list.length < satis) {
-            this.add(await this.pager.more(PAGE_SIZE));
+        this.loading = true;
+        try {
+            while (this.hasMore() && this._list.length < satis) {
+                this.add(await this.pager.more(PAGE_SIZE));
+            }
+        } finally {
+            this.loading = false;
         }
     }
 
