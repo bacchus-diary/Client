@@ -71,16 +71,10 @@ export class ReportsListPage {
 
     isSearchMode: boolean = false;
 
-    search() {
+    inputSearch() {
         if (this.searchTextInputing) this.searchTextInputing.unsubscribe();
-        this.searchTextInputing = Rx.Observable.of(null).delay(1000).subscribe(async () => {
-            if (this.searchText.length < 1) {
-                this.clearSearch();
-            } else {
-                this.isSearchMode = true;
-                logger.debug(() => `Searching: ${this.searchText}`);
-                this.setPager(this.searchReports.byWord(this.searchText));
-            }
+        this.searchTextInputing = Rx.Observable.of(null).delay(2000).subscribe(() => {
+            this.search();
         });
     }
 
@@ -88,6 +82,16 @@ export class ReportsListPage {
         this.isSearchMode = false;
         this.searchText = '';
         this.setPager(this.cachedReports.pagingList);
+    }
+
+    search() {
+        if (this.searchText.length < 1) {
+            this.clearSearch();
+        } else {
+            this.isSearchMode = true;
+            logger.debug(() => `Searching: ${this.searchText}`);
+            this.setPager(this.searchReports.byWord(this.searchText));
+        }
     }
 
     async onPageWillEnter() {

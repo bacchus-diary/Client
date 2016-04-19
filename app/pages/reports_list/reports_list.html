@@ -2,11 +2,7 @@
     <button menuToggle>
         <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-item class="search-box">
-        <ion-icon item-left name="search"></ion-icon>
-        <ion-input type="text" placeholder="Search" [(ngModel)]="searchText" (input)="search()"></ion-input>
-        <ion-icon item-right name="close-circle" *ngIf="isSearchMode" (click)="clearSearch()"></ion-icon>
-    </ion-item>
+    <ion-searchbar placeholder="Search" (input)="inputSearch()" (search)="search()" [(ngModel)]="searchText" hideCancelButton="true"></ion-searchbar>
     <ion-buttons end>
         <button favorite (click)="addNew()">
             <ion-icon name="add"></ion-icon>
