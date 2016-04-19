@@ -32,9 +32,10 @@
         <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
     <ion-list>
-        <button ion-item class="item" *ngFor="#item of reports" (click)="goReport(item)">
+        <button ion-item class="item" *ngFor="#item of reports; #i = index" (click)="goReport(item)">
             <ion-thumbnail item-left>
-                <ion-img [src]="item.leaves[0].photo.reduced.thumbnail.url" *ngIf="item.leaves[0].photo.reduced.thumbnail.url"></ion-img>
+                <img [src]="imageUrl(i)" *ngIf="isLocalImage(i)" />
+                <ion-img [src]="imageUrl(i)" *ngIf="!isLocalImage(i)"></ion-img>
             </ion-thumbnail>
             <fathens-rating [value]="item.rating"></fathens-rating>
             <p class="item-comment">{{ item.comment }}</p>

@@ -56,6 +56,16 @@ export class ReportsListPage {
         return this.pager.currentList();
     }
 
+    imageUrl(index: number): string {
+        if (index < 0 || this.reports.length <= index) return null;
+        return this.reports[index].leaves[0].photo.reduced.thumbnail.url;
+    }
+
+    isLocalImage(index: number): boolean {
+        const url = this.imageUrl(index);
+        return !(_.isEmpty(url) || url.startsWith('http'));
+    }
+
     searchText: string;
     private searchTextInputing: Rx.Subscription;
 
