@@ -21,7 +21,7 @@ export class FBJSSDK implements FBConnectPlugin {
 
         const script = document.createElement('script') as HTMLScriptElement;
         script.id = scriptId;
-        script.src = '//connect.facebook.net/en_US/sdk.js';
+        script.src = 'https://connect.facebook.net/en_US/sdk.js';
 
         return new Promise<void>((resolve, reject) => {
             (window as any).fbAsyncInit = () => {
