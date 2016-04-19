@@ -84,7 +84,6 @@ export class ShowcaseComponent {
             } else {
                 await Dialog.alert(this.nav, 'Delete Photo', 'This photo is seems to be inappropriate', 'Delete');
                 await this.doDeletePhoto(index);
-                await leaf.remove();
             }
         } catch (ex) {
             logger.warn(() => `Error on adding photo: ${ex}`);
