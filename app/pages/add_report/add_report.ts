@@ -38,9 +38,9 @@ export class AddReportPage {
                 await this.cachedReports.add(this.report);
             });
             const publish = await Dialog.confirm(this.nav,
-                'Share ?',
+                "Share this ?",
                 'You can share this report on Facebook.',
-                { ok: 'Yes, Share', cancel: 'No, through' }
+                { ok: 'Yes, Share', cancel: 'No, Thru' }
             );
             if (publish) {
                 await PublishPage.open(this.nav, this.report);
