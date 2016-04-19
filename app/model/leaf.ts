@@ -1,4 +1,5 @@
 import {Photo, Images} from '../providers/reports/photo';
+import {Camera, Device} from 'ionic-native';
 
 import {Cognito} from '../providers/aws/cognito';
 import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
@@ -27,7 +28,7 @@ export class Leaf implements DBRecord<Leaf> {
     static async table(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
         if (!this._table) {
             this._table = dynamo.createTable<Leaf>((cognito, photo) => {
-                this.cleanup(photo);
+                if (!Device.device.cordova) this.cleanup(photo);
                 return {
                     tableName: 'LEAF',
                     idColumnName: 'LEAF_ID',
