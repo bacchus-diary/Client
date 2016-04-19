@@ -1,4 +1,4 @@
-import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
+import {NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {Camera, Device} from 'ionic-native';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, Output, EventEmitter} from 'angular2/core';
@@ -11,8 +11,9 @@ import {Preferences} from '../../providers/config/preferences';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Leaf} from '../../model/leaf';
 import {assert} from '../../util/assertion';
-import {Dialog} from '../../util/backdrop';
+import {Dialog, Spinner} from '../../util/backdrop';
 import * as BASE64 from '../../util/base64';
+import {Swiper} from '../../util/swiper.d';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger(ShowcaseComponent);
@@ -46,20 +47,56 @@ export class ShowcaseComponent {
         }
     }
 
+    slidePrev() {
+        this.swiper.slidePrev();
+    }
+
+    slideNext() {
+        this.swiper.slideNext();
+    }
+
+    private async isTakePhoto(): Promise<boolean> {
+        let take = await this.pref.getAlwaysTake();
+        if (!take) {
+            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', { ok: 'TAKE', cancel: 'CHOOSE' });
+            if (take) {
+                this.pref.incrementCountTake();
+            } else {
+                this.pref.clearCountTake();
+            }
+        }
+        return take;
+    }
+
     async addPhoto() {
         try {
             this.swiper.lockSwipes();
 
-            const base64image = await this.getPhoto();
-            const blob = BASE64.decodeBase64(base64image);
-            const url = URL.createObjectURL(blob, { oneTimeOnly: true });
-            logger.debug(() => `Photo URL: ${url}`);
+            const take = await this.isTakePhoto();
+            let base64image;
+            if (!Device.device.cordova) {
+                const file = await Dialog.file(this.nav, 'Choose image file');
+                base64image = await BASE64.encodeBase64(file);
+            }
+            const {blob, index, leaf, etiquette} = await Spinner.within(this.nav, 'Loading...', async () => {
+                if (Device.device.cordova) {
+                    base64image = await Camera.getPicture({
+                        correctOrientation: true,
+                        destinationType: 0, // DATA_URL
+                        sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
+                    });
+                }
+                const vision = this.etiquetteVision.read(base64image);
+                const blob = BASE64.decodeBase64(base64image);
+                const url = URL.createObjectURL(blob, { oneTimeOnly: true });
+                logger.debug(() => `Photo URL: ${url}`);
 
-            const leaf = await Leaf.withPhoto(url, this.reportId, this.urlGenerator);
-            const index = this.leaves.push(leaf) - 1;
-            this.swiper.update();
+                const leaf = await Leaf.withPhoto(url, this.reportId, this.urlGenerator);
+                const index = this.leaves.push(leaf) - 1;
+                this.swiper.update();
 
-            const etiquette = await this.etiquetteVision.read(base64image);
+                return { blob: blob, index: index, leaf: leaf, etiquette: await vision };
+            });
             if (!etiquette || etiquette.isSafe()) {
                 if (etiquette) {
                     etiquette.writeContent(leaf);
@@ -73,19 +110,8 @@ export class ShowcaseComponent {
                 this.s3file.upload(await leaf.photo.original.storagePath, blob);
                 this.update.emit(null);
             } else {
-                await new Promise<void>((resolve, reject) => {
-                    this.nav.present(Alert.create({
-                        title: 'Delete Photo',
-                        message: 'This photo is seems to be inappropriate',
-                        buttons: [{
-                            text: 'Delete',
-                            handler: async (data) => {
-                                await this.doDeletePhoto(index);
-                                resolve();
-                            }
-                        }]
-                    }));
-                });
+                await Dialog.alert(this.nav, 'Delete Photo', 'This photo is seems to be inappropriate', 'Delete');
+                await this.doDeletePhoto(index);
             }
         } catch (ex) {
             logger.warn(() => `Error on adding photo: ${ex}`);
@@ -105,7 +131,7 @@ export class ShowcaseComponent {
 
     private async confirmDeletion(): Promise<boolean> {
         if (this.confirmDelete) {
-            return await Dialog.confirm(this.nav, 'Remove Photo', 'Are you sure to remove this photo ?', { ok: 'delete' });
+            return await Dialog.confirm(this.nav, 'Remove Photo', 'Are you sure to remove this photo ?', { ok: 'Delete' });
         } else {
             return true;
         }
@@ -156,129 +182,4 @@ export class ShowcaseComponent {
             }, dur);
         });
     }
-
-    slidePrev() {
-        this.swiper.slidePrev();
-    }
-
-    slideNext() {
-        this.swiper.slideNext();
-    }
-
-    private async getPhoto(): Promise<string> {
-        let take = await this.pref.getAlwaysTake();
-        if (!take) {
-            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', { ok: 'take', cancel: 'choose' });
-            if (take) {
-                this.pref.incrementCountTake();
-            } else {
-                this.pref.clearCountTake();
-            }
-        }
-        return this.doGetPhoto(take);
-    }
-
-    private doGetPhoto(take: boolean): Promise<string> {
-        if (Device.device.cordova) {
-            return Camera.getPicture({
-                correctOrientation: true,
-                destinationType: 0, // DATA_URL
-                sourceType: take ? 1 : 0 // CAMERA : PHOTOLIBRARY
-            });
-        } else {
-            return new Promise<string>((resolve, reject) => {
-                this.nav.present(Alert.create({
-                    title: 'Choose image file',
-                    inputs: [
-                        {
-                            type: 'file',
-                            name: 'file'
-                        }
-                    ],
-                    buttons: [
-                        {
-                            text: 'Cancel',
-                            handler: (data) => {
-                                logger.debug(() => `Cenceled: ${JSON.stringify(data)}`);
-                                reject('Cancel');
-                            }
-                        },
-                        {
-                            text: 'Ok',
-                            handler: async (data) => {
-                                try {
-                                    const elm = document.querySelector("ion-alert input.alert-input[type='file']") as HTMLInputElement;
-                                    if (elm && elm.files.length > 0) {
-                                        const file = elm.files[0];
-                                        logger.debug(() => `Choosed file: ${JSON.stringify(file)}`);
-                                        resolve(await BASE64.encodeBase64(file));
-                                    }
-                                } catch (ex) {
-                                    logger.warn(() => `Error on read file: ${ex}`);
-                                    reject(ex);
-                                }
-                            }
-                        }
-                    ]
-                }));
-            });
-        }
-    }
-}
-
-/**
-A partial interface for Swiper API
-@see http://www.idangero.us/swiper/api/
-*/
-interface Swiper {
-    /**
-    Dom7/jQuery array-like collection of slides HTML elements. To get specific slide HTMLElement use mySwiper.slides[1]
-    */
-    slides: Array<HTMLElement>;
-
-    /**
-    This method includes updateContainerSize, updateSlidesSize, updateProgress, updatePagination and updateClasses methods
-
-    You should call it after you add/remove slides manually, or after you hide/show it, or do any custom DOM modifications with Swiper
-
-    updateTranslate - boolean - Set it to true (by default it is false) to hard set/reset/update Swiper wrapper translate. It is useful if you use not default effect or scrollbar. Optional
-    This method also includes subcall of the following methods which you can use separately:
-
-    mySwiper.updateContainerSize() - recalculate size of swiper container
-    mySwiper.updateSlidesSize() - recalculate number of slides and their offsets. Useful after you add/remove slides with JavaScript
-    mySwiper.updateProgress() - recalculate swiper progress
-    mySwiper.updatePagination() - updates pagination layout and re-render bullets
-    mySwiper.updateClasses() - update active/prev/next classes on slides and bullets
-    */
-    update(updateTranslate?: boolean);
-
-    /**
-    Run transition to next slide
-    runCallbacks - boolean - Set it to false (by default it is true) and transition will not produce onSlideChange callback functions. Optional
-    speed - number - transition duration (in ms). Optional
-    */
-    slideNext(runCallbacks?: boolean, speed?: number);
-
-    /**
-    Run transition to previous slide
-    runCallbacks - boolean - Set it to false (by default it is true) and transition will not produce onSlideChange callback functions. Optional
-    speed - number - transition duration (in ms). Optional
-    */
-    slidePrev(runCallbacks?: boolean, speed?: number);
-
-    /**
-    Remove selected slides. slideIndex could be a number with slide index to remove or array with indexes, for example:
-    mySwiper.removeSlide(0); //remove first slide
-    mySwiper.removeSlide([0, 1]); //remove first and second slides
-    */
-    removeSlide(slideIndex: number | Array<number>);
-
-    /**
-    Disable (lock) ability to change slides
-    */
-    lockSwipes();
-    /**
-    Enable (unlock) ability to change slides
-    */
-    unlockSwipes();
 }

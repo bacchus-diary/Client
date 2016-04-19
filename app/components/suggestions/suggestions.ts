@@ -1,4 +1,4 @@
-import {Alert, NavController, IONIC_DIRECTIVES} from 'ionic-angular';
+import {NavController, IONIC_DIRECTIVES} from 'ionic-angular';
 import {Component, Input} from 'angular2/core';
 import {EventEmitter} from 'angular2/core';
 

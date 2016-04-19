@@ -44,6 +44,7 @@ export class AddReportPage {
             );
             if (publish) {
                 await PublishPage.open(this.nav, this.report);
+                await this.cachedReports.update(this.report);
             }
             await Overlay.wait(this.nav);
             logger.debug(() => `Success to add. leaving this page...`);
@@ -51,7 +52,7 @@ export class AddReportPage {
             this.nav.pop();
         } catch (ex) {
             logger.warn(() => `Failed to add report: ${ex}`);
-            await Dialog.alert(this.nav, 'Error', 'Failed to add your report. Please try again later.', 'OK');
+            await Dialog.alert(this.nav, 'Error', 'Failed to add your report. Please try again later.');
         }
     }
 }
