@@ -7,14 +7,14 @@
 
 <ion-content class="preferences" *ngIf="pref">
     <ion-list>
-        <ion-item-header>Social Connection</ion-item-header>
+        <ion-list-header>Social Connection</ion-list-header>
         <ion-item>
             <ion-toggle primary [(ngModel)]="facebook"></ion-toggle>
             <ion-label>Facebook</ion-label>
         </ion-item>
     </ion-list>
     <ion-list>
-        <ion-item-header>Photo</ion-item-header>
+        <ion-list-header>Photo</ion-list-header>
         <ion-item>
             <ion-toggle danger [(ngModel)]="alwaysTake"></ion-toggle>
             <ion-label>Always TAKE</ion-label>
