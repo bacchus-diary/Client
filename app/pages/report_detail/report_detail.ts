@@ -69,8 +69,13 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        await PublishPage.open(this.nav, this.report, (ok) => {
-            if (ok) this.updatePublishing();
+        await PublishPage.open(this.nav, this.report, async (actionId) => {
+            logger.debug(() => `Updating facebook published id: ${actionId}`);
+            if (actionId) {
+                this.report.publishedFacebook = actionId;
+                await this.update();
+                this.updatePublishing();
+            }
         });
     }
 
