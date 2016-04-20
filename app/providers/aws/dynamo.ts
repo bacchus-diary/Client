@@ -98,16 +98,26 @@ export class DynamoTable<T extends DBRecord<T>> {
             }));
             await Promise.all(res.Items.map(async (item) => {
                 try {
+                    logger.debug(() => `Changing cognitoId of ${JSON.stringify(item)}`);
+                    const key = _.pick(item, [COGNITO_ID_COLUMN, ID_COLUMN]);
                     item[COGNITO_ID_COLUMN] = newId;
+
+                    logger.debug(() => `Putting ${JSON.stringify(item)}`);
                     await toPromise(this.client.put({
                         TableName: this.tableName,
                         Item: item
                     }));
-                    await this.remove(item[ID_COLUMN], oldId);
+
+                    logger.debug(() => `Removing ${JSON.stringify(key)}`);
+                    await toPromise(this.client.delete({
+                        TableName: this.tableName,
+                        Key: key
+                    }))
                 } catch (ex) {
                     logger.warn(() => `Error on moving ${this.tableName}: ${JSON.stringify(item)}`);
                 }
             }));
+            logger.debug(() => `Done changing cognitoId of ${this.tableName}`);
         });
         logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
@@ -118,9 +128,9 @@ export class DynamoTable<T extends DBRecord<T>> {
         return `DynamoTable[${this.tableName}]`;
     }
 
-    private async makeKey(id?: string, currentCognitoId?: string): Promise<Key> {
+    private async makeKey(id?: string): Promise<Key> {
         const key: Key = {};
-        key[COGNITO_ID_COLUMN] = currentCognitoId ? currentCognitoId : (await this.cognito.identity).identityId;
+        key[COGNITO_ID_COLUMN] = (await this.cognito.identity).identityId;
         if (id && this.ID_COLUMN) {
             key[this.ID_COLUMN] = id;
         }
@@ -138,12 +148,12 @@ export class DynamoTable<T extends DBRecord<T>> {
         return this.reader(res.Item);
     }
 
-    async put(obj: T, currentCognitoId?: string) {
+    async put(obj: T) {
         const params = {
             TableName: this.tableName,
             Item: await this.writer(obj)
         };
-        const key = await this.makeKey(obj.id(), currentCognitoId);
+        const key = await this.makeKey(obj.id());
         Object.keys(key).forEach((name) => {
             params.Item[name] = key[name];
         });
@@ -170,7 +180,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         await toPromise(this.client.update(params))
     }
 
-    async remove(id: string, currentCognitoId?: string) {
+    async remove(id: string) {
         const params = {
             TableName: this.tableName,
             Key: await this.makeKey(id)

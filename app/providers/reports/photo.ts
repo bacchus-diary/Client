@@ -20,7 +20,25 @@ export class Photo {
 
     constructor(private cognito: Cognito, private s3file: S3File, private config: Configuration) {
         if (!Photo.hookSetuped) {
-            Cognito.addChangingHook(this.changeCognitoId);
+            Cognito.addChangingHook(async (oldId, newId) => {
+                await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
+                    const prev = `photo/${relativePath}/${oldId}/`;
+                    const next = `photo/${relativePath}/${newId}/`;
+
+                    const files = await this.s3file.list(prev);
+                    logger.debug(() => `Moving image files(${files.length}): ${prev} => ${next}`);
+
+                    await Promise.all(files.map(async (src) => {
+                        const dst = `${next}${src.substring(prev.length)}`;
+                        try {
+                            await this.s3file.move(src, dst);
+                        } catch (ex) {
+                            logger.warn(() => `Error on moving S3 file: (${src} => ${dst}): ${ex}`);
+                        }
+                    }));
+                }));
+                logger.debug(() => `Done moving cognitoId of image files`);
+            });
             Photo.hookSetuped = true;
             logger.info(() => `Photo cognitoId hook is set.`);
         }
@@ -49,24 +67,6 @@ export class Photo {
         await Promise.all([PATH_MAINVIEW, PATH_THUMBNAIL].map(check).map(
             (check) => check((images) => images.exists())
         ));
-    }
-
-    private async changeCognitoId(oldId, newId) {
-        await Promise.all([PATH_ORIGINAL, PATH_MAINVIEW, PATH_THUMBNAIL].map(async (relativePath) => {
-            const prev = `photo/${relativePath}/${oldId}/`;
-            const next = `photo/${relativePath}/${newId}/`;
-            logger.debug(() => `Moving image file: ${prev} => ${next}`);
-
-            const files = await this.s3file.list(prev);
-            await Promise.all(files.map(async (src) => {
-                const dst = `${next}${src.substring(prev.length)}`;
-                try {
-                    await this.s3file.move(src, dst);
-                } catch (ex) {
-                    logger.warn(() => `Error on moving S3 file: (${src} => ${dst}): ${ex}`);
-                }
-            }));
-        }));
     }
 }
 

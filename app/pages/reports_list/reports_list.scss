@@ -1,14 +1,4 @@
 .reports_list {
-    .search-box {
-        border-radius: 3rem;
-        .item-inner {
-            margin-left: 0;
-        }
-        ion-icon {
-            color: gray;
-        }
-    }
-
     .spinner {
         display: flex;
         justify-content: center;
@@ -35,18 +25,28 @@
     }
 
     .item {
-        ion-thumbnail img {
-            max-width: 12rem;
-            max-height: 12rem;
+        ion-thumbnail {
+            img, ion-img {
+                margin: auto;
+            }
         }
         .item-inner {
             align-items: flex-start;
+
+            .item-header {
+                display: flex;
+                justify-content: space-between;
+                .item-date {
+                    font-weight: $custom-font-weight-normal;
+                }
+            }
             .item-comment {
                 margin-top: 1rem;
                 @include multilineEllipsis($lineCount: 3);
             }
             .item-desc {
                 margin-top: 1rem;
+                font-weight: lighter;
                 @include multilineEllipsis($lineCount: 2);
             }
         }

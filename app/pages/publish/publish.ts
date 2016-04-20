@@ -16,10 +16,10 @@ const logger = new Logger(PublishPage);
     providers: [FATHENS_PROVIDERS]
 })
 export class PublishPage {
-    static async open(nav: NavController, report: Report, callback?: (ok: boolean) => any): Promise<void> {
+    static async open(nav: NavController, report: Report, callback?: (actionId: string) => any): Promise<void> {
         return await new Promise<void>((resolve, reject) => {
             const modal = Modal.create(PublishPage, { report: report, callback: callback });
-            modal.onDismiss(resolve);
+            modal.onDismiss(() => resolve());
             nav.present(modal);
         });
     }
@@ -37,7 +37,7 @@ export class PublishPage {
         this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
     }
 
-    private _callback: (ok: boolean) => any;
+    private _callback: (actionId: string) => any;
 
     private report: Report;
 
@@ -45,27 +45,25 @@ export class PublishPage {
 
     message: string;
 
-    private callback(ok: boolean) {
-        if (this._callback) this._callback(ok);
+    private callback(actionId: string) {
+        if (this._callback) this._callback(actionId);
     }
 
     cancel() {
         this.close();
-        this.callback(false);
+        this.callback(null);
     }
 
     async submit() {
         this.close();
         try {
-            const clone = this.report.clone();
-            clone.publishedFacebook = await this.fbPublish.publish(this.message, clone);
-            await this.report.update(clone);
+            const id = await this.fbPublish.publish(this.message, this.report);
             Toast.showLongTop('Share is completed');
-            this.callback(true);
+            this.callback(id);
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
             await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
-            this.callback(false);
+            this.callback(null);
         }
     }
 
