@@ -30,8 +30,7 @@
     <ion-list>
         <button ion-item class="item" *ngFor="#item of reports; #i = index" (click)="goReport(item)">
             <ion-thumbnail item-left>
-                <img [src]="imageUrl(i)" *ngIf="isLocalImage(i)" />
-                <ion-img [src]="imageUrl(i)" *ngIf="!isLocalImage(i)"></ion-img>
+                <img [src]="imageUrl(i)" *ngIf="imageUrl(i)" />
             </ion-thumbnail>
             <div class="item-header">
                 <fathens-rating [value]="item.rating"></fathens-rating>
