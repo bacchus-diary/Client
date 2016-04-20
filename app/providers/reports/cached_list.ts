@@ -71,6 +71,7 @@ export class PagingReports implements PagingList<Report> {
     constructor(private pager: Pager<Report>) {
         Cognito.addChangingHook(async (oldId, newId) => {
             this.reset();
+            logger.debug(() => `Done resetting PagingList`);
         });
     }
 
