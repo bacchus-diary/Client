@@ -25,6 +25,24 @@ export class AddReportPage {
 
     private isSubmitted = false;
 
+    private _submittable: boolean = null;
+    private _submittableChecking: Promise<void> = null;
+    get isSubmittable(): boolean {
+        if (_.isEmpty(this.report.leaves)) return false;
+        if (!this._submittable && this._submittableChecking == null) {
+            this._submittableChecking = Promise.all(this.report.leaves.map((leaf) => leaf.photo.exists())).then((bools) => {
+                this._submittable = bools.every(_.identity);
+                setTimeout(() => this._submittableChecking = null, 1000);
+            });
+        }
+        return this._submittable;
+    }
+
+    leavesUpdated() {
+        this._submittable = null;
+        this.updateLeaves.emit(null);
+    }
+
     async onPageWillLeave() {
         if (!this.isSubmitted) {
             this.report.remove();

@@ -3,7 +3,7 @@
         <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title>Add New</ion-title>
-    <ion-buttons end class="ng-animate" *ngIf="report.leaves.length > 0">
+    <ion-buttons end class="ng-animate" *ngIf="isSubmittable">
         <button secondary (click)="submit()">
             <ion-icon name="checkmark"></ion-icon>
         </button>
@@ -16,5 +16,5 @@
         <ion-textarea elastic placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
     </ion-item>
     <fathens-suggestions [report]="report" [reloadEvent]="updateLeaves"></fathens-suggestions>
-    <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" (update)="updateLeaves.emit(null)" [confirmDelete]="false"></fathens-showcase>
+    <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" (update)="leavesUpdated()" [confirmDelete]="false"></fathens-showcase>
 </ion-content>
