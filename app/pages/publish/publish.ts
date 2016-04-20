@@ -19,7 +19,7 @@ export class PublishPage {
     static async open(nav: NavController, report: Report, callback?: (ok: boolean) => any): Promise<void> {
         return await new Promise<void>((resolve, reject) => {
             const modal = Modal.create(PublishPage, { report: report, callback: callback });
-            modal.onDismiss(resolve);
+            modal.onDismiss(() => resolve());
             nav.present(modal);
         });
     }
