@@ -105,10 +105,15 @@ export class ShowcaseComponent {
 
             const img = slide.querySelector('.deletable img') as HTMLImageElement;
             logger.debug(() => `img=${img}`);
-            const size = {
-                w: img.naturalWidth,
-                h: img.naturalHeight
-            };
+            const size = await new Promise<{ w: number, h: number }>(async (resolve, reject) => {
+                while (!img.naturalWidth) {
+                    await new Promise((ok, ng) => setTimeout(ok, 100));
+                }
+                resolve({
+                    w: img.naturalWidth,
+                    h: img.naturalHeight
+                });
+            });
             logger.debug(() => `Img size: ${JSON.stringify(size)}`);
 
             if (size.w < WIDTH_MIN || size.h < HEIGHT_MIN) {
