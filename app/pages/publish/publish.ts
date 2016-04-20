@@ -58,8 +58,8 @@ export class PublishPage {
         this.close();
         try {
             const clone = this.report.clone();
-            clone.publishedFacebook = await this.fbPublish.publish(this.message, clone);
-            await this.report.update(clone);
+            this.report.publishedFacebook = await this.fbPublish.publish(this.message, this.report);
+            await clone.update(this.report);
             Toast.showLongTop('Share is completed');
             this.callback(true);
         } catch (ex) {
