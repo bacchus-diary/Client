@@ -25,9 +25,10 @@
     }
 
     .item {
-        ion-thumbnail img {
-            max-width: 12rem;
-            max-height: 12rem;
+        ion-thumbnail {
+            img, ion-img {
+                margin: auto;
+            }
         }
         .item-inner {
             align-items: flex-start;
