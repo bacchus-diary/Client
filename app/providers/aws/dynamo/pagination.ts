@@ -2,7 +2,8 @@ import {Pager} from '../../../util/pager';
 import {Logger} from '../../../util/logging';
 
 import * as DC from './document_client.d';
-import {DBRecord, DynamoTable} from './dynamo';
+import {DBRecord} from './dynamo';
+import {DynamoTable} from './table';
 import {Expression, Key} from './expression';
 
 const logger = new Logger(DBPager);
