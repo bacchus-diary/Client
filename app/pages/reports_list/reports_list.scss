@@ -38,6 +38,7 @@
             }
             .item-desc {
                 margin-top: 1rem;
+                font-weight: lighter;
                 @include multilineEllipsis($lineCount: 2);
             }
         }
