@@ -32,6 +32,14 @@
         }
         .item-inner {
             align-items: flex-start;
+
+            .item-header {
+                display: flex;
+                justify-content: space-between;
+                .item-date {
+                    font-weight: $custom-font-weight-normal;
+                }
+            }
             .item-comment {
                 margin-top: 1rem;
                 @include multilineEllipsis($lineCount: 3);

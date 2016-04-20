@@ -33,7 +33,10 @@
                 <img [src]="imageUrl(i)" *ngIf="isLocalImage(i)" />
                 <ion-img [src]="imageUrl(i)" *ngIf="!isLocalImage(i)"></ion-img>
             </ion-thumbnail>
-            <fathens-rating [value]="item.rating"></fathens-rating>
+            <div class="item-header">
+                <fathens-rating [value]="item.rating"></fathens-rating>
+                <p class="item-date">{{ item.dateAt | date:"mediumDate" }}</p>
+            </div>
             <p class="item-comment">{{ item.comment }}</p>
             <p class="item-desc">{{ item.leaves[0].description }}</p>
         </button>
