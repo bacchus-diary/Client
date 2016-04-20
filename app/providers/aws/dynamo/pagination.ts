@@ -3,8 +3,8 @@ import {Logger} from '../../../util/logging';
 
 import * as DC from './document_client.d';
 import {DBRecord} from './dynamo';
-import {DynamoTable} from './table';
-import {Expression, Key} from './expression';
+import {DynamoTable, TableKey} from './table';
+import {Expression} from './expression';
 
 const logger = new Logger(DBPager);
 
@@ -56,7 +56,7 @@ export class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
     constructor(
         table: DynamoTable<T>,
         private indexName: string,
-        private hashKey: Key,
+        private hashKey: TableKey,
         private isForward: boolean
     ) {
         super(table);

@@ -5,10 +5,12 @@ import {Cognito} from '../cognito';
 
 import * as DC from './document_client.d';
 import {DBRecord, RecordReader, RecordWriter, COGNITO_ID_COLUMN, toPromise} from './dynamo';
-import {Expression, ExpressionMap, Key} from './expression';
+import {Expression, ExpressionMap} from './expression';
 import {PagingScan, PagingQuery, LastEvaluatedKey} from './pagination';
 
 const logger = new Logger(DynamoTable);
+
+export type TableKey = { [key: string]: string };
 
 export class DynamoTable<T extends DBRecord<T>> {
     constructor(
@@ -26,8 +28,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         return `DynamoTable[${this.tableName}]`;
     }
 
-    private async makeKey(id?: string): Promise<Key> {
-        const key: Key = {};
+    private async makeKey(id?: string): Promise<TableKey> {
+        const key: TableKey = {};
         key[COGNITO_ID_COLUMN] = (await this.cognito.identity).identityId;
         if (id && this.ID_COLUMN) {
             key[this.ID_COLUMN] = id;
@@ -88,7 +90,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         await toPromise(this.client.delete(params));
     }
 
-    async query(keys?: Key, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
+    async query(keys?: TableKey, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
         const exp = ExpressionMap.joinAll(keys || await this.makeKey());
         const params: DC.QueryParams = {
             TableName: this.tableName,
@@ -109,7 +111,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         return _.compact(await Promise.all(res.Items.map(this.reader)));
     }
 
-    queryPager(hashKey?: Key, indexName?: string, isForward?: boolean): Pager<T> {
+    queryPager(hashKey?: TableKey, indexName?: string, isForward?: boolean): Pager<T> {
         return new PagingQuery<T>(this, indexName, hashKey, isForward);
     }
 

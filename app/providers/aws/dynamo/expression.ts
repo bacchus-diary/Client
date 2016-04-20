@@ -1,8 +1,5 @@
 import * as DC from './document_client.d';
 
-export type KeyValue = string;
-export type Key = { [key: string]: KeyValue };
-
 export type Expression = {
     express: string,
     keys: {
@@ -12,7 +9,7 @@ export type Expression = {
 };
 
 export class ExpressionMap {
-    static joinAll(pairs: Key, join?: string, sign?: string): Expression {
+    static joinAll(pairs: { [key: string]: DC.ColumnValueElement }, join?: string, sign?: string): Expression {
         if (!join) join = 'AND'
         if (!sign) sign = '=';
         const rels = new Array<string>();
@@ -26,7 +23,7 @@ export class ExpressionMap {
     }
 
     private _names: { [key: string]: string } = {};
-    private _values: { [key: string]: KeyValue } = {};
+    private _values: { [key: string]: DC.ColumnValueElement } = {};
 
     addName(name: string): string {
         const key = `#N${Object.keys(this._names).length}`;
@@ -34,7 +31,7 @@ export class ExpressionMap {
         return key;
     }
 
-    addValue(value: KeyValue): string {
+    addValue(value: DC.ColumnValueElement): string {
         const key = `:V${Object.keys(this._values).length}`;
         this._values[key] = value;
         return key;

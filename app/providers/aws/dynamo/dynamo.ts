@@ -10,7 +10,7 @@ import {Photo} from '../../reports/photo';
 
 import * as DC from './document_client.d';
 import {DynamoTable} from './table';
-import {Expression, ExpressionMap, Key} from './expression';
+import {Expression, ExpressionMap} from './expression';
 import {PagingScan, PagingQuery, LastEvaluatedKey} from './pagination';
 
 const logger = new Logger(Dynamo);
