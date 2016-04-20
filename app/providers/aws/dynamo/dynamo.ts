@@ -27,11 +27,47 @@ export class Dynamo {
 
     async createTable<T extends DBRecord<T>>(maker: DBTableMaker<T>): Promise<DynamoTable<T>> {
         const m = maker(this.cognito, this.photo);
+        const client = await this.client;
+        const tableName = `${(await this.config.server).appName}.${m.tableName}`
+
+        Cognito.addChangingHook(async (oldId, newId) => {
+            const exp = new ExpressionMap();
+            const expName = exp.addName(COGNITO_ID_COLUMN);
+            const expValue = exp.addValue(oldId);
+            const res = await toPromise(client.query({
+                TableName: tableName,
+                KeyConditionExpression: `${expName} = ${expValue}`,
+                ExpressionAttributeNames: exp.names,
+                ExpressionAttributeValues: exp.values
+            }));
+            await Promise.all(res.Items.map(async (item) => {
+                try {
+                    logger.debug(() => `Changing cognitoId of ${JSON.stringify(item)}`);
+                    const key = _.pick(item, [COGNITO_ID_COLUMN, m.idColumnName]);
+                    item[COGNITO_ID_COLUMN] = newId;
+
+                    logger.debug(() => `Putting ${JSON.stringify(item)}`);
+                    await toPromise(client.put({
+                        TableName: tableName,
+                        Item: item
+                    }));
+
+                    logger.debug(() => `Removing ${JSON.stringify(key)}`);
+                    await toPromise(client.delete({
+                        TableName: tableName,
+                        Key: key
+                    }))
+                } catch (ex) {
+                    logger.warn(() => `Error on moving ${tableName}: ${JSON.stringify(item)}`);
+                }
+            }));
+            logger.debug(() => `Done changing cognitoId of ${tableName}`);
+        });
+
         return new DynamoTable(
             this.cognito,
-            await this.client,
-            (await this.config.server).appName,
-            m.tableName,
+            client,
+            tableName,
             m.idColumnName,
             m.reader,
             m.writer);
@@ -78,51 +114,13 @@ export class DynamoTable<T extends DBRecord<T>> {
     constructor(
         private cognito: Cognito,
         private client: DC.DocumentClient,
-        _appName: string,
-        _tableName: string,
+        private tableName: string,
         private ID_COLUMN: string,
         private reader: RecordReader<T>,
         private writer: RecordWriter<T>
     ) {
-        this.tableName = `${_appName}.${_tableName}`;
-
-        Cognito.addChangingHook(async (oldId, newId) => {
-            const exp = new ExpressionMap();
-            const expName = exp.addName(COGNITO_ID_COLUMN);
-            const expValue = exp.addValue(oldId);
-            const res = await toPromise(this.client.query({
-                TableName: this.tableName,
-                KeyConditionExpression: `${expName} = ${expValue}`,
-                ExpressionAttributeNames: exp.names,
-                ExpressionAttributeValues: exp.values
-            }));
-            await Promise.all(res.Items.map(async (item) => {
-                try {
-                    logger.debug(() => `Changing cognitoId of ${JSON.stringify(item)}`);
-                    const key = _.pick(item, [COGNITO_ID_COLUMN, ID_COLUMN]);
-                    item[COGNITO_ID_COLUMN] = newId;
-
-                    logger.debug(() => `Putting ${JSON.stringify(item)}`);
-                    await toPromise(this.client.put({
-                        TableName: this.tableName,
-                        Item: item
-                    }));
-
-                    logger.debug(() => `Removing ${JSON.stringify(key)}`);
-                    await toPromise(this.client.delete({
-                        TableName: this.tableName,
-                        Key: key
-                    }))
-                } catch (ex) {
-                    logger.warn(() => `Error on moving ${this.tableName}: ${JSON.stringify(item)}`);
-                }
-            }));
-            logger.debug(() => `Done changing cognitoId of ${this.tableName}`);
-        });
         logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
-
-    private tableName: string;
 
     toString(): string {
         return `DynamoTable[${this.tableName}]`;
