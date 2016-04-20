@@ -4,10 +4,13 @@ import {Pager} from '../../../util/pager';
 import {Logger} from '../../../util/logging';
 
 import {AWS, requestToPromise} from '../aws';
-import * as DC from './document_client.d';
 import {Cognito} from '../cognito';
 import {Configuration} from '../../config/configuration';
 import {Photo} from '../../reports/photo';
+
+import * as DC from './document_client.d';
+import {Expression, ExpressionMap, Key} from './expression';
+import {PagingScan, PagingQuery, LastEvaluatedKey} from './pagination';
 
 const logger = new Logger(Dynamo);
 
@@ -66,9 +69,6 @@ export interface DBRecord<T> {
 
 export type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => Promise<T>;
 export type RecordWriter<T extends DBRecord<T>> = (obj: T) => Promise<DC.Item>;
-
-type KeyValue = string;
-type Key = { [key: string]: KeyValue };
 
 function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
     return requestToPromise<R>(request, 'DynamoDB');
@@ -235,132 +235,5 @@ export class DynamoTable<T extends DBRecord<T>> {
 
     scanPager(exp: Expression): Pager<T> {
         return new PagingScan(this, exp);
-    }
-}
-
-class LastEvaluatedKey {
-    private _value: DC.Item;
-
-    get value(): DC.Item {
-        return this._value;
-    }
-
-    set value(v: DC.Item) {
-        logger.debug(() => `Loaded LastEvaluatedKey: ${JSON.stringify(v)}`)
-        this._value = v ? v : {};
-    }
-
-    get isOver(): boolean {
-        return this._value && _.isEmpty(this._value);
-    }
-
-    reset() {
-        this._value = null;
-    }
-}
-
-export type Expression = {
-    express: string,
-    keys: {
-        names: DC.ExpressionAttributeNames,
-        values: DC.ExpressionAttributeValues
-    }
-};
-
-export class ExpressionMap {
-    static joinAll(pairs: Key, join?: string, sign?: string): Expression {
-        if (!join) join = 'AND'
-        if (!sign) sign = '=';
-        const rels = new Array<string>();
-        const result = new ExpressionMap();
-        Object.keys(pairs).forEach((n) => {
-            const name = result.addName(n);
-            const value = result.addValue(pairs[n]);
-            rels.push([name, sign, value].join(' '));
-        });
-        return { express: rels.join(` ${join} `), keys: result };
-    }
-
-    private _names: { [key: string]: string } = {};
-    private _values: { [key: string]: KeyValue } = {};
-
-    addName(name: string): string {
-        const key = `#N${Object.keys(this._names).length}`;
-        this._names[key] = name;
-        return key;
-    }
-
-    addValue(value: KeyValue): string {
-        const key = `:V${Object.keys(this._values).length}`;
-        this._values[key] = value;
-        return key;
-    }
-
-    get names(): DC.ExpressionAttributeNames {
-        return this._names;
-    }
-
-    get values(): DC.ExpressionAttributeValues {
-        return this._values;
-    }
-}
-
-abstract class DBPager<T extends DBRecord<T>> implements Pager<T> {
-    constructor(protected table: DynamoTable<T>) { }
-    protected last: LastEvaluatedKey = new LastEvaluatedKey();
-    private asking: Promise<Array<T>>;
-
-    hasMore(): boolean {
-        return !this.last.isOver;
-    }
-
-    reset() {
-        this.last.reset();
-    }
-
-    async more(pageSize: number): Promise<Array<T>> {
-        if (pageSize < 1 || !this.hasMore()) return [];
-        if (this.asking) await this.asking;
-        this.asking = this.doMore(pageSize);
-        return await this.asking;
-    }
-
-    protected abstract async doMore(pageSize: number): Promise<Array<T>>;
-}
-
-class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
-    constructor(
-        table: DynamoTable<T>,
-        private indexName: string,
-        private hashKey: Key,
-        private isForward: boolean
-    ) {
-        super(table);
-    }
-
-    protected async doMore(pageSize: number): Promise<Array<T>> {
-        return this.table.query(
-            this.hashKey,
-            this.indexName,
-            this.isForward,
-            pageSize,
-            this.last
-        );
-    }
-}
-
-class PagingScan<T extends DBRecord<T>> extends DBPager<T> {
-    constructor(
-        table: DynamoTable<T>,
-        private exp: Expression
-    ) {
-        super(table);
-    }
-    protected async doMore(pageSize: number): Promise<Array<T>> {
-        return this.table.scan(
-            this.exp,
-            pageSize,
-            this.last
-        );
     }
 }
