@@ -1,13 +1,13 @@
 import {Injectable} from 'angular2/core';
 
-import {Pager} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {Pager} from '../../../util/pager';
+import {Logger} from '../../../util/logging';
 
-import {AWS, requestToPromise} from './aws';
+import {AWS, requestToPromise} from '../aws';
 import * as DC from './document_client.d';
-import {Cognito} from './cognito';
-import {Configuration} from '../config/configuration';
-import {Photo} from '../reports/photo';
+import {Cognito} from '../cognito';
+import {Configuration} from '../../config/configuration';
+import {Photo} from '../../reports/photo';
 
 const logger = new Logger(Dynamo);
 

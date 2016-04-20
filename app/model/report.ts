@@ -2,8 +2,8 @@ import {Photo, Images} from '../providers/reports/photo';
 
 import {Leaf} from './leaf';
 import {Cognito} from '../providers/aws/cognito';
-import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
-import * as DC from '../providers/aws/document_client.d';
+import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo/dynamo';
+import * as DC from '../providers/aws/dynamo/document_client.d';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
 

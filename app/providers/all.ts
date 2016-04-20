@@ -3,7 +3,7 @@ import {Configuration} from './config/configuration';
 import {Preferences} from './config/preferences';
 import {S3File} from './aws/s3file';
 import {Cognito} from './aws/cognito';
-import {Dynamo} from './aws/dynamo';
+import {Dynamo} from './aws/dynamo/dynamo';
 import {FBConnect} from './facebook/fb_connect';
 import {FBJSSDK} from './facebook/fb_jssdk';
 import {FBPublish} from './facebook/fb_publish';

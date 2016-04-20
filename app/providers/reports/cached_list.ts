@@ -3,7 +3,7 @@ import {Injectable} from 'angular2/core';
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
 import {Cognito} from '../aws/cognito';
-import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
+import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo/dynamo';
 import {assert} from '../../util/assertion';
 import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';

@@ -3,7 +3,7 @@ import {Injectable} from 'angular2/core';
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
 import {Cognito} from '../aws/cognito';
-import {COGNITO_ID_COLUMN, Dynamo, DynamoTable, DBRecord, ExpressionMap} from '../aws/dynamo';
+import {COGNITO_ID_COLUMN, Dynamo, DynamoTable, DBRecord, ExpressionMap} from '../aws/dynamo/dynamo';
 import {PagingReports} from './cached_list';
 import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
