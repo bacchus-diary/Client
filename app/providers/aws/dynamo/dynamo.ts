@@ -12,7 +12,7 @@ import * as DC from './document_client.d';
 import {DynamoTable} from './table';
 import {ExpressionMap} from './expression';
 
-const logger = new Logger(Dynamo);
+const logger = new Logger('Dynamo');
 
 export const COGNITO_ID_COLUMN = "COGNITO_ID";
 

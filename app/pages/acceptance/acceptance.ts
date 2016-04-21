@@ -5,7 +5,7 @@ import {ReportsListPage} from '../reports_list/reports_list';
 import {toPromise} from '../../util/promising';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(AcceptancePage);
+const logger = new Logger('AcceptancePage');
 
 @Page({
     templateUrl: 'build/pages/acceptance/acceptance.html',

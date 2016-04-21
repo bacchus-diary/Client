@@ -16,7 +16,7 @@ import * as BASE64 from '../../util/base64';
 import {Swiper} from '../../util/swiper.d';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(ShowcaseComponent);
+const logger = new Logger('ShowcaseComponent');
 
 const WIDTH_MIN = 480;
 const HEIGHT_MIN = 480;

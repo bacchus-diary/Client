@@ -3,7 +3,7 @@ import {Injectable} from 'angular2/core';
 
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(Preferences);
+const logger = new Logger('Preferences');
 
 type SocialRecord = {
     name: string,

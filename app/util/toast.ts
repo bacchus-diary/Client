@@ -1,6 +1,6 @@
 import {Logger} from './logging';
 
-const logger = new Logger(Toast);
+const logger = new Logger('Toast');
 
 const plugins = (window as any).plugins;
 

@@ -6,7 +6,7 @@ import {DBRecord} from './dynamo';
 import {DynamoTable, TableKey} from './table';
 import {Expression} from './expression';
 
-const logger = new Logger(DBPager);
+const logger = new Logger('DBPager');
 
 export class LastEvaluatedKey {
     private _value: DC.Item;

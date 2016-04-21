@@ -7,7 +7,7 @@ import {DynamoTable} from '../providers/aws/dynamo/table';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
 
-const logger = new Logger(Report);
+const logger = new Logger('Report');
 
 type ReportRecord = {
     COGNITO_ID: string,

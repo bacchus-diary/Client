@@ -12,7 +12,7 @@ import {withFabric} from '../../util/fabric';
 import {toPromise} from '../../util/promising';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(FBPublish);
+const logger = new Logger('FBPublish');
 
 @Injectable()
 export class FBPublish {

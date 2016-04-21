@@ -7,7 +7,7 @@ import {Cognito} from './cognito';
 
 import {AWS, S3, AWSRequest, requestToPromise} from './aws';
 
-const logger = new Logger(S3File);
+const logger = new Logger('S3File');
 
 @Injectable()
 export class S3File {

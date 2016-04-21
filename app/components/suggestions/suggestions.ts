@@ -8,7 +8,7 @@ import {FATHENS_PROVIDERS} from '../../providers/all';
 import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(SuggestionsComponent);
+const logger = new Logger('SuggestionsComponent');
 
 const scrollLastMergin = 100; // px
 

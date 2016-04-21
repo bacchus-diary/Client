@@ -9,7 +9,7 @@ import {assert} from '../../util/assertion';
 import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(CachedReports);
+const logger = new Logger('CachedReports');
 
 const PAGE_SIZE = 10;
 

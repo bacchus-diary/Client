@@ -9,7 +9,7 @@ import {Report} from '../../model/report';
 import {Dialog, Spinner, Overlay} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(AddReportPage);
+const logger = new Logger('AddReportPage');
 
 @Page({
     templateUrl: 'build/pages/add_report/add_report.html',

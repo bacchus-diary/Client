@@ -11,7 +11,7 @@ import {SearchReports} from '../../providers/reports/search';
 import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(ReportsListPage);
+const logger = new Logger('ReportsListPage');
 
 @Page({
     templateUrl: 'build/pages/reports_list/reports_list.html',

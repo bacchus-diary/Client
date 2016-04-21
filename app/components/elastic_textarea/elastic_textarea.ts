@@ -2,7 +2,7 @@ import {Directive} from 'angular2/core';
 import {ElementRef} from 'angular2/core';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(ElasticTextareaDirective);
+const logger = new Logger('ElasticTextareaDirective');
 
 @Directive({
     selector: '[elastic]'

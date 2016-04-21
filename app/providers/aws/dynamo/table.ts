@@ -8,7 +8,7 @@ import {DBRecord, RecordReader, RecordWriter, COGNITO_ID_COLUMN, toPromise} from
 import {Expression, ExpressionMap} from './expression';
 import {PagingScan, PagingQuery, LastEvaluatedKey} from './pagination';
 
-const logger = new Logger(DynamoTable);
+const logger = new Logger('DynamoTable');
 
 export type TableKey = { [key: string]: string };
 

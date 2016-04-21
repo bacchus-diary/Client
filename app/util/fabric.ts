@@ -1,6 +1,6 @@
 import {Logger} from './logging';
 
-const logger = new Logger(withFabric);
+const logger = new Logger('withFabric');
 
 export function withFabric(proc: (f: Fabric) => any): void {
     try {

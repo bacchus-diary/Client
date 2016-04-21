@@ -7,7 +7,7 @@ import {DynamoTable} from '../providers/aws/dynamo/table';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
 
-const logger = new Logger(Leaf);
+const logger = new Logger('Leaf');
 
 type LeafRecord = {
     COGNITO_ID: string,

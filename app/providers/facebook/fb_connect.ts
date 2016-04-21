@@ -6,7 +6,7 @@ import {Logger} from '../../util/logging';
 import {FBConnectPlugin, PluginCallback} from './plugin';
 import {FBJSSDK} from './fb_jssdk';
 
-const logger = new Logger(FBConnect);
+const logger = new Logger('FBConnect');
 
 @Injectable()
 export class FBConnect {

@@ -9,7 +9,7 @@ import {Logger} from '../../util/logging';
 
 import {AWS, ClientConfig} from './aws';
 
-const logger = new Logger(Cognito);
+const logger = new Logger('Cognito');
 
 export const PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 

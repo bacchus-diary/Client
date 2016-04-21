@@ -10,7 +10,7 @@ import {PagingReports} from './cached_list';
 import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(SearchReports);
+const logger = new Logger('SearchReports');
 
 const PAGE_SIZE = 10;
 

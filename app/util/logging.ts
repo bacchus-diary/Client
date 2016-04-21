@@ -58,7 +58,7 @@ export class Logger {
         output(`Set log lebel: ${this.lebel}`);
     }
 
-    constructor(private owner: any) {
+    constructor(private tag: string) {
         this.lebel = Logger.lebel;
     }
 

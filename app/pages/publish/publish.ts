@@ -8,7 +8,7 @@ import {Dialog, Spinner} from '../../util/backdrop';
 import {Toast} from '../../util/toast';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(PublishPage);
+const logger = new Logger('PublishPage');
 
 @Page({
     templateUrl: 'build/pages/publish/publish.html',
