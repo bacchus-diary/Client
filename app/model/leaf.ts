@@ -4,7 +4,6 @@ import {Camera, Device} from 'ionic-native';
 import {Cognito} from '../providers/aws/cognito';
 import {Dynamo, DBRecord, createRandomKey} from '../providers/aws/dynamo/dynamo';
 import {DynamoTable} from '../providers/aws/dynamo/table';
-import * as DC from '../providers/aws/dynamo/document_client.d';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
 
