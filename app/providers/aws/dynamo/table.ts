@@ -108,7 +108,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
             const params = {
                 TableName: this.tableName,
-                Item: _.merge(item, await this.makeKey(obj.id()))
+                Item: item as DC.Item
             };
 
             logger.debug(() => `Putting ${JSON.stringify(params)}`);
