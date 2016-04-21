@@ -44,11 +44,11 @@ export class CachedTable {
 }
 
 function encode(obj: DC.Item): string {
-    return btoa(JSON.stringify(obj));
+    return btoa(encodeURIComponent(JSON.stringify(obj)));
 }
 
 function decode(base64: string): DC.Item {
-    return JSON.parse(atob(base64));
+    return JSON.parse(decodeURIComponent(atob(base64)));
 }
 
 type CachedRecord = {
