@@ -119,8 +119,8 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
     private async update(item: R, cached?: R) {
         const attrs: DC.AttributeUpdates = {};
         Object.keys(item).filter((name) => {
+            if (_.includes([COGNITO_ID_COLUMN, this.ID_COLUMN, LAST_MODIFIED_COLUMN], name)) return false;
             if (cached == null) return true;
-            if (name in [COGNITO_ID_COLUMN, this.ID_COLUMN, LAST_MODIFIED_COLUMN]) return true;
             return JSON.stringify(cached[name]) != JSON.stringify(item[name]);
         }).forEach((name) => {
             attrs[name] = { Action: 'PUT', Value: item[name] };
