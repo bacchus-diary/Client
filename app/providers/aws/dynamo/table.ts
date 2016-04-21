@@ -66,12 +66,12 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         return res.Item;
     }
 
-    private async doGetRaw(id: string, getLastModified: () => Promise<number>): Promise<R> {
+    private async doGet(id: string, getLastModified: () => Promise<number>): Promise<T> {
         const cached = await this.cache.get(id);
         if (cached != null) {
             const lastModified = await getLastModified();
             if (!lastModified || !cached[LAST_MODIFIED_COLUMN] || lastModified <= cached[LAST_MODIFIED_COLUMN]) {
-                return cached;
+                return this.read(cached);
             }
         }
         const item = await this.getItem(id);
@@ -82,11 +82,11 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         } else {
             this.cache.put(item);
         }
-        return item;
+        return this.read(item);
     }
 
-    async getRaw(id: string): Promise<R> {
-        return this.doGetRaw(id, async () => {
+    async get(id: string): Promise<T> {
+        return this.doGet(id, async () => {
             const params = {
                 TableName: this.tableName,
                 Key: await this.makeKey(id),
@@ -96,10 +96,6 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             const res = await toPromise(this.client.get(params));
             return res.Item && res.Item[LAST_MODIFIED_COLUMN];
         });
-    }
-
-    async get(id: string): Promise<T> {
-        return this.read(await this.getRaw(id));
     }
 
     async put(obj: T) {
@@ -170,10 +166,8 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
         if (last) last.value = res.LastEvaluatedKey;
 
-        const list = res.Items.map(async (h) => {
-            const raw = await this.doGetRaw(h[this.ID_COLUMN], async () => h[LAST_MODIFIED_COLUMN]);
-            return this.read(raw);
-        });
+        const list = res.Items.map((h) =>
+            this.doGet(h[this.ID_COLUMN], async () => h[LAST_MODIFIED_COLUMN]));
         return _.compact(await Promise.all(list));
     }
 
