@@ -13,6 +13,12 @@ const logger = new Logger('DynamoTable');
 
 export type TableKey = { [key: string]: string };
 
+function setLastModified(obj: any) {
+    if (!obj) return null;
+    obj[LAST_MODIFIED_COLUMN] = new Date().getTime();
+    return obj;
+}
+
 export class DynamoTable<T extends DBRecord<T>> {
     constructor(
         private cognito: Cognito,
@@ -60,7 +66,7 @@ export class DynamoTable<T extends DBRecord<T>> {
                 return this.reader(cached);
             }
         }
-        const item = this.getItem(id);
+        const item = setLastModified(await this.getItem(id));
         if (!item) return null;
 
         if (cached) {
@@ -85,7 +91,7 @@ export class DynamoTable<T extends DBRecord<T>> {
     }
 
     async put(obj: T) {
-        const item = await this.writer(obj);
+        const item = setLastModified(await this.writer(obj));
         this.cache.put(item);
 
         const params = {
@@ -98,13 +104,13 @@ export class DynamoTable<T extends DBRecord<T>> {
     }
 
     async update(obj: T) {
-        const item = await this.writer(obj);
+        const item = setLastModified(await this.writer(obj));
         const cached = await this.cache.get(obj.id());
 
         const attrs: DC.AttributeUpdates = {};
         Object.keys(item).filter((name) => {
             if (cached == null) return true;
-            if (name in [COGNITO_ID_COLUMN, this.ID_COLUMN]) return true;
+            if (name in [COGNITO_ID_COLUMN, this.ID_COLUMN, LAST_MODIFIED_COLUMN]) return true;
             return JSON.stringify(cached[name]) != JSON.stringify(item[name]);
         }).forEach((name) => {
             attrs[name] = { Action: 'PUT', Value: item[name] };
@@ -117,6 +123,7 @@ export class DynamoTable<T extends DBRecord<T>> {
                 this.cache.put(item);
             }
 
+            attrs[LAST_MODIFIED_COLUMN] = { Action: 'PUT', Value: item[LAST_MODIFIED_COLUMN] };
             const params = {
                 TableName: this.tableName,
                 Key: await this.makeKey(obj.id()),
