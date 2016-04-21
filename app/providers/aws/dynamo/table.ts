@@ -82,7 +82,7 @@ export class DynamoTable<T extends DBRecord<T>> {
             const params = {
                 TableName: this.tableName,
                 Key: await this.makeKey(id),
-                AttributesToGet: [LAST_MODIFIED_COLUMN]
+                ProjectionExpression: [LAST_MODIFIED_COLUMN].join(',')
             }
             logger.debug(() => `Getting lastModified: ${JSON.stringify(params)}`);
             const res = await toPromise(this.client.get(params));
@@ -148,7 +148,7 @@ export class DynamoTable<T extends DBRecord<T>> {
     }
 
     private async select<P extends DC.QueryParams | DC.ScanParams, R extends DC.QueryResult | DC.ScanResult>(func: DC.Operation<P, R>, params: P, last?: LastEvaluatedKey): Promise<Array<T>> {
-        params.AttributesToGet = [LAST_MODIFIED_COLUMN, this.ID_COLUMN];
+        params.ProjectionExpression = [LAST_MODIFIED_COLUMN, this.ID_COLUMN].join(',');
         if (last) params.ExclusiveStartKey = last.value;
 
         logger.debug(() => `Selecting: ${JSON.stringify(params)}`);
