@@ -13,29 +13,37 @@ const logger = new Logger('DynamoTable');
 
 export type TableKey = { [key: string]: string };
 
-function setLastModified(obj: any) {
+function setLastModified<R extends DC.Item>(obj: R): R {
     if (!obj) return null;
     obj[LAST_MODIFIED_COLUMN] = new Date().getTime();
     return obj;
 }
 
-export class DynamoTable<T extends DBRecord<T>> {
+export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
     constructor(
         private cognito: Cognito,
         private client: DC.DocumentClient,
         private tableName: string,
         private ID_COLUMN: string,
-        private reader: RecordReader<T>,
-        private writer: RecordWriter<T>
+        private _reader: RecordReader<R, T>,
+        private _writer: RecordWriter<R, T>
     ) {
-        this.cache = new CachedTable(_.snakeCase(tableName), ID_COLUMN);
+        this.cache = new CachedTable<R>(_.snakeCase(tableName), ID_COLUMN);
         logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
 
-    private cache: CachedTable;
+    private cache: CachedTable<R>;
 
     toString(): string {
         return `DynamoTable[${this.tableName}]`;
+    }
+
+    read(raw: R): Promise<T> {
+        return raw == null ? null : this._reader(raw);
+    }
+
+    write(rec: T): Promise<R> {
+        return rec == null ? null : this._writer(rec);
     }
 
     private async makeKey(id?: string): Promise<TableKey> {
@@ -47,7 +55,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         return key;
     }
 
-    private async getItem(id: string): Promise<DC.Item> {
+    private async getItem(id: string): Promise<R> {
         const params = {
             TableName: this.tableName,
             Key: await this.makeKey(id)
@@ -58,7 +66,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         return res.Item;
     }
 
-    private async doGet(id: string, getLastModified: () => Promise<number>): Promise<T> {
+    private async doGetRaw(id: string, getLastModified: () => Promise<number>): Promise<R> {
         const cached = await this.cache.get(id);
         if (cached != null) {
             const lastModified = await getLastModified();
@@ -74,11 +82,11 @@ export class DynamoTable<T extends DBRecord<T>> {
         } else {
             this.cache.put(item);
         }
-        return this.reader(item);
+        return item;
     }
 
-    async get(id: string): Promise<T> {
-        return this.doGet(id, async () => {
+    async getRaw(id: string): Promise<R> {
+        return this.doGetRaw(id, async () => {
             const params = {
                 TableName: this.tableName,
                 Key: await this.makeKey(id),
@@ -90,8 +98,12 @@ export class DynamoTable<T extends DBRecord<T>> {
         });
     }
 
+    async get(id: string): Promise<T> {
+        return this.read(await this.getRaw(id));
+    }
+
     async put(obj: T) {
-        const item = setLastModified(await this.writer(obj));
+        const item = setLastModified(await this.write(obj));
         this.cache.put(item);
 
         const params = {
@@ -104,7 +116,7 @@ export class DynamoTable<T extends DBRecord<T>> {
     }
 
     async update(obj: T) {
-        const item = setLastModified(await this.writer(obj));
+        const item = setLastModified(await this.write(obj));
         const cached = await this.cache.get(obj.id());
 
         const attrs: DC.AttributeUpdates = {};
@@ -156,8 +168,10 @@ export class DynamoTable<T extends DBRecord<T>> {
 
         if (last) last.value = res.LastEvaluatedKey;
 
-        const list = res.Items.map((h) =>
-            this.doGet(h[this.ID_COLUMN], async () => h[LAST_MODIFIED_COLUMN]));
+        const list = res.Items.map(async (h) => {
+            const raw = await this.doGetRaw(h[this.ID_COLUMN], async () => h[LAST_MODIFIED_COLUMN]);
+            return this.read(raw);
+        });
         return _.compact(await Promise.all(list));
     }
 
@@ -177,7 +191,7 @@ export class DynamoTable<T extends DBRecord<T>> {
     }
 
     queryPager(hashKey?: TableKey, indexName?: string, isForward?: boolean): Pager<T> {
-        return new PagingQuery<T>(this, indexName, hashKey, isForward);
+        return new PagingQuery(this, indexName, hashKey, isForward);
     }
 
     async scan(exp: Expression, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {

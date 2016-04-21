@@ -9,7 +9,7 @@ const logger = new Logger('CachedTable');
 
 const storageName = 'dynamo_cache';
 
-export class CachedTable {
+export class CachedTable<R extends DC.Item> {
     constructor(private tableName: string, private idColumnName: string) {
         const storage = new Storage(SqlStorage, { name: storageName });
         this.table = new CachedRecordTable(storage, tableName);
@@ -17,7 +17,7 @@ export class CachedTable {
 
     private table: CachedRecordTable;
 
-    private toRec(obj: DC.Item): CachedRecord {
+    private toRec(obj: R): CachedRecord {
         return {
             id: obj[this.idColumnName],
             lastModified: obj[LAST_MODIFIED_COLUMN],
@@ -25,16 +25,16 @@ export class CachedTable {
         };
     }
 
-    async get(id: string): Promise<DC.Item> {
+    async get(id: string): Promise<R> {
         const rec = await this.table.get(id);
         return rec == null ? null : decode(rec.base64json);
     }
 
-    async put(obj: DC.Item): Promise<void> {
+    async put(obj: R): Promise<void> {
         await this.table.put(this.toRec(obj));
     }
 
-    async update(obj: DC.Item): Promise<void> {
+    async update(obj: R): Promise<void> {
         await this.table.update(this.toRec(obj));
     }
 

@@ -29,8 +29,8 @@ export class LastEvaluatedKey {
     }
 }
 
-abstract class DBPager<T extends DBRecord<T>> implements Pager<T> {
-    constructor(protected table: DynamoTable<T>) { }
+abstract class DBPager<R extends DC.Item, T extends DBRecord<T>> implements Pager<T> {
+    constructor(protected table: DynamoTable<R, T>) { }
     protected last: LastEvaluatedKey = new LastEvaluatedKey();
     private asking: Promise<Array<T>>;
 
@@ -52,9 +52,9 @@ abstract class DBPager<T extends DBRecord<T>> implements Pager<T> {
     protected abstract async doMore(pageSize: number): Promise<Array<T>>;
 }
 
-export class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
+export class PagingQuery<R extends DC.Item, T extends DBRecord<T>> extends DBPager<R, T> {
     constructor(
-        table: DynamoTable<T>,
+        table: DynamoTable<R, T>,
         private indexName: string,
         private hashKey: TableKey,
         private isForward: boolean
@@ -73,9 +73,9 @@ export class PagingQuery<T extends DBRecord<T>> extends DBPager<T> {
     }
 }
 
-export class PagingScan<T extends DBRecord<T>> extends DBPager<T> {
+export class PagingScan<R extends DC.Item, T extends DBRecord<T>> extends DBPager<R, T> {
     constructor(
-        table: DynamoTable<T>,
+        table: DynamoTable<R, T>,
         private exp: Expression
     ) {
         super(table);

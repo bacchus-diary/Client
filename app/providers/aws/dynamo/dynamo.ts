@@ -26,7 +26,7 @@ export class Dynamo {
 
     private client: Promise<DC.DocumentClient>;
 
-    async createTable<T extends DBRecord<T>>(maker: DBTableMaker<T>): Promise<DynamoTable<T>> {
+    async createTable<R extends DC.Item, T extends DBRecord<T>>(maker: DBTableMaker<R, T>): Promise<DynamoTable<R, T>> {
         const m = maker(this.cognito, this.photo);
         const client = await this.client;
         const tableName = `${(await this.config.server).appName}.${m.tableName}`
@@ -81,11 +81,11 @@ export function createRandomKey(): string {
     return _.range(32).map((i) => char(_.random(0, 35))).join('');
 }
 
-type DBTableMaker<T extends DBRecord<T>> = (cognito: Cognito, photo: Photo) => {
+type DBTableMaker<R extends DC.Item, T extends DBRecord<T>> = (cognito: Cognito, photo: Photo) => {
     tableName: string,
     idColumnName: string,
-    reader: RecordReader<T>,
-    writer: RecordWriter<T>
+    reader: RecordReader<R, T>,
+    writer: RecordWriter<R, T>
 }
 
 export interface DBRecord<T> {
@@ -104,8 +104,8 @@ export interface DBRecord<T> {
     update(dst: T): Promise<void>
 }
 
-export type RecordReader<T extends DBRecord<T>> = (src: DC.Item) => Promise<T>;
-export type RecordWriter<T extends DBRecord<T>> = (obj: T) => Promise<DC.Item>;
+export type RecordReader<R extends DC.Item, T extends DBRecord<T>> = (src: R) => Promise<T>;
+export type RecordWriter<R extends DC.Item, T extends DBRecord<T>> = (obj: T) => Promise<R>;
 
 export function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
     return requestToPromise<R>(request, 'DynamoDB');

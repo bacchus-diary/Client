@@ -1,8 +1,9 @@
 import {Injectable} from 'angular2/core';
 
-import {Report} from '../../model/report';
+import {ReportRecord, Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
 import {Cognito} from '../aws/cognito';
+import * as DC from '../aws/dynamo/document_client.d';
 import {COGNITO_ID_COLUMN, Dynamo, DBRecord} from '../aws/dynamo/dynamo';
 import {DynamoTable} from '../aws/dynamo/table';
 import {ExpressionMap} from '../aws/dynamo/expression';
@@ -26,7 +27,7 @@ export class SearchReports {
         return new PagingReports(new MargedPager(table, pagerReports, pagerLeaves));
     }
 
-    async pagerByWord<T extends DBRecord<T>>(word: string, attName: string, table: DynamoTable<T>): Promise<Pager<T>> {
+    async pagerByWord<R extends DC.Item, T extends DBRecord<T>>(word: string, attName: string, table: DynamoTable<R, T>): Promise<Pager<T>> {
         const mapping = new ExpressionMap();
 
         const nameCognitoId = mapping.addName(COGNITO_ID_COLUMN);
@@ -48,7 +49,7 @@ export class SearchReports {
 
 class MargedPager implements Pager<Report> {
     constructor(
-        private reportTable: DynamoTable<Report>,
+        private reportTable: DynamoTable<ReportRecord, Report>,
         private reportPager: Pager<Report>,
         private leafPager: Pager<Leaf>) { }
 

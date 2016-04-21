@@ -9,10 +9,11 @@ import {Logger} from '../util/logging';
 
 const logger = new Logger('Leaf');
 
-type LeafRecord = {
+export type LeafRecord = {
     COGNITO_ID: string,
     REPORT_ID: string,
     LEAF_ID: string,
+    LAST_MODIFIED?: number,
     CONTENT: LeafContent
 };
 type LeafContent = {
@@ -24,10 +25,10 @@ type LeafContent = {
 };
 
 export class Leaf implements DBRecord<Leaf> {
-    private static _table: Promise<DynamoTable<Leaf>>;
-    static async table(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
+    private static _table: Promise<DynamoTable<LeafRecord, Leaf>>;
+    static async table(dynamo: Dynamo): Promise<DynamoTable<LeafRecord, Leaf>> {
         if (!this._table) {
-            this._table = dynamo.createTable<Leaf>((cognito, photo) => {
+            this._table = dynamo.createTable<LeafRecord, Leaf>((cognito, photo) => {
                 if (!Device.device.cordova) this.cleanup(photo);
                 return {
                     tableName: 'LEAF',
@@ -96,7 +97,7 @@ export class Leaf implements DBRecord<Leaf> {
         assert('images', photo);
     }
 
-    get table(): Promise<DynamoTable<Leaf>> {
+    get table(): Promise<DynamoTable<LeafRecord, Leaf>> {
         assert('Leaf$Table', Leaf._table);
         return Leaf._table;
     }

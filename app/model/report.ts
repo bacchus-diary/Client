@@ -9,10 +9,11 @@ import {Logger} from '../util/logging';
 
 const logger = new Logger('Report');
 
-type ReportRecord = {
+export type ReportRecord = {
     COGNITO_ID: string,
     REPORT_ID: string,
     DATE_AT: number,
+    LAST_MODIFIED?: number,
     CONTENT: ReportContent
 };
 
@@ -27,11 +28,11 @@ type ReportContent = {
 };
 
 export class Report implements DBRecord<Report> {
-    private static _table: Promise<DynamoTable<Report>>;
-    static async table(dynamo: Dynamo): Promise<DynamoTable<Report>> {
+    private static _table: Promise<DynamoTable<ReportRecord, Report>>;
+    static async table(dynamo: Dynamo): Promise<DynamoTable<ReportRecord, Report>> {
         if (!this._table) {
             const leafTable = await Leaf.table(dynamo);
-            this._table = dynamo.createTable<Report>((cognito: Cognito, photo: Photo) => {
+            this._table = dynamo.createTable<ReportRecord, Report>((cognito: Cognito, photo: Photo) => {
                 return {
                     tableName: 'REPORT',
                     idColumnName: 'REPORT_ID',
@@ -87,7 +88,7 @@ export class Report implements DBRecord<Report> {
         assert('content', content);
     }
 
-    get table(): Promise<DynamoTable<Report>> {
+    get table(): Promise<DynamoTable<ReportRecord, Report>> {
         assert('Report$Table', Report._table);
         return Report._table;
     }
