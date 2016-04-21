@@ -22,7 +22,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         private reader: RecordReader<T>,
         private writer: RecordWriter<T>
     ) {
-        this.cache = new CachedTable(tableName, ID_COLUMN);
+        this.cache = new CachedTable(_.snakeCase(tableName), ID_COLUMN);
         logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
 
