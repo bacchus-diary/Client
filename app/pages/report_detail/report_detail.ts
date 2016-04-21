@@ -24,8 +24,7 @@ export class ReportDetailPage {
         private fbPublish: FBPublish,
         private cachedReports: CachedReports
     ) {
-        const report: Report = params.get('report');
-        this.report = report.clone();
+        this.report = params.get('report');
         logger.debug(() => `Detail of report: ${this.report}`);
         this.updatePublishing();
     }
@@ -47,7 +46,7 @@ export class ReportDetailPage {
 
     private async update() {
         try {
-            await this.cachedReports.update(this.report);
+            await this.report.put();
         } catch (ex) {
             logger.warn(() => `Failed to update report: ${ex}`);
         }

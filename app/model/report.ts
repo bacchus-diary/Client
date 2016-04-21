@@ -142,7 +142,7 @@ export class Report implements DBRecord<Report> {
         return this._id;
     }
 
-    toMap(): ReportContent {
+    private toMap(): ReportContent {
         return {
             rating: this.rating,
             comment: this.comment.length > 0 ? this.comment : null,
@@ -154,55 +154,24 @@ export class Report implements DBRecord<Report> {
         };
     }
 
-    isNeedUpdate(other: Report): boolean {
-        return this.toString() != other.toString();
+    private async isPut(): Promise<boolean> {
+        return (await this.table).getRaw(this.id()) != null;
     }
 
-    clone(): Report {
-        return new Report(this._id,
-            new Date(this.dateAt.getTime()),
-            this.leaves.map((x) => x.clone()),
-            this.toMap());
-    }
-
-    async add() {
-        const addings = this.leaves.map((leaf) => leaf.add());
-        addings.push((await this.table).put(this));
-        await Promise.all(addings);
+    async put() {
+        if (await this.isPut()) {
+            const leaves = this.leaves.map((leaf) => leaf.put());
+            await Promise.all(_.flatten([leaves, (await this.table).update(this)]));
+        } else {
+            const addings = this.leaves.map((leaf) => leaf.put());
+            addings.push((await this.table).put(this));
+            await Promise.all(addings);
+        }
     }
 
     async remove() {
         const removings = this.leaves.map((leaf) => leaf.remove());
         removings.push((await this.table).remove(this.id()));
         await Promise.all(removings);
-    }
-
-    async update(dst: Report) {
-        const diff = this.diff(this.leaves, dst.leaves);
-        const addings = diff.onlyDst.map((x) => x.add());
-        const removings = diff.onlySrc.map((x) => x.remove());
-        const updatings = diff.common.map((p) => p.src.update(p.dst));
-        const waits = _.flatten([addings, removings, updatings]);
-
-        if (this.isNeedUpdate(dst)) {
-            waits.push((await this.table).update(dst));
-        }
-        await Promise.all(waits);
-    }
-
-    private diff<X extends DBRecord<X>>(src: Array<X>, dst: Array<X>) {
-        const notIncluded = (list: Array<X>) => (x: X) => _.every(list, (y) => y.id() != x.id());
-        const parted = _.partition(dst, notIncluded(src));
-        return {
-            common: parted[1].map((d) => {
-                const s = _.find(src, (x) => x.id() == d.id());
-                return {
-                    src: s,
-                    dst: d
-                };
-            }),
-            onlyDst: parted[0],
-            onlySrc: _.filter(src, notIncluded(dst))
-        };
     }
 }

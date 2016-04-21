@@ -166,7 +166,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this._id;
     }
 
-    toMap(): LeafContent {
+    private toMap(): LeafContent {
         return {
             labels: this.labels.map(_.identity),
             logos: this.logos.map(_.identity),
@@ -176,27 +176,21 @@ export class Leaf implements DBRecord<Leaf> {
         };
     }
 
-    isNeedUpdate(other: Leaf): boolean {
-        return this.toString() != other.toString();
+    private async isPut(): Promise<boolean> {
+        return (await this.table).getRaw(this.id()) != null;
     }
 
-    clone(): Leaf {
-        return new Leaf(this._reportId, this._id, this.toMap(), this.photo);
-    }
-
-    async add() {
-        await (await this.table).put(this);
+    async put() {
+        if (await this.isPut()) {
+            await (await this.table).update(this);
+        } else {
+            await (await this.table).put(this);
+        }
     }
 
     async remove() {
         const db = (await this.table).remove(this.id());
         const s3 = this.photo.remove();
         await Promise.all([db, s3]);
-    }
-
-    async update(dst: Leaf) {
-        if (this.isNeedUpdate(dst)) {
-            await (await this.table).update(dst);
-        }
     }
 }

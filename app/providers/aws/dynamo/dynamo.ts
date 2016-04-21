@@ -91,17 +91,9 @@ type DBTableMaker<R extends DC.Item, T extends DBRecord<T>> = (cognito: Cognito,
 export interface DBRecord<T> {
     id(): string;
 
-    toMap(): Object;
-
-    isNeedUpdate(other: T): boolean;
-
-    clone(): T;
-
-    add(): Promise<void>;
+    put(): Promise<void>;
 
     remove(): Promise<void>;
-
-    update(dst: T): Promise<void>
 }
 
 export type RecordReader<R extends DC.Item, T extends DBRecord<T>> = (src: R) => Promise<T>;

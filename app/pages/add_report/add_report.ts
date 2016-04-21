@@ -67,7 +67,7 @@ export class AddReportPage {
                     logger.debug(() => `Updating facebook published id: ${actionId}`);
                     if (actionId) {
                         this.report.publishedFacebook = actionId;
-                        await this.cachedReports.update(this.report);
+                        await this.report.put();
                     }
                 });
             }
