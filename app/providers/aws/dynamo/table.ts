@@ -78,12 +78,10 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         const item = await this.getItem(id);
         if (!item) return null;
 
-        if (cached) {
-            this.cache.update(item);
-        } else {
-            this.cache.put(item);
-        }
-        return this.read(item);
+        await Promise.all([
+            cached ? this.cache.update(item) : this.cache.put(item),
+            this.read(item)
+        ]);
     }
 
     async get(id: string): Promise<T> {
@@ -105,15 +103,16 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         if (cached) {
             await this.update(item, cached);
         } else {
-            this.cache.put(item);
-
             const params = {
                 TableName: this.tableName,
                 Item: item as DC.Item
             };
-
             logger.debug(() => `Putting ${JSON.stringify(params)}`);
-            await toPromise(this.client.put(params));
+
+            await Promise.all([
+                this.cache.put(item),
+                toPromise(this.client.put(params))
+            ]);
         }
     }
 
@@ -128,34 +127,32 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         });
 
         if (!_.isEmpty(attrs)) {
-            if (cached) {
-                this.cache.update(item);
-            } else {
-                this.cache.put(item);
-            }
-
             attrs[LAST_MODIFIED_COLUMN] = { Action: 'PUT', Value: item[LAST_MODIFIED_COLUMN] };
             const params = {
                 TableName: this.tableName,
                 Key: await this.makeKey(item[this.ID_COLUMN]),
                 AttributeUpdates: attrs
             };
-
             logger.debug(() => `Updating ${JSON.stringify(params)}`);
-            await toPromise(this.client.update(params))
+
+            await Promise.all([
+                cached ? this.cache.update(item) : this.cache.put(item),
+                toPromise(this.client.update(params))
+            ]);
         }
     }
 
     async remove(id: string) {
-        this.cache.remove(id);
-
         const params = {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         };
-
         logger.debug(() => `Removing ${JSON.stringify(params)}`);
-        await toPromise(this.client.delete(params));
+        
+        await Promise.all([
+            this.cache.remove(id),
+            toPromise(this.client.delete(params))
+        ]);
     }
 
     private async select<P extends DC.QueryParams | DC.ScanParams, R extends DC.QueryResult | DC.ScanResult>(func: DC.Operation<P, R>, params: P, last?: LastEvaluatedKey): Promise<Array<T>> {
