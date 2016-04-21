@@ -15,6 +15,7 @@ import {ExpressionMap} from './expression';
 const logger = new Logger('Dynamo');
 
 export const COGNITO_ID_COLUMN = "COGNITO_ID";
+export const LAST_MODIFIED_COLUMN = "LAST_MODIFIED";
 
 @Injectable()
 export class Dynamo {

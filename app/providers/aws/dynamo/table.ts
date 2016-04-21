@@ -7,6 +7,7 @@ import * as DC from './document_client.d';
 import {DBRecord, RecordReader, RecordWriter, COGNITO_ID_COLUMN, toPromise} from './dynamo';
 import {Expression, ExpressionMap} from './expression';
 import {PagingScan, PagingQuery, LastEvaluatedKey} from './pagination';
+import {CachedTable} from './cached_table';
 
 const logger = new Logger('DynamoTable');
 
