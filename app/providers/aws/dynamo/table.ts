@@ -78,10 +78,8 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         const item = await this.getItem(id);
         if (!item) return null;
 
-        await Promise.all([
-            cached ? this.cache.update(item) : this.cache.put(item),
-            this.read(item)
-        ]);
+        await (cached ? this.cache.update(item) : this.cache.put(item));
+        return this.read(item);
     }
 
     async get(id: string): Promise<T> {
@@ -148,7 +146,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             Key: await this.makeKey(id)
         };
         logger.debug(() => `Removing ${JSON.stringify(params)}`);
-        
+
         await Promise.all([
             this.cache.remove(id),
             toPromise(this.client.delete(params))
