@@ -76,7 +76,7 @@ class CachedRecordTable {
     }
 
     async get(id: string): Promise<CachedRecord> {
-        const result = await this.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [name]);
+        const result = await this.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
         const rows = result.res.rows;
         logger.debug(() => `Reading response from ${this.tableName}: ${rows.length}`);
         if (rows.length != 1) return null;
