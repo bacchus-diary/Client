@@ -4,7 +4,7 @@ import {Logger} from '../../../util/logging';
 import {Cognito} from '../cognito';
 
 import * as DC from './document_client.d';
-import {DBRecord, RecordReader, RecordWriter, COGNITO_ID_COLUMN, toPromise} from './dynamo';
+import {DBRecord, RecordReader, RecordWriter, COGNITO_ID_COLUMN, LAST_MODIFIED_COLUMN, toPromise} from './dynamo';
 import {Expression, ExpressionMap} from './expression';
 import {PagingScan, PagingQuery, LastEvaluatedKey} from './pagination';
 import {CachedTable} from './cached_table';
@@ -22,8 +22,11 @@ export class DynamoTable<T extends DBRecord<T>> {
         private reader: RecordReader<T>,
         private writer: RecordWriter<T>
     ) {
+        this.cache = new CachedTable(tableName, ID_COLUMN);
         logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
+
+    private cache: CachedTable;
 
     toString(): string {
         return `DynamoTable[${this.tableName}]`;
@@ -38,26 +41,57 @@ export class DynamoTable<T extends DBRecord<T>> {
         return key;
     }
 
-    async get(id: string): Promise<T> {
+    private async getItem(id: string): Promise<DC.Item> {
         const params = {
             TableName: this.tableName,
             Key: await this.makeKey(id)
         };
 
-        logger.debug(() => `Getting: ${JSON.stringify(params)}`);
+        logger.debug(() => `Getting Full: ${JSON.stringify(params)}`);
         const res = await toPromise(this.client.get(params));
-        return this.reader(res.Item);
+        return res.Item;
+    }
+
+    private async doGet(id: string, getLastModified: () => Promise<number>): Promise<T> {
+        const cached = await this.cache.get(id);
+        if (cached != null) {
+            const lastModified = await getLastModified();
+            if (!lastModified || lastModified <= cached[LAST_MODIFIED_COLUMN]) {
+                return this.reader(cached);
+            }
+        }
+        const item = this.getItem(id);
+        if (!item) return null;
+
+        if (cached) {
+            this.cache.update(item);
+        } else {
+            this.cache.put(item);
+        }
+        return this.reader(item);
+    }
+
+    async get(id: string): Promise<T> {
+        return this.doGet(id, async () => {
+            const params = {
+                TableName: this.tableName,
+                Key: await this.makeKey(id),
+                AttributesToGet: [LAST_MODIFIED_COLUMN]
+            }
+            logger.debug(() => `Getting lastModified: ${JSON.stringify(params)}`);
+            const res = await toPromise(this.client.get(params));
+            return res.Item && res.Item[LAST_MODIFIED_COLUMN];
+        });
     }
 
     async put(obj: T) {
+        const item = await this.writer(obj);
+        this.cache.put(item);
+
         const params = {
             TableName: this.tableName,
-            Item: await this.writer(obj)
+            Item: _.merge(item, await this.makeKey(obj.id()))
         };
-        const key = await this.makeKey(obj.id());
-        Object.keys(key).forEach((name) => {
-            params.Item[name] = key[name];
-        });
 
         logger.debug(() => `Putting ${JSON.stringify(params)}`);
         await toPromise(this.client.put(params));
@@ -65,23 +99,38 @@ export class DynamoTable<T extends DBRecord<T>> {
 
     async update(obj: T) {
         const item = await this.writer(obj);
-        delete item[COGNITO_ID_COLUMN];
-        delete item[this.ID_COLUMN];
+        const cached = await this.cache.get(obj.id());
 
-        const params = {
-            TableName: this.tableName,
-            Key: await this.makeKey(obj.id()),
-            AttributeUpdates: {}
-        };
-        Object.keys(item).forEach((name) => {
-            params.AttributeUpdates[name] = { Action: 'PUT', Value: item[name] };
+        const attrs: DC.AttributeUpdates = {};
+        Object.keys(item).filter((name) => {
+            if (cached == null) return true;
+            if (name in [COGNITO_ID_COLUMN, this.ID_COLUMN]) return true;
+            return JSON.stringify(cached[name]) != JSON.stringify(item[name]);
+        }).forEach((name) => {
+            attrs[name] = { Action: 'PUT', Value: item[name] };
         });
 
-        logger.debug(() => `Updating ${JSON.stringify(params)}`);
-        await toPromise(this.client.update(params))
+        if (!_.isEmpty(attrs)) {
+            if (cached) {
+                this.cache.update(item);
+            } else {
+                this.cache.put(item);
+            }
+
+            const params = {
+                TableName: this.tableName,
+                Key: await this.makeKey(obj.id()),
+                AttributeUpdates: attrs
+            };
+
+            logger.debug(() => `Updating ${JSON.stringify(params)}`);
+            await toPromise(this.client.update(params))
+        }
     }
 
     async remove(id: string) {
+        this.cache.remove(id);
+
         const params = {
             TableName: this.tableName,
             Key: await this.makeKey(id)
@@ -89,6 +138,20 @@ export class DynamoTable<T extends DBRecord<T>> {
 
         logger.debug(() => `Removing ${JSON.stringify(params)}`);
         await toPromise(this.client.delete(params));
+    }
+
+    private async select<P extends DC.QueryParams | DC.ScanParams, R extends DC.QueryResult | DC.ScanResult>(func: DC.Operation<P, R>, params: P, last?: LastEvaluatedKey): Promise<Array<T>> {
+        params.AttributesToGet = [LAST_MODIFIED_COLUMN, this.ID_COLUMN];
+        if (last) params.ExclusiveStartKey = last.value;
+
+        logger.debug(() => `Selecting: ${JSON.stringify(params)}`);
+        const res = await toPromise(func(params));
+
+        if (last) last.value = res.LastEvaluatedKey;
+
+        const list = res.Items.map((h) =>
+            this.doGet(h[this.ID_COLUMN], async () => h[LAST_MODIFIED_COLUMN]));
+        return _.compact(await Promise.all(list));
     }
 
     async query(keys?: TableKey, indexName?: string, isForward?: boolean, pageSize?: number, last?: LastEvaluatedKey): Promise<Array<T>> {
@@ -102,14 +165,8 @@ export class DynamoTable<T extends DBRecord<T>> {
         };
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
-        if (last) params.ExclusiveStartKey = last.value;
 
-        logger.debug(() => `Quering: ${JSON.stringify(params)}`);
-        const res = await toPromise(this.client.query(params));
-
-        if (last) last.value = res.LastEvaluatedKey;
-
-        return _.compact(await Promise.all(res.Items.map(this.reader)));
+        return this.select(this.client.query, params, last);
     }
 
     queryPager(hashKey?: TableKey, indexName?: string, isForward?: boolean): Pager<T> {
@@ -124,14 +181,8 @@ export class DynamoTable<T extends DBRecord<T>> {
             ExpressionAttributeValues: exp.keys.values
         };
         if (pageSize > 0) params.Limit = pageSize;
-        if (last) params.ExclusiveStartKey = last.value;
 
-        logger.debug(() => `Scaning: ${JSON.stringify(params)}`);
-        const res = await toPromise(this.client.scan(params));
-
-        if (last) last.value = res.LastEvaluatedKey;
-
-        return _.compact(await Promise.all(res.Items.map(this.reader)));
+        return this.select(this.client.scan, params, last);
     }
 
     scanPager(exp: Expression): Pager<T> {
