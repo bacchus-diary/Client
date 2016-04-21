@@ -70,11 +70,11 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         const cached = await this.cache.get(id);
         if (cached != null) {
             const lastModified = await getLastModified();
-            if (!lastModified || lastModified <= cached[LAST_MODIFIED_COLUMN]) {
-                return this.reader(cached);
+            if (!lastModified || !cached[LAST_MODIFIED_COLUMN] || lastModified <= cached[LAST_MODIFIED_COLUMN]) {
+                return cached;
             }
         }
-        const item = setLastModified(await this.getItem(id));
+        const item = await this.getItem(id);
         if (!item) return null;
 
         if (cached) {
