@@ -173,7 +173,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
 
-        return this.select(this.client.query, params, last);
+        return this.select((p) => this.client.query(p), params, last);
     }
 
     queryPager(hashKey?: TableKey, indexName?: string, isForward?: boolean): Pager<T> {
@@ -189,7 +189,7 @@ export class DynamoTable<T extends DBRecord<T>> {
         };
         if (pageSize > 0) params.Limit = pageSize;
 
-        return this.select(this.client.scan, params, last);
+        return this.select((p) => this.client.scan(p), params, last);
     }
 
     scanPager(exp: Expression): Pager<T> {
