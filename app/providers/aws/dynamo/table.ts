@@ -69,8 +69,9 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
     private async doGet(id: string, getLastModified: () => Promise<number>): Promise<T> {
         const cached = await this.cache.get(id);
         if (cached != null) {
-            const lastModified = await getLastModified();
-            if (!lastModified || !cached[LAST_MODIFIED_COLUMN] || lastModified <= cached[LAST_MODIFIED_COLUMN]) {
+            const slm = await getLastModified() || 0;
+            const clm = cached[LAST_MODIFIED_COLUMN] || 0;
+            if (slm <= clm) {
                 return this.read(cached);
             }
         }
