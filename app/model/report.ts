@@ -154,19 +154,10 @@ export class Report implements DBRecord<Report> {
         };
     }
 
-    private async isPut(): Promise<boolean> {
-        return (await this.table).getRaw(this.id()) != null;
-    }
-
     async put() {
-        if (await this.isPut()) {
-            const leaves = this.leaves.map((leaf) => leaf.put());
-            await Promise.all(_.flatten([leaves, (await this.table).update(this)]));
-        } else {
-            const addings = this.leaves.map((leaf) => leaf.put());
-            addings.push((await this.table).put(this));
-            await Promise.all(addings);
-        }
+        const waits = this.leaves.map((leaf) => leaf.put());
+        waits.push((await this.table).put(this));
+        await Promise.all(waits);
     }
 
     async remove() {

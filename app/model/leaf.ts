@@ -176,16 +176,8 @@ export class Leaf implements DBRecord<Leaf> {
         };
     }
 
-    private async isPut(): Promise<boolean> {
-        return (await this.table).getRaw(this.id()) != null;
-    }
-
     async put() {
-        if (await this.isPut()) {
-            await (await this.table).update(this);
-        } else {
-            await (await this.table).put(this);
-        }
+        await (await this.table).put(this);
     }
 
     async remove() {

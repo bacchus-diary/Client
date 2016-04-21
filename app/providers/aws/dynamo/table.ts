@@ -104,21 +104,23 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
     async put(obj: T) {
         const item = setLastModified(await this.write(obj));
-        this.cache.put(item);
+        const cached = await this.cache.get(obj.id());
+        if (cached) {
+            await this.update(item, cached);
+        } else {
+            this.cache.put(item);
 
-        const params = {
-            TableName: this.tableName,
-            Item: _.merge(item, await this.makeKey(obj.id()))
-        };
+            const params = {
+                TableName: this.tableName,
+                Item: _.merge(item, await this.makeKey(obj.id()))
+            };
 
-        logger.debug(() => `Putting ${JSON.stringify(params)}`);
-        await toPromise(this.client.put(params));
+            logger.debug(() => `Putting ${JSON.stringify(params)}`);
+            await toPromise(this.client.put(params));
+        }
     }
 
-    async update(obj: T) {
-        const item = setLastModified(await this.write(obj));
-        const cached = await this.cache.get(obj.id());
-
+    private async update(item: R, cached?: R) {
         const attrs: DC.AttributeUpdates = {};
         Object.keys(item).filter((name) => {
             if (cached == null) return true;
@@ -138,7 +140,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             attrs[LAST_MODIFIED_COLUMN] = { Action: 'PUT', Value: item[LAST_MODIFIED_COLUMN] };
             const params = {
                 TableName: this.tableName,
-                Key: await this.makeKey(obj.id()),
+                Key: await this.makeKey(item[this.ID_COLUMN]),
                 AttributeUpdates: attrs
             };
 
