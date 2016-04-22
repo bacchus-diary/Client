@@ -127,7 +127,8 @@ export class AmazonPAA {
     private toProduct(item: Element): Product {
         const text = (query: string) => {
             const e = item.querySelector(query);
-            return e ? e.textContent : null;
+            if (e == null || e.textContent.length < 1) return null;
+            return e.textContent;
         }
         const int = (query: string) => parseFloat(text(query) || '0');
         return {
