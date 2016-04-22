@@ -95,7 +95,7 @@ export class AmazonPAA {
             Operation: 'ItemSearch',
             SearchIndex: 'All',
             ResponseGroup: 'Images,ItemAttributes,OfferSummary',
-            Keywords: keywords,
+            Keywords: keywords.replace(/'/, ''),
             Availability: 'Available',
             ItemPage: `${pageIndex}`
         });
