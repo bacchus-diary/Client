@@ -4,100 +4,96 @@ import {Logger} from '../../util/logging';
 
 const logger = new Logger('CachedPAA');
 
-type KeyTypes = { [key: string]: ColumnType; };
+const storageName = 'paa_cache';
 
-type ColumnType = string | number;
-
-function columnType(v: ColumnType): string {
-    return {
-        string: 'TEXT',
-        number: 'INTEGER'
-    }[typeof v];
-}
-
-function quote(v: ColumnType): string {
-    return ('string' == typeof v) ? `'${v}'` : v.toString();
-}
-
-export class CachedPAA<K, T> {
+export class CachedPAA<T> {
     constructor(
-        private storageName: string,
         private tableName: string,
         private maxAge: number,
-        keys: K,
-        private getter: (keys: K) => Promise<T>
+        private getter: (keywords: string, pageIndex: number) => Promise<T>
     ) {
-        this.storage = this.init(keys);
+        this.table = new CachedRecordTable(new Storage(SqlStorage, { name: storageName }), this.tableName);
     }
 
-    private storage: Promise<Storage>;
+    private table: CachedRecordTable;
 
-    private async init(keys: K): Promise<Storage> {
-        const storage = new Storage(SqlStorage, { name: this.storageName });
-        const c = this.makeRecord(keys);
-        const columns = Object.keys(c).map((name) => `${name} ${columnType(c[name])}`).join(', ');
-        const sql = `CREATE TABLE IF NOT EXISTS ${this.tableName} (${columns})`;
-        logger.debug(() => `CacheStorage(${this.storageName}): ${sql}`);
-        await storage.query(sql);
-        return storage;
-    }
-
-    private makeRecord(keys: K, obj?: any): any {
-        const c = {
-            timestamp: new Date().getTime(),
-            json: JSON.stringify(obj || {}).replace(/'/g, "''")
+    async get(keywords: string, pageIndex: number): Promise<T> {
+        const id = CachedRecordTable.encode({ keywords: keywords, pageIndex: pageIndex });
+        const cache = await this.table.get(id);
+        if (cache != null) {
+            const timeLimit = new Date().getTime() + this.maxAge;
+            if (cache.lastUpdate < timeLimit) {
+                return CachedRecordTable.decode(cache.base64json);
+            }
         }
-        return _.merge(c, keys);
+        const result = await this.getter(keywords, pageIndex);
+        const rec: CachedRecord = {
+            id: id,
+            lastUpdate: new Date().getTime(),
+            base64json: CachedRecordTable.encode(result)
+        }
+        await (cache ? this.table.update(rec) : this.table.put(rec));
+        return result;
     }
+}
+
+type CachedRecord = {
+    id: string,
+    lastUpdate: number,
+    base64json: string
+}
+
+class CachedRecordTable {
+    static encode(obj: any): string {
+        return btoa(encodeURIComponent(JSON.stringify(obj)));
+    }
+
+    static decode(base64: string): any {
+        return JSON.parse(decodeURIComponent(atob(base64)));
+    }
+
+    constructor(private storage: Storage, private tableName: string) {
+        const columns = [
+            'id TEXT NOT NULL PRIMARY KEY',
+            'lastUpdate INTEGER NOT NULL',
+            'base64json TEXT NOT NULL'
+        ].join(',');
+        const sql = `CREATE TABLE IF NOT EXISTS ${this.tableName} (${columns})`;
+        this.initialized = storage.query(sql);
+    }
+
+    private initialized: Promise<void>;
 
     private async query(sql: string, values?: any[]): Promise<any> {
         try {
-            logger.debug(() => `Querying to SqlStorage: ${sql} (with: ${values})`);
-            return await (await this.storage).query(sql, values);
+            await this.initialized;
+            logger.debug(() => `Quering Local Storage: "${sql}" (values: ${values})`);
+            return await this.storage.query(sql, values);
         } catch (ex) {
-            logger.warn(() => `Failed to SQL: ${JSON.stringify(ex)}`);
+            logger.warn(() => `Error on "${sql}": ${JSON.stringify(ex, null, 4)}`);
             throw ex;
         }
     }
 
-    private async getCache(keys: K): Promise<T> {
-        const constraint = Object.keys(keys).map((name) => `${name} = ?`).join(' AND ');
-        const sql = `SELECT * FROM ${this.tableName} WHERE ${constraint}`;
-        const values = Object.keys(keys).map((name) => keys[name]);
-
-        const rows = (await this.query(sql, values)).res.rows;
-        if (rows.length > 0) {
-            const record = rows.item(0);
-            logger.info(() => `Checking timestamp of cache: ${JSON.stringify(record, null, 4)}`);
-            const timeLimit = new Date().getTime() + this.maxAge;
-            if (record.timestamp < timeLimit) {
-                return JSON.parse(record.json);
-            }
-            await this.query(`DELETE FROM ${this.tableName} WHERE ${constraint}`, values);
-        }
-        return null;
+    async get(id: string): Promise<CachedRecord> {
+        const result = await this.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
+        const rows = result.res.rows;
+        logger.debug(() => `Reading response from ${this.tableName}: ${rows.length}`);
+        if (rows.length != 1) return null;
+        return rows.item(0);
     }
 
-    private async setCache(keys: K, result: T): Promise<void> {
-        const c = this.makeRecord(keys, result);
-
-        const names = Object.keys(c).map((name) => name).join(', ');
-        const values = Object.keys(c).map((name) => quote(c[name])).join(', ');
-
-        await this.query(`INSERT INTO ${this.tableName} (${names}) VALUES (${values})`);
+    async put(rec: CachedRecord): Promise<void> {
+        await this.query(`INSERT INTO ${this.tableName} (id, lastUpdate, base64json) VALUES (?, ?, ?)`,
+            [rec.id, rec.lastUpdate, rec.base64json]);
     }
 
-    async get(keys: K): Promise<T> {
-        try {
-            const cache = await this.getCache(keys);
-            if (cache != null) return cache;
-        } catch (ex) {
-        }
-        const result = await this.getter(keys);
-        try {
-            await this.setCache(keys, result);
-        } catch (ex) {
-        }
-        return result;
+    async update(rec: CachedRecord): Promise<void> {
+        await this.query(`UPDATE ${this.tableName} SET lastUpdate = ?, base64json = ? WHERE id = ?`,
+            [rec.lastUpdate, rec.base64json, rec.id]);
+    }
+
+    async remove(id: string): Promise<void> {
+        await this.query(`DELETE FROM ${this.tableName} WHERE id = ?`, [id]);
     }
 }

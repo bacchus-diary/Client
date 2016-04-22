@@ -67,24 +67,23 @@ export class AmazonPAA {
         }
     }
 
-    private storage = new CachedPAA('amazon_paa', 'item_search', 7 * 24 * 60 * 60 * 1000, {
-        keywords: '',
-        pageIndex: 0
-    }, async (keys): Promise<Array<Product>> => {
-        const xml = await this.invoke({
-            Operation: 'ItemSearch',
-            SearchIndex: 'All',
-            ResponseGroup: 'Images,ItemAttributes,OfferSummary',
-            Keywords: keys.keywords,
-            Availability: 'Available',
-            ItemPage: `${keys.pageIndex}`
+    private storage = new CachedPAA('item_search',
+        7 * 24 * 60 * 60 * 1000, // 7 days
+        async (keywords, pageIndex): Promise<Array<Product>> => {
+            const xml = await this.invoke({
+                Operation: 'ItemSearch',
+                SearchIndex: 'All',
+                ResponseGroup: 'Images,ItemAttributes,OfferSummary',
+                Keywords: keywords,
+                Availability: 'Available',
+                ItemPage: `${pageIndex}`
+            });
+
+            const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
+            logger.debug(() => `PAA Items by '${keywords}': ${elms.length}`);
+
+            return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
         });
-
-        const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
-        logger.debug(() => `PAA Items by '${keys.keywords}': ${elms.length}`);
-
-        return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
-    });
 
     async invoke(params: { [key: string]: string; }): Promise<Document> {
         let waiting = null;
