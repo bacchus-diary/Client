@@ -6,7 +6,6 @@ import {BootSettings} from '../config/boot_settings';
 import {Configuration} from '../config/configuration';
 import {ApiGateway} from '../aws/api_gateway';
 import {Product} from './suggestions';
-import {CachedPAA} from './cached_paa';
 import * as Base64 from '../../util/base64';
 import {Logger} from '../../util/logging';
 
