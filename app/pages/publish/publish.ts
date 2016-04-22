@@ -1,10 +1,11 @@
-import {Page, Modal, NavController, NavParams, ViewController, Toast} from 'ionic-angular';
+import {Page, Modal, NavController, NavParams, ViewController} from 'ionic-angular';
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
 import {Dialog, Spinner} from '../../util/backdrop';
+import {Toast} from '../../util/toast';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger('PublishPage');
@@ -49,12 +50,7 @@ export class PublishPage {
         this.close();
         try {
             await this.fbPublish.publish(this.message, this.report);
-            this.nav.present(Toast.create({
-                message: 'Share is completed',
-                duration: 4000,
-                showCloseButton: true,
-                closeButtonText: 'OK'
-            }));
+            Toast.showLongTop('Share is completed');
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
             await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
