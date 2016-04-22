@@ -26,14 +26,30 @@ export class ReportDetailPage {
     ) {
         this.report = params.get('report');
         logger.debug(() => `Detail of report: ${this.report}`);
-        this.updatePublishing();
     }
 
     report: Report;
 
-    private isPublishable: boolean;
-
     private updateLeaves = new EventEmitter<void>(true);
+
+    private _updatingPublished: Promise<void>;
+    private _isPublishable: boolean;
+    get isPublishable(): boolean {
+        const id = this.report.publishedFacebook;
+        if (id == null) {
+            if (this._isPublishable == null) this._isPublishable = true;
+        } else if (this._updatingPublished == null) {
+            this._updatingPublished = this.fbPublish.getAction(id).then((action) => {
+                this._isPublishable = action == null;
+                setTimeout(() => this._updatingPublished = null, 10 * 1000);
+            });
+        }
+        return this._isPublishable;
+    }
+
+    async onPageWillEnter() {
+        this._updatingPublished = null;
+    }
 
     async onPageWillLeave() {
         logger.debug(() => `Checking empty leaves...`);
@@ -68,19 +84,6 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        await PublishPage.open(this.nav, this.report, async (actionId) => {
-            logger.debug(() => `Updating facebook published id: ${actionId}`);
-            if (actionId) {
-                this.report.publishedFacebook = actionId;
-                await this.update();
-                this.updatePublishing();
-            }
-        });
-    }
-
-    private async updatePublishing() {
-        const id = this.report.publishedFacebook;
-        const action = id == null ? null : await this.fbPublish.getAction(id);
-        this.isPublishable = action == null;
+        await PublishPage.open(this.nav, this.report);
     }
 }
