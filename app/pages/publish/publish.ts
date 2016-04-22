@@ -57,7 +57,7 @@ export class PublishPage {
         }
     }
 
-    private close() {
+    private async close() {
         this.viewCtrl.dismiss();
     }
 }
