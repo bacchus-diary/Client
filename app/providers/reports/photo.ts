@@ -5,7 +5,7 @@ import {Configuration} from '../config/configuration';
 import {S3File} from '../aws/s3file';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(Photo);
+const logger = new Logger('Photo');
 
 const PATH_ORIGINAL = 'original';
 const PATH_REDUCED = 'reduced';

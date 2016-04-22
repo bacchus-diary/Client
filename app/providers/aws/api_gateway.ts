@@ -4,7 +4,7 @@ import {ApiInfo} from '../config/configuration';
 import {toPromise} from '../../util/promising';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(ApiGateway);
+const logger = new Logger('ApiGateway');
 
 export class ApiGateway<T> {
     constructor(

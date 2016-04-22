@@ -10,7 +10,7 @@ import {Report} from '../../model/report';
 import {Dialog, Spinner, Overlay} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(ReportDetailPage);
+const logger = new Logger('ReportDetailPage');
 
 @Page({
     templateUrl: 'build/pages/report_detail/report_detail.html',
@@ -24,17 +24,38 @@ export class ReportDetailPage {
         private fbPublish: FBPublish,
         private cachedReports: CachedReports
     ) {
-        const report: Report = params.get('report');
-        this.report = report.clone();
+        this.report = params.get('report');
         logger.debug(() => `Detail of report: ${this.report}`);
-        this.updatePublishing();
     }
 
     report: Report;
 
-    private isPublishable: boolean;
-
     private updateLeaves = new EventEmitter<void>(true);
+
+    private _updatingPublished: Promise<void>;
+    private _isPublishable: boolean;
+    get isPublishable(): boolean {
+        const id = this.report.publishedFacebook;
+        if (id == null) {
+            if (this._isPublishable == null) this._isPublishable = true;
+        } else if (this._updatingPublished == null) {
+            logger.debug(() => `Getting published action...`);
+            this._updatingPublished = this.fbPublish.getAction(id).then(async (action) => {
+                this._isPublishable = action == null;
+                if (action == null) {
+                    this.report.publishedFacebook = null;
+                    await this.report.put();
+                }
+                setTimeout(() => this._updatingPublished = null, 10 * 1000);
+            });
+        }
+        return this._isPublishable;
+    }
+
+    async onPageWillEnter() {
+        this._isPublishable = null;
+        this._updatingPublished = null;
+    }
 
     async onPageWillLeave() {
         logger.debug(() => `Checking empty leaves...`);
@@ -47,7 +68,7 @@ export class ReportDetailPage {
 
     private async update() {
         try {
-            await this.cachedReports.update(this.report);
+            await this.report.put();
         } catch (ex) {
             logger.warn(() => `Failed to update report: ${ex}`);
         }
@@ -69,19 +90,6 @@ export class ReportDetailPage {
     }
 
     private async publish() {
-        await PublishPage.open(this.nav, this.report, async (actionId) => {
-            logger.debug(() => `Updating facebook published id: ${actionId}`);
-            if (actionId) {
-                this.report.publishedFacebook = actionId;
-                await this.update();
-                this.updatePublishing();
-            }
-        });
-    }
-
-    private async updatePublishing() {
-        const id = this.report.publishedFacebook;
-        const action = id == null ? null : await this.fbPublish.getAction(id);
-        this.isPublishable = action == null;
+        await PublishPage.open(this.nav, this.report);
     }
 }

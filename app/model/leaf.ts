@@ -2,17 +2,18 @@ import {Photo, Images} from '../providers/reports/photo';
 import {Camera, Device} from 'ionic-native';
 
 import {Cognito} from '../providers/aws/cognito';
-import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
-import * as DC from '../providers/aws/document_client.d';
+import {Dynamo, DBRecord, createRandomKey} from '../providers/aws/dynamo/dynamo';
+import {DynamoTable} from '../providers/aws/dynamo/table';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
 
-const logger = new Logger(Leaf);
+const logger = new Logger('Leaf');
 
-type LeafRecord = {
+export type LeafRecord = {
     COGNITO_ID: string,
     REPORT_ID: string,
     LEAF_ID: string,
+    LAST_MODIFIED?: number,
     CONTENT: LeafContent
 };
 type LeafContent = {
@@ -24,10 +25,10 @@ type LeafContent = {
 };
 
 export class Leaf implements DBRecord<Leaf> {
-    private static _table: Promise<DynamoTable<Leaf>>;
-    static async table(dynamo: Dynamo): Promise<DynamoTable<Leaf>> {
+    private static _table: Promise<DynamoTable<LeafRecord, Leaf>>;
+    static async table(dynamo: Dynamo): Promise<DynamoTable<LeafRecord, Leaf>> {
         if (!this._table) {
-            this._table = dynamo.createTable<Leaf>((cognito, photo) => {
+            this._table = dynamo.createTable<LeafRecord, Leaf>((cognito, photo) => {
                 if (!Device.device.cordova) this.cleanup(photo);
                 return {
                     tableName: 'LEAF',
@@ -96,7 +97,7 @@ export class Leaf implements DBRecord<Leaf> {
         assert('images', photo);
     }
 
-    get table(): Promise<DynamoTable<Leaf>> {
+    get table(): Promise<DynamoTable<LeafRecord, Leaf>> {
         assert('Leaf$Table', Leaf._table);
         return Leaf._table;
     }
@@ -165,7 +166,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this._id;
     }
 
-    toMap(): LeafContent {
+    private toMap(): LeafContent {
         return {
             labels: this.labels.map(_.identity),
             logos: this.logos.map(_.identity),
@@ -175,15 +176,7 @@ export class Leaf implements DBRecord<Leaf> {
         };
     }
 
-    isNeedUpdate(other: Leaf): boolean {
-        return this.toString() != other.toString();
-    }
-
-    clone(): Leaf {
-        return new Leaf(this._reportId, this._id, this.toMap(), this.photo);
-    }
-
-    async add() {
+    async put() {
         await (await this.table).put(this);
     }
 
@@ -191,11 +184,5 @@ export class Leaf implements DBRecord<Leaf> {
         const db = (await this.table).remove(this.id());
         const s3 = this.photo.remove();
         await Promise.all([db, s3]);
-    }
-
-    async update(dst: Leaf) {
-        if (this.isNeedUpdate(dst)) {
-            await (await this.table).update(dst);
-        }
     }
 }

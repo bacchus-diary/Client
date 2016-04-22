@@ -58,7 +58,7 @@ export class Logger {
         output(`Set log lebel: ${this.lebel}`);
     }
 
-    constructor(private owner: any) {
+    constructor(private tag: string) {
         this.lebel = Logger.lebel;
     }
 
@@ -84,7 +84,7 @@ export class Logger {
 
     private output(lebel: Lebel, msg: () => string) {
         if (this.checkLebel(lebel)) {
-            output(`${dateString()}: ${padLeft(lebel, 5)}: ${msg()}`);
+            output(`${dateString()}: ${padLeft(lebel, 5)}: ${this.tag}: ${msg()}`);
         }
     }
 

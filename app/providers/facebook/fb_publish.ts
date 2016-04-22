@@ -12,7 +12,7 @@ import {withFabric} from '../../util/fabric';
 import {toPromise} from '../../util/promising';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(FBPublish);
+const logger = new Logger('FBPublish');
 
 @Injectable()
 export class FBPublish {
@@ -24,7 +24,7 @@ export class FBPublish {
         private con: FBConnect
     ) { }
 
-    async publish(message: string, report: Report): Promise<string> {
+    async publish(message: string, report: Report): Promise<void> {
         logger.info(() => `Publishing: ${report}`);
         const token = await this.con.grantPublish();
         const cred = await this.cognito.identity;
@@ -84,7 +84,10 @@ export class FBPublish {
             const obj = result.json();
             logger.debug(() => `Result of Facebook posting: ${JSON.stringify(obj)}`);
             withFabric((fabric) => fabric.Answers.eventShare({ method: 'Facebook' }));
-            return obj.id;
+
+            report.publishedFacebook = obj.id;
+            logger.debug(() => `Updating facebook published id: ${report.publishedFacebook}`);
+            await report.put();
         } catch (ex) {
             if (ex['_body']) {
                 logger.warn(() => `Error on posting to Facebook: ${ex['_body']}`);

@@ -5,7 +5,7 @@ import * as GCV from './gcv.d';
 import {CVision} from './cvision';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(Etiquette);
+const logger = new Logger('Etiquette');
 
 @Injectable()
 export class EtiquetteVision {

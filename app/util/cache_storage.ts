@@ -2,7 +2,7 @@ import {Storage, SqlStorage} from 'ionic-angular';
 
 import {Logger} from './logging';
 
-const logger = new Logger(CacheStorage);
+const logger = new Logger('CacheStorage');
 
 type KeyTypes = { [key: string]: ColumnType; };
 

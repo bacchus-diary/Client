@@ -5,7 +5,7 @@ import {AmazonPAA} from './amazon_paa';
 import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(Suggestions);
+const logger = new Logger('Suggestions');
 
 export type Product = {
     id: string,

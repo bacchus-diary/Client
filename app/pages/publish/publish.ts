@@ -8,7 +8,7 @@ import {Dialog, Spinner} from '../../util/backdrop';
 import {Toast} from '../../util/toast';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(PublishPage);
+const logger = new Logger('PublishPage');
 
 @Page({
     templateUrl: 'build/pages/publish/publish.html',
@@ -16,9 +16,9 @@ const logger = new Logger(PublishPage);
     providers: [FATHENS_PROVIDERS]
 })
 export class PublishPage {
-    static async open(nav: NavController, report: Report, callback?: (actionId: string) => any): Promise<void> {
+    static async open(nav: NavController, report: Report): Promise<void> {
         return await new Promise<void>((resolve, reject) => {
-            const modal = Modal.create(PublishPage, { report: report, callback: callback });
+            const modal = Modal.create(PublishPage, { report: report });
             modal.onDismiss(() => resolve());
             nav.present(modal);
         });
@@ -31,13 +31,10 @@ export class PublishPage {
         public viewCtrl: ViewController
     ) {
         this.report = params.get('report');
-        this._callback = params.get('callback');
         logger.debug(() => `Editing message of report: ${this.report}`);
         this.message = this.report.comment || "";
         this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
     }
-
-    private _callback: (actionId: string) => any;
 
     private report: Report;
 
@@ -45,25 +42,18 @@ export class PublishPage {
 
     message: string;
 
-    private callback(actionId: string) {
-        if (this._callback) this._callback(actionId);
-    }
-
     cancel() {
         this.close();
-        this.callback(null);
     }
 
     async submit() {
         this.close();
         try {
-            const id = await this.fbPublish.publish(this.message, this.report);
+            await this.fbPublish.publish(this.message, this.report);
             Toast.showLongTop('Share is completed');
-            this.callback(id);
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
             await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
-            this.callback(null);
         }
     }
 

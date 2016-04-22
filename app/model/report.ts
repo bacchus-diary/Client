@@ -2,17 +2,18 @@ import {Photo, Images} from '../providers/reports/photo';
 
 import {Leaf} from './leaf';
 import {Cognito} from '../providers/aws/cognito';
-import {Dynamo, DynamoTable, DBRecord, createRandomKey} from '../providers/aws/dynamo';
-import * as DC from '../providers/aws/document_client.d';
+import {Dynamo, DBRecord, createRandomKey} from '../providers/aws/dynamo/dynamo';
+import {DynamoTable} from '../providers/aws/dynamo/table';
 import {assert} from '../util/assertion';
 import {Logger} from '../util/logging';
 
-const logger = new Logger(Report);
+const logger = new Logger('Report');
 
-type ReportRecord = {
+export type ReportRecord = {
     COGNITO_ID: string,
     REPORT_ID: string,
     DATE_AT: number,
+    LAST_MODIFIED?: number,
     CONTENT: ReportContent
 };
 
@@ -27,11 +28,11 @@ type ReportContent = {
 };
 
 export class Report implements DBRecord<Report> {
-    private static _table: Promise<DynamoTable<Report>>;
-    static async table(dynamo: Dynamo): Promise<DynamoTable<Report>> {
+    private static _table: Promise<DynamoTable<ReportRecord, Report>>;
+    static async table(dynamo: Dynamo): Promise<DynamoTable<ReportRecord, Report>> {
         if (!this._table) {
             const leafTable = await Leaf.table(dynamo);
-            this._table = dynamo.createTable<Report>((cognito: Cognito, photo: Photo) => {
+            this._table = dynamo.createTable<ReportRecord, Report>((cognito: Cognito, photo: Photo) => {
                 return {
                     tableName: 'REPORT',
                     idColumnName: 'REPORT_ID',
@@ -87,7 +88,7 @@ export class Report implements DBRecord<Report> {
         assert('content', content);
     }
 
-    get table(): Promise<DynamoTable<Report>> {
+    get table(): Promise<DynamoTable<ReportRecord, Report>> {
         assert('Report$Table', Report._table);
         return Report._table;
     }
@@ -141,7 +142,7 @@ export class Report implements DBRecord<Report> {
         return this._id;
     }
 
-    toMap(): ReportContent {
+    private toMap(): ReportContent {
         return {
             rating: this.rating,
             comment: this.comment.length > 0 ? this.comment : null,
@@ -153,55 +154,15 @@ export class Report implements DBRecord<Report> {
         };
     }
 
-    isNeedUpdate(other: Report): boolean {
-        return this.toString() != other.toString();
-    }
-
-    clone(): Report {
-        return new Report(this._id,
-            new Date(this.dateAt.getTime()),
-            this.leaves.map((x) => x.clone()),
-            this.toMap());
-    }
-
-    async add() {
-        const addings = this.leaves.map((leaf) => leaf.add());
-        addings.push((await this.table).put(this));
-        await Promise.all(addings);
+    async put() {
+        const waits = this.leaves.map((leaf) => leaf.put());
+        waits.push((await this.table).put(this));
+        await Promise.all(waits);
     }
 
     async remove() {
         const removings = this.leaves.map((leaf) => leaf.remove());
         removings.push((await this.table).remove(this.id()));
         await Promise.all(removings);
-    }
-
-    async update(dst: Report) {
-        const diff = this.diff(this.leaves, dst.leaves);
-        const addings = diff.onlyDst.map((x) => x.add());
-        const removings = diff.onlySrc.map((x) => x.remove());
-        const updatings = diff.common.map((p) => p.src.update(p.dst));
-        const waits = _.flatten([addings, removings, updatings]);
-
-        if (this.isNeedUpdate(dst)) {
-            waits.push((await this.table).update(dst));
-        }
-        await Promise.all(waits);
-    }
-
-    private diff<X extends DBRecord<X>>(src: Array<X>, dst: Array<X>) {
-        const notIncluded = (list: Array<X>) => (x: X) => _.every(list, (y) => y.id() != x.id());
-        const parted = _.partition(dst, notIncluded(src));
-        return {
-            common: parted[1].map((d) => {
-                const s = _.find(src, (x) => x.id() == d.id());
-                return {
-                    src: s,
-                    dst: d
-                };
-            }),
-            onlyDst: parted[0],
-            onlySrc: _.filter(src, notIncluded(dst))
-        };
     }
 }

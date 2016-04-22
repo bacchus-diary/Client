@@ -9,7 +9,7 @@ import {Report} from '../../model/report';
 import {Dialog, Spinner, Overlay} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(AddReportPage);
+const logger = new Logger('AddReportPage');
 
 @Page({
     templateUrl: 'build/pages/add_report/add_report.html',
@@ -63,13 +63,7 @@ export class AddReportPage {
                 { ok: 'Yes, Share', cancel: 'No, Thru' }
             );
             if (publish) {
-                await PublishPage.open(this.nav, this.report, async (actionId) => {
-                    logger.debug(() => `Updating facebook published id: ${actionId}`);
-                    if (actionId) {
-                        this.report.publishedFacebook = actionId;
-                        await this.cachedReports.update(this.report);
-                    }
-                });
+                await PublishPage.open(this.nav, this.report);
             }
             logger.debug(() => `Success to add. leaving this page...`);
             await Overlay.wait(this.nav);

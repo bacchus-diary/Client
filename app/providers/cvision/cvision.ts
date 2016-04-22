@@ -6,7 +6,7 @@ import {Configuration} from '../config/configuration';
 import {toPromise} from '../../util/promising';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(CVision);
+const logger = new Logger('CVision');
 
 const urlGCV = "https://vision.googleapis.com/v1/images:annotate";
 

@@ -3,12 +3,13 @@ import {Injectable} from 'angular2/core';
 import {Report} from '../../model/report';
 import {Leaf} from '../../model/leaf';
 import {Cognito} from '../aws/cognito';
-import {Dynamo, DynamoTable, DBRecord} from '../aws/dynamo';
+import {Dynamo, DBRecord} from '../aws/dynamo/dynamo';
+import {DynamoTable} from '../aws/dynamo/table';
 import {assert} from '../../util/assertion';
 import {Pager, PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(CachedReports);
+const logger = new Logger('CachedReports');
 
 const PAGE_SIZE = 10;
 
@@ -37,34 +38,28 @@ export class CachedReports {
     }
 
     async add(report: Report) {
-        report = report.clone();
         logger.debug(() => `Adding report: ${report}`);
 
-        await report.add();
+        await report.put();
         (await this.currentList).unshift(report);
     }
 
     async remove(report: Report) {
-        report = report.clone();
         logger.debug(() => `Removing report: ${report}`);
 
         await report.remove();
         _.remove(await this.currentList, (x) => x.id() == report.id());
     }
+}
 
-    async update(report: Report) {
-        report = report.clone();
-        logger.debug(() => `Updating report: ${report}`);
-
-        const currentList = await this.currentList;
-        logger.debug(() => `Current list: ${currentList}`);
-        const originalIndex = _.findIndex(currentList, (x) => x.id() == report.id());
-        const original = currentList[originalIndex];
-        assert(`Report on current list[${originalIndex}]`, original);
-        currentList[originalIndex] = report;
-
-        await original.update(report);
-    }
+function differ(src: Array<string>, dst: Array<string>) {
+    const notIncluded = (list: Array<string>) => (x: string) => _.every(list, (y) => y != x);
+    const parted = _.partition(dst, notIncluded(src));
+    return {
+        common: parted[1].map((d) => _.find(src, (x) => x == d)),
+        onlyDst: parted[0],
+        onlySrc: _.filter(src, notIncluded(dst))
+    };
 }
 
 export class PagingReports implements PagingList<Report> {

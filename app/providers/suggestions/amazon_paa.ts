@@ -8,7 +8,7 @@ import {Product} from './suggestions';
 import {CacheStorage} from '../../util/cache_storage';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(AmazonPAA);
+const logger = new Logger('AmazonPAA');
 
 const ENDPOINT = {
     BR: "https://webservices.amazon.br/onca/xml",

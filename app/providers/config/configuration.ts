@@ -6,7 +6,7 @@ import {BootSettings} from './boot_settings';
 import {S3File} from '../aws/s3file';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(Configuration);
+const logger = new Logger('Configuration');
 
 @Injectable()
 export class Configuration {

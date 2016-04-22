@@ -3,7 +3,7 @@ import {Component, Input, Output, EventEmitter} from 'angular2/core';
 
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(RatingComponent);
+const logger = new Logger('RatingComponent');
 
 @Component({
     selector: 'fathens-rating',

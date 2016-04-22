@@ -5,7 +5,7 @@ import * as yaml from 'js-yaml';
 import {toPromise} from '../../util/promising';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(BootSettings);
+const logger = new Logger('BootSettings');
 
 @Injectable()
 export class BootSettings {

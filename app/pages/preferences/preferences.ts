@@ -5,7 +5,7 @@ import {Cognito, PROVIDER_KEY_FACEBOOK} from '../../providers/aws/cognito';
 import {Preferences} from '../../providers/config/preferences';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(PreferencesPage);
+const logger = new Logger('PreferencesPage');
 
 @Page({
     templateUrl: 'build/pages/preferences/preferences.html',

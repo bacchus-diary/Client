@@ -11,7 +11,7 @@ import {SearchReports} from '../../providers/reports/search';
 import {PagingList} from '../../util/pager';
 import {Logger} from '../../util/logging';
 
-const logger = new Logger(ReportsListPage);
+const logger = new Logger('ReportsListPage');
 
 @Page({
     templateUrl: 'build/pages/reports_list/reports_list.html',
@@ -61,11 +61,6 @@ export class ReportsListPage {
         return this.reports[index].leaves[0].photo.reduced.thumbnail.url;
     }
 
-    isLocalImage(index: number): boolean {
-        const url = this.imageUrl(index);
-        return !(_.isEmpty(url) || url.startsWith('http'));
-    }
-
     searchText: string;
     private searchTextInputing: Rx.Subscription;
 
@@ -96,7 +91,7 @@ export class ReportsListPage {
 
     async onPageWillEnter() {
         await this.clearSearch();
-        logger.debug(() => `Loaded initial reports: ${this.reports}`)
+        logger.debug(() => `Loaded initial reports: ${this.reports.length}`)
     }
 
     async doRefresh(event) {
@@ -104,7 +99,7 @@ export class ReportsListPage {
         try {
             this.pager.reset();
             await this.more();
-            logger.debug(() => `Refreshed reports: ${this.reports}`)
+            logger.debug(() => `Refreshed reports: ${this.reports.length}`)
         } finally {
             event.complete();
             this.isRefreshing = false;
@@ -112,9 +107,11 @@ export class ReportsListPage {
     }
 
     async doInfinite(event) {
-        logger.debug(() => `Getting more reports: ${event}`);
-        await this.more();
-        logger.debug(() => `Generated reports: ${this.reports}`)
+        if (this.pager.hasMore()) {
+            logger.debug(() => `Getting more reports: ${event}`);
+            await this.more();
+            logger.debug(() => `Generated reports: ${this.reports.length}`)
+        }
         event.complete();
     }
 
@@ -122,7 +119,7 @@ export class ReportsListPage {
         try {
             logger.info(() => `Getting reports list...`);
             await this.pager.more();
-            logger.debug(() => `CurrentList: ${this.reports}`);
+            logger.debug(() => `CurrentList: ${this.reports.length}`);
         } catch (ex) {
             logger.warn(() => `Failed to get reports list: ${ex}`);
         }
