@@ -1,11 +1,12 @@
 import {Injectable} from 'angular2/core';
 import {Http} from 'angular2/http';
+import {Storage, LocalStorage} from 'ionic-angular';
 
 import {BootSettings} from '../config/boot_settings';
 import {Configuration} from '../config/configuration';
 import {ApiGateway} from '../aws/api_gateway';
 import {Product} from './suggestions';
-import {CacheStorage} from '../../util/cache_storage';
+import * as Base64 from '../../util/base64';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger('AmazonPAA');
@@ -48,6 +49,7 @@ let gateway: Promise<ApiGateway<Document>>;
 
 let invoking: Promise<Document> = null;
 const INTERVAL = 5000; // 5 seconds
+const CACHE_MAXAGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @Injectable()
 export class AmazonPAA {
@@ -67,24 +69,7 @@ export class AmazonPAA {
         }
     }
 
-    private storage = new CacheStorage('amazon_paa', 'item_search', 7 * 24 * 60 * 60 * 1000, {
-        keywords: '',
-        pageIndex: 0
-    }, async (keys): Promise<Array<Product>> => {
-        const xml = await this.invoke({
-            Operation: 'ItemSearch',
-            SearchIndex: 'All',
-            ResponseGroup: 'Images,ItemAttributes,OfferSummary',
-            Keywords: keys.keywords,
-            Availability: 'Available',
-            ItemPage: `${keys.pageIndex}`
-        });
-
-        const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
-        logger.debug(() => `PAA Items by '${keys.keywords}': ${elms.length}`);
-
-        return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
-    });
+    private storage = new Storage(LocalStorage, { name: `paa_cache_item_search` });
 
     async invoke(params: { [key: string]: string; }): Promise<Document> {
         let waiting = null;
@@ -105,14 +90,45 @@ export class AmazonPAA {
         return result;
     }
 
+    async doItemSearch(keywords: string, pageIndex: number): Promise<Array<Product>> {
+        const xml = await this.invoke({
+            Operation: 'ItemSearch',
+            SearchIndex: 'All',
+            ResponseGroup: 'Images,ItemAttributes,OfferSummary',
+            Keywords: keywords.replace(/'/, ''),
+            Availability: 'Available',
+            ItemPage: `${pageIndex}`
+        });
+
+        const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
+        logger.debug(() => `PAA Items by '${keywords}': ${elms.length}`);
+
+        return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
+    }
+
     async itemSearch(keywords: string, pageIndex: number): Promise<Array<Product>> {
-        return this.storage.get({ keywords: keywords, pageIndex: pageIndex });
+        const id = Base64.encodeJson({ keywords: keywords, pageIndex: pageIndex });
+        const cache = await this.storage.getJson(id) as CachedRecord;
+        if (cache != null) {
+            const timeLimit = new Date().getTime() + CACHE_MAXAGE;
+            if (cache.lastUpdate < timeLimit) {
+                return Base64.decodeJson(cache.base64json);
+            }
+        }
+        const result = await this.doItemSearch(keywords, pageIndex);
+        const rec: CachedRecord = {
+            lastUpdate: new Date().getTime(),
+            base64json: Base64.encodeJson(result)
+        }
+        await this.storage.setJson(id, rec);
+        return result;
     }
 
     private toProduct(item: Element): Product {
         const text = (query: string) => {
             const e = item.querySelector(query);
-            return e ? e.textContent : null;
+            if (e == null || e.textContent.length < 1) return null;
+            return e.textContent;
         }
         const int = (query: string) => parseFloat(text(query) || '0');
         return {
@@ -126,4 +142,9 @@ export class AmazonPAA {
             url: text('DetailPageURL')
         };
     }
+}
+
+type CachedRecord = {
+    lastUpdate: number,
+    base64json: string
 }
