@@ -53,6 +53,7 @@ export class ReportDetailPage {
     }
 
     async onPageWillEnter() {
+        this._isPublishable = null;
         this._updatingPublished = null;
     }
 
