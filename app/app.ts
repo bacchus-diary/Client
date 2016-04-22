@@ -35,7 +35,6 @@ class MyApp {
         this.platform.ready().then(async () => {
             await Logger.setLebelByVersionNumber();
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
-            Splashscreen.hide();
         });
     }
 
