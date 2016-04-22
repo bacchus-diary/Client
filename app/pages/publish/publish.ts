@@ -50,7 +50,7 @@ export class PublishPage {
         this.close();
         try {
             await this.fbPublish.publish(this.message, this.report);
-            Toast.showLongTop('Share is completed');
+            Toast.showLongCenter('Share is completed');
         } catch (ex) {
             logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
             await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
