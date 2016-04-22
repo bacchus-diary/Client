@@ -1,4 +1,4 @@
-import {NavController, IONIC_DIRECTIVES} from 'ionic-angular';
+import {NavController} from 'ionic-angular';
 import {Camera, Device} from 'ionic-native';
 import {AnimationBuilder} from 'angular2/animate';
 import {Component, Input, Output, EventEmitter} from 'angular2/core';
@@ -24,7 +24,7 @@ const HEIGHT_MIN = 480;
 @Component({
     selector: 'fathens-showcase',
     templateUrl: 'build/components/showcase/showcase.html',
-    directives: [IONIC_DIRECTIVES, ElasticTextareaDirective],
+    directives: [ElasticTextareaDirective],
     providers: [FATHENS_PROVIDERS]
 })
 export class ShowcaseComponent {
