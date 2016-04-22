@@ -29,6 +29,7 @@
     <preference name="android-minSdkVersion" value="16" />
     <preference name="deployment-target" value="9.0"/>
     <preference name="BackupWebStorage" value="none" />
+    <preference name="SplashScreenDelay" value="30000" />
     <feature name="StatusBar">
         <param name="ios-package" onload="true" value="CDVStatusBar" />
     </feature>
