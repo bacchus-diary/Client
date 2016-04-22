@@ -25,3 +25,11 @@ export function encodeBase64(data: Blob): Promise<string> {
         reader.onloadend = () => resolve(btoa(reader.result));
     });
 }
+
+export function encodeJson(obj: any): string {
+    return btoa(encodeURIComponent(JSON.stringify(obj)));
+}
+
+export function decodeJson(base64: string): any {
+    return JSON.parse(decodeURIComponent(atob(base64)));
+}
