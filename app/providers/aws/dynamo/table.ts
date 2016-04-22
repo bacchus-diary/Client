@@ -1,3 +1,6 @@
+import {Storage, LocalStorage} from 'ionic-angular';
+
+import * as Base64 from '../../../util/base64';
 import {Pager} from '../../../util/pager';
 import {Logger} from '../../../util/logging';
 
@@ -28,11 +31,11 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         private _reader: RecordReader<R, T>,
         private _writer: RecordWriter<R, T>
     ) {
-        this.cache = new CachedTable<R>(_.snakeCase(tableName), ID_COLUMN);
+        this.cache = new Storage(LocalStorage, { name: `${_.snakeCase(tableName)}_${tableName}` });
         logger.debug(() => `Initialized DynamoDB Table: ${this.tableName}`);
     }
 
-    private cache: CachedTable<R>;
+    private cache: Storage;
 
     toString(): string {
         return `DynamoTable[${this.tableName}]`;
@@ -55,6 +58,15 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         return key;
     }
 
+    private async getCache(id: string): Promise<R> {
+        const rec = await this.cache.get(id);
+        return rec == null ? null : Base64.decodeJson(rec);
+    }
+
+    private async putCache(raw: R): Promise<void> {
+        await this.cache.set(raw[this.ID_COLUMN], Base64.encodeJson(raw));
+    }
+
     private async getItem(id: string): Promise<R> {
         const params = {
             TableName: this.tableName,
@@ -67,7 +79,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
     }
 
     private async doGet(id: string, getLastModified: () => Promise<number>): Promise<T> {
-        const cached = await this.cache.get(id);
+        const cached = await this.getCache(id);
         if (cached != null) {
             const slm = await getLastModified() || 0;
             const clm = cached[LAST_MODIFIED_COLUMN] || 0;
@@ -78,7 +90,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         const item = await this.getItem(id);
         if (!item) return null;
 
-        await (cached ? this.cache.update(item) : this.cache.put(item));
+        await this.putCache(item);
         return this.read(item);
     }
 
@@ -97,7 +109,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
     async put(obj: T) {
         const item = setLastModified(await this.write(obj));
-        const cached = await this.cache.get(obj.id());
+        const cached = await this.getCache(obj.id());
         if (cached) {
             await this.update(item, cached);
         } else {
@@ -108,7 +120,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             logger.debug(() => `Putting ${JSON.stringify(params)}`);
 
             await Promise.all([
-                this.cache.put(item),
+                this.putCache(item),
                 toPromise(this.client.put(params))
             ]);
         }
@@ -134,7 +146,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             logger.debug(() => `Updating ${JSON.stringify(params)}`);
 
             await Promise.all([
-                cached ? this.cache.update(item) : this.cache.put(item),
+                this.putCache(item),
                 toPromise(this.client.update(params))
             ]);
         }
