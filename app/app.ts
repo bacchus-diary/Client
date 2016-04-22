@@ -26,16 +26,16 @@ class MyApp {
     }
 
     initializeApp() {
+        this.platform.backButton.subscribe(() => {
+            const nav = this.app.getActiveNav() as NavController;
+            if (!nav.hasOverlay() && nav.canGoBack()) {
+                nav.pop();
+            }
+        })
         this.platform.ready().then(async () => {
             await Logger.setLebelByVersionNumber();
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
             Splashscreen.hide();
-            document.addEventListener('backbutton', () => {
-                const nav = this.app.getComponent('nav');
-                if (!nav.hasOverlay() && nav.canGoBack()) {
-                    nav.pop();
-                }
-            });
         });
     }
 
