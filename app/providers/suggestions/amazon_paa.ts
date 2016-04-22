@@ -5,7 +5,7 @@ import {BootSettings} from '../config/boot_settings';
 import {Configuration} from '../config/configuration';
 import {ApiGateway} from '../aws/api_gateway';
 import {Product} from './suggestions';
-import {CacheStorage} from '../../util/cache_storage';
+import {CachedPAA} from './cached_paa';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger('AmazonPAA');
@@ -67,7 +67,7 @@ export class AmazonPAA {
         }
     }
 
-    private storage = new CacheStorage('amazon_paa', 'item_search', 7 * 24 * 60 * 60 * 1000, {
+    private storage = new CachedPAA('amazon_paa', 'item_search', 7 * 24 * 60 * 60 * 1000, {
         keywords: '',
         pageIndex: 0
     }, async (keys): Promise<Array<Product>> => {

@@ -1,8 +1,8 @@
 import {Storage, SqlStorage} from 'ionic-angular';
 
-import {Logger} from './logging';
+import {Logger} from '../../util/logging';
 
-const logger = new Logger('CacheStorage');
+const logger = new Logger('CachedPAA');
 
 type KeyTypes = { [key: string]: ColumnType; };
 
@@ -19,7 +19,7 @@ function quote(v: ColumnType): string {
     return ('string' == typeof v) ? `'${v}'` : v.toString();
 }
 
-export class CacheStorage<K, T> {
+export class CachedPAA<K, T> {
     constructor(
         private storageName: string,
         private tableName: string,
