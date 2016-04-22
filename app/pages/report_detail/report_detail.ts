@@ -39,8 +39,13 @@ export class ReportDetailPage {
         if (id == null) {
             if (this._isPublishable == null) this._isPublishable = true;
         } else if (this._updatingPublished == null) {
-            this._updatingPublished = this.fbPublish.getAction(id).then((action) => {
+            logger.debug(() => `Getting published action...`);
+            this._updatingPublished = this.fbPublish.getAction(id).then(async (action) => {
                 this._isPublishable = action == null;
+                if (action == null) {
+                    this.report.publishedFacebook = null;
+                    await this.report.put();
+                }
                 setTimeout(() => this._updatingPublished = null, 10 * 1000);
             });
         }
