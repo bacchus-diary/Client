@@ -63,6 +63,7 @@ export class AddReportPage {
                 { ok: 'Yes, Share', cancel: 'No, Thru' }
             );
             if (publish) {
+                await Overlay.wait(this.nav);
                 await PublishPage.open(this.nav, this.report);
             }
             logger.debug(() => `Success to add. leaving this page...`);
