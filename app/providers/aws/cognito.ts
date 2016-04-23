@@ -183,7 +183,7 @@ class CognitoIdentity {
         return hasKey(this.map, name);
     }
 
-    isJoinFacebook(): boolean {
+    get isJoinFacebook(): boolean {
         return this.isJoin(PROVIDER_KEY_FACEBOOK);
     }
 }
