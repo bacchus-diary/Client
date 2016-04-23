@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.ionic.starter" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>V2 Test</name>
-    <description>An Ionic Framework and Cordova project.</description>
-    <author email="hi@ionicframework" href="http://ionicframework.com/">Ionic Framework Team</author>
+<widget version="1.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Bacchus Diary</name>
+    <description>Client of Bacchus Diary</description>
+    <author email="bacchus-diary@fathens.org" href="http://www.fathens.org/">Office f:athens</author>
     <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
@@ -11,6 +11,10 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
+
+    <engine name='android' spec='~5.1.0'/>
+    <engine name='ios' spec='~3.9.0'/>
+
     <platform name="android">
         <allow-intent href="market:*" />
     </platform>
@@ -18,11 +22,14 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
+
     <preference name="webviewbounce" value="false" />
     <preference name="UIWebViewBounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
     <preference name="android-minSdkVersion" value="16" />
+    <preference name="deployment-target" value="9.0"/>
     <preference name="BackupWebStorage" value="none" />
+    <preference name="SplashScreenDelay" value="30000" />
     <feature name="StatusBar">
         <param name="ios-package" onload="true" value="CDVStatusBar" />
     </feature>

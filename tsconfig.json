@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
     "module": "commonjs",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },
   "filesGlob": [
-    "**/*.ts",
-    "!node_modules/**/*"
+    "app/**/*.ts",
+    "plugins/org.fathens.*/**/*.d.ts",
+    "typings/browser.d.ts"
   ],
   "exclude": [
     "node_modules",

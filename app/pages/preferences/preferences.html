@@ -1,0 +1,23 @@
+<ion-navbar *navbar>
+    <button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Preferences</ion-title>
+</ion-navbar>
+
+<ion-content class="preferences" *ngIf="pref">
+    <ion-list>
+        <ion-list-header>Social Connection</ion-list-header>
+        <ion-item>
+            <ion-toggle primary [(ngModel)]="facebook"></ion-toggle>
+            <ion-label>Facebook</ion-label>
+        </ion-item>
+    </ion-list>
+    <ion-list>
+        <ion-list-header>Photo</ion-list-header>
+        <ion-item>
+            <ion-toggle danger [(ngModel)]="alwaysTake"></ion-toggle>
+            <ion-label>Always TAKE</ion-label>
+        </ion-item>
+    </ion-list>
+</ion-content>

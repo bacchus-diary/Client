@@ -1,0 +1,25 @@
+<ion-navbar *navbar>
+    <button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Detail</ion-title>
+    <ion-buttons end class="ng-animate" *ngIf="isPublishable">
+        <button favorite (click)="publish()">
+            <ion-icon name="share"></ion-icon>
+        </button>
+    </ion-buttons>
+    <ion-buttons end>
+        <button danger (click)="remove()">
+            <ion-icon name="trash"></ion-icon>
+        </button>
+    </ion-buttons>
+</ion-navbar>
+
+<ion-content class="report_detail">
+    <fathens-rating [value]="report.rating" (changed)="report.rating = $event"></fathens-rating>
+    <ion-item>
+        <ion-textarea elastic placeholder="Your impressions ..." [(ngModel)]="report.comment"></ion-textarea>
+    </ion-item>
+    <fathens-suggestions [report]="report" [reloadEvent]="updateLeaves"></fathens-suggestions>
+    <fathens-showcase [reportId]="report.id()" [leaves]="report.leaves" (update)="updateLeaves.emit(null)"></fathens-showcase>
+</ion-content>

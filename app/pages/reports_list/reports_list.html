@@ -1,0 +1,46 @@
+<ion-navbar *navbar class="reports_list">
+    <button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-searchbar placeholder="Search" (input)="inputSearch()" (search)="search()" [(ngModel)]="searchText" hideCancelButton="true"></ion-searchbar>
+    <ion-buttons end>
+        <button favorite (click)="addNew()">
+            <ion-icon name="add"></ion-icon>
+        </button>
+    </ion-buttons>
+</ion-navbar>
+
+<ion-content class="reports_list">
+
+    <div class="spinner" *ngIf="isLoading">
+        <ion-spinner></ion-spinner>
+    </div>
+    <div class="ng-animate empty" *ngIf="isEmpty">
+        <button favorite large round (click)="addNew()" *ngIf="!isSearchMode">
+            Add first journal now !
+        </button>
+        <button light large clear *ngIf="isSearchMode">
+            No matches
+        </button>
+    </div>
+
+    <ion-refresher (refresh)="doRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+    <ion-list>
+        <button ion-item class="item" *ngFor="#item of reports; #i = index" (click)="goReport(item)">
+            <ion-thumbnail item-left>
+                <img [src]="imageUrl(i)" *ngIf="imageUrl(i)" />
+            </ion-thumbnail>
+            <div class="item-header">
+                <fathens-rating [value]="item.rating"></fathens-rating>
+                <p class="item-date">{{ item.dateAt | date:"mediumDate" }}</p>
+            </div>
+            <p class="item-comment">{{ item.comment }}</p>
+            <p class="item-desc">{{ item.leaves[0].description }}</p>
+        </button>
+    </ion-list>
+    <ion-infinite-scroll (infinite)="doInfinite($event)">
+        <ion-infinite-scroll-content></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+</ion-content>
