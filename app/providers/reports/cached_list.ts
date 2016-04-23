@@ -65,8 +65,9 @@ function differ(src: Array<string>, dst: Array<string>) {
 export class PagingReports implements PagingList<Report> {
     constructor(private pager: Pager<Report>) {
         Cognito.addChangingHook(async (oldId, newId) => {
-            this.reset();
+            pager.reset();
             logger.debug(() => `Done resetting PagingList`);
+            this.more(); // ここはバックグラウンドで Hook 終了後に実行
         });
     }
 
