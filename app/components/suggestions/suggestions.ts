@@ -1,4 +1,4 @@
-import {NavController, IONIC_DIRECTIVES} from 'ionic-angular';
+import {NavController} from 'ionic-angular';
 import {Component, Input} from 'angular2/core';
 import {EventEmitter} from 'angular2/core';
 
@@ -15,7 +15,6 @@ const scrollLastMergin = 100; // px
 @Component({
     selector: 'fathens-suggestions',
     templateUrl: 'build/components/suggestions/suggestions.html',
-    directives: [IONIC_DIRECTIVES],
     providers: [FATHENS_PROVIDERS]
 })
 export class SuggestionsComponent {

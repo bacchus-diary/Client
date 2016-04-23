@@ -91,5 +91,7 @@ export class ReportDetailPage {
 
     private async publish() {
         await PublishPage.open(this.nav, this.report);
+        await Overlay.wait(this.nav);
+        this.nav.pop();
     }
 }

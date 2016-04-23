@@ -34,7 +34,7 @@ export class PreferencesPage {
             } else {
                 await this.cognito.dropFacebook();
             }
-            const joined = (await this.cognito.identity).isJoinFacebook();
+            const joined = (await this.cognito.identity).isJoinFacebook;
             if (joined != this._facebook) {
                 this.pref.setSocial(PROVIDER_KEY_FACEBOOK, this._facebook = joined);
                 logger.debug(() => `Updated 'facebook': ${this.facebook}`);

@@ -2,9 +2,10 @@ import {Page, Modal, NavController, NavParams, ViewController} from 'ionic-angul
 
 import {FATHENS_DIRECTIVES} from '../../components/all';
 import {FATHENS_PROVIDERS} from '../../providers/all';
+import {Cognito} from '../../providers/aws/cognito';
 import {FBPublish} from '../../providers/facebook/fb_publish';
 import {Report} from '../../model/report';
-import {Dialog, Spinner} from '../../util/backdrop';
+import {Dialog, Spinner, Overlay} from '../../util/backdrop';
 import {Toast} from '../../util/toast';
 import {Logger} from '../../util/logging';
 
@@ -27,6 +28,7 @@ export class PublishPage {
     constructor(
         private nav: NavController,
         params: NavParams,
+        private cognito: Cognito,
         private fbPublish: FBPublish,
         public viewCtrl: ViewController
     ) {
@@ -46,18 +48,37 @@ export class PublishPage {
         this.close();
     }
 
+    get isJoined(): Promise<boolean> {
+        return this.cognito.identity.then((id) => {
+            const r = id.isJoinFacebook;
+            logger.debug(() => `Is joined Facebook: ${r}`);
+            return r;
+        });
+    }
+
     async submit() {
+        if (!(await this.isJoined)) {
+            try {
+                await Spinner.within(this.nav, 'SignIn...', async () => {
+                    await this.cognito.joinFacebook();
+                });
+            } catch (ex) {
+                logger.warn(() => `Error on SignIn: ${ex}`);
+            }
+        }
         this.close();
-        try {
-            await this.fbPublish.publish(this.message, this.report);
-            Toast.showLongTop('Share is completed');
-        } catch (ex) {
-            logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
-            await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
+        if (await this.isJoined) {
+            try {
+                await this.fbPublish.publish(this.message, this.report);
+                Toast.showLongCenter('Share is completed');
+            } catch (ex) {
+                logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
+                await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
+            }
         }
     }
 
-    private close() {
+    private async close() {
         this.viewCtrl.dismiss();
     }
 }

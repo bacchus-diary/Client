@@ -1,4 +1,3 @@
-import {IONIC_DIRECTIVES} from 'ionic-angular';
 import {Component, Input, Output, EventEmitter} from 'angular2/core';
 
 import {Logger} from '../../util/logging';
@@ -7,8 +6,7 @@ const logger = new Logger('RatingComponent');
 
 @Component({
     selector: 'fathens-rating',
-    templateUrl: 'build/components/rating/rating.html',
-    directives: [IONIC_DIRECTIVES]
+    templateUrl: 'build/components/rating/rating.html'
 })
 export class RatingComponent {
     @Input() maxValue: number = 5;

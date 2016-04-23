@@ -30,7 +30,6 @@
     <preference name="deployment-target" value="9.0"/>
     <preference name="BackupWebStorage" value="none" />
     <preference name="SplashScreenDelay" value="30000" />
-    <preference name="AutoHideSplashScreen" value="false" />
     <feature name="StatusBar">
         <param name="ios-package" onload="true" value="CDVStatusBar" />
     </feature>

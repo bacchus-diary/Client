@@ -45,9 +45,8 @@ export class Photo {
     }
 
     async images(reportId: string, leafId: string, localUrl?: string): Promise<Images> {
-        const cognitoId = (await this.cognito.identity).identityId;
         const expiring = (await this.config.server).photo.urlTimeout;
-        return new Images(this.s3file, cognitoId, expiring, reportId, leafId, localUrl);
+        return new Images(this.s3file, this.cognito, expiring, reportId, leafId, localUrl);
     }
 
     async cleanup(cond: (images: Images) => Promise<boolean>) {
@@ -84,7 +83,7 @@ export class Images {
 
     constructor(
         private s3file: S3File,
-        private _cognitoId: string,
+        private cognito: Cognito,
         public expiresInSeconds: number,
         private _reportId: string,
         private _leafId: string,
@@ -103,9 +102,6 @@ export class Images {
         thumbnail: Image
     };
 
-    get cognitoId(): string {
-        return this._cognitoId;
-    }
     get reportId(): string {
         return this._reportId;
     }
@@ -118,7 +114,7 @@ export class Images {
     }
 
     async makeStoragePath(relativePath: string) {
-        return `photo/${relativePath}/${this.cognitoId}/${this.reportId}/${this.leafId}.jpg`;
+        return `photo/${relativePath}/${(await this.cognito.identity).identityId}/${this.reportId}/${this.leafId}.jpg`;
     }
 
     async makeUrl(relativePath: string) {
