@@ -39,16 +39,15 @@ export class FBJSSDK implements FBConnectPlugin {
         });
     }
 
-    private invoke<T>(callback: FBConnectPluginCallback<T>, proc: (fb: FBJSSDKPlugin, callback: FBJSCallback<T>) => void) {
-        this.initialize().then(() => {
-            proc((window as any).FB, (res) => {
-                callback(null, res);
-            });
-        }).catch((err) => callback(err, null));
+    private async invoke<T>(proc: (fb: FBJSSDKPlugin, callback: (result: T) => void) => void) {
+        await this.initialize();
+        return new Promise<T>((resolve, reject) => {
+            proc((window as any).FB, resolve);
+        });
     }
 
-    login(callback: FBConnectPluginCallback<string>, arg?: string): void {
-        this.invoke(callback, (fb, callback) => {
+    login(arg?: string): Promise<string> {
+        return this.invoke<string>((fb, callback) => {
             const args = ['public_profile'];
             if (arg) args.push(arg);
             fb.login((res) => {
@@ -57,18 +56,18 @@ export class FBJSSDK implements FBConnectPlugin {
         });
     }
 
-    logout(callback: FBConnectPluginCallback<void>): void {
-        this.invoke(callback, (fb, callback) => {
+    logout(): Promise<void> {
+        return this.invoke<void>((fb, callback) => {
             fb.logout(callback);
         });
     }
 
-    getName(callback: FBConnectPluginCallback<string>): void {
-        callback('Unsupported oparation: getName', null);
+    getName(): Promise<string> {
+        throw 'Unsupported oparation: getName';
     }
 
-    getToken(callback: FBConnectPluginCallback<{ token: string, permissions: string[] }>): void {
-        this.invoke(callback, (fb, callback) => {
+    getToken(): Promise<FBConnectToken> {
+        return this.invoke<FBConnectToken>((fb, callback) => {
             fb.getLoginStatus((res) => {
                 if (res.status == 'connected') {
                     callback({

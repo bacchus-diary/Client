@@ -20,49 +20,23 @@ export class FBConnect {
         }
     }
 
-    private invoke<T>(proc: (plugin: FBConnectPlugin, callback: FBConnectPluginCallback<T>) => void): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
-            proc(this.plugin, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    try {
-                        resolve(result);
-                    } catch (ex) {
-                        reject(ex);
-                    }
-                }
-            })
-        })
-    }
-
     login(): Promise<string> {
-        return this.invoke<string>((plugin, callback) => {
-            plugin.login(callback);
-        });
+        return this.plugin.login();
     }
 
     logout(): Promise<void> {
-        return this.invoke<void>((plugin, callback) => {
-            plugin.logout(callback);
-        });
+        return this.plugin.logout();
     }
 
     grantPublish(): Promise<string> {
-        return this.invoke<string>((plugin, callback) => {
-            plugin.login(callback, 'publish_actions');
-        });
+        return this.plugin.login('publish_actions');
     }
 
     getName(): Promise<string> {
-        return this.invoke<string>((plugin, callback) => {
-            plugin.getName(callback);
-        });
+        return this.plugin.getName();
     }
 
-    getToken(): Promise<{ token: string, permissions: string[] }> {
-        return this.invoke<{ token: string, permissions: string[] }>((plugin, callback) => {
-            plugin.getToken(callback);
-        });
+    getToken(): Promise<FBConnectToken> {
+        return this.plugin.getToken();
     }
 }
