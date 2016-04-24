@@ -4,8 +4,6 @@ import {Http} from 'angular2/http';
 import {toPromise} from '../../util/promising';
 import {Logger} from '../../util/logging';
 
-import {FBConnectPlugin, PluginCallback} from './plugin';
-
 const logger = new Logger('FBJSSDK');
 
 @Injectable()
@@ -41,7 +39,7 @@ export class FBJSSDK implements FBConnectPlugin {
         });
     }
 
-    private invoke<T>(callback: PluginCallback<T>, proc: (fb: FBJSSDKPlugin, callback: FBJSCallback<T>) => void) {
+    private invoke<T>(callback: FBConnectPluginCallback<T>, proc: (fb: FBJSSDKPlugin, callback: FBJSCallback<T>) => void) {
         this.initialize().then(() => {
             proc((window as any).FB, (res) => {
                 callback(null, res);
@@ -49,7 +47,7 @@ export class FBJSSDK implements FBConnectPlugin {
         }).catch((err) => callback(err, null));
     }
 
-    login(callback: PluginCallback<string>, arg?: string): void {
+    login(callback: FBConnectPluginCallback<string>, arg?: string): void {
         this.invoke(callback, (fb, callback) => {
             const args = ['public_profile'];
             if (arg) args.push(arg);
@@ -59,17 +57,17 @@ export class FBJSSDK implements FBConnectPlugin {
         });
     }
 
-    logout(callback: PluginCallback<void>): void {
+    logout(callback: FBConnectPluginCallback<void>): void {
         this.invoke(callback, (fb, callback) => {
             fb.logout(callback);
         });
     }
 
-    getName(callback: PluginCallback<string>): void {
+    getName(callback: FBConnectPluginCallback<string>): void {
         callback('Unsupported oparation: getName', null);
     }
 
-    getToken(callback: PluginCallback<{ token: string, permissions: string[] }>): void {
+    getToken(callback: FBConnectPluginCallback<{ token: string, permissions: string[] }>): void {
         this.invoke(callback, (fb, callback) => {
             fb.getLoginStatus((res) => {
                 if (res.status == 'connected') {

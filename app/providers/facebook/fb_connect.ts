@@ -3,7 +3,6 @@ import {Device} from 'ionic-native';
 
 import {Logger} from '../../util/logging';
 
-import {FBConnectPlugin, PluginCallback} from './plugin';
 import {FBJSSDK} from './fb_jssdk';
 
 const logger = new Logger('FBConnect');
@@ -21,7 +20,7 @@ export class FBConnect {
         }
     }
 
-    private invoke<T>(proc: (plugin: FBConnectPlugin, callback: PluginCallback<T>) => void): Promise<T> {
+    private invoke<T>(proc: (plugin: FBConnectPlugin, callback: FBConnectPluginCallback<T>) => void): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             proc(this.plugin, (err, result) => {
                 if (err) {
