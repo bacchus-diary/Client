@@ -29,7 +29,7 @@
     <preference name="android-minSdkVersion" value="16" />
     <preference name="deployment-target" value="9.0"/>
     <preference name="BackupWebStorage" value="none" />
-    <preference name="SplashScreenDelay" value="5000" />
+    <preference name="SplashScreenDelay" value="10000" />
     <preference name="ShowSplashScreenSpinner" value="true"/>
     <preference name="SplashMaintainAspectRatio" value="true" />
     <feature name="StatusBar">
