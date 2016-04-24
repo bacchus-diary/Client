@@ -33,8 +33,10 @@ class MyApp {
             }
         })
         this.platform.ready().then(async () => {
+            Splashscreen.show();
             await Logger.setLebelByVersionNumber();
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
+            Splashscreen.hide();
         });
     }
 
