@@ -21,8 +21,12 @@ export class FBConnect {
 
     private plugin: FBConnectPlugin;
 
-    login(): Promise<string> {
-        return this.plugin.login();
+    async login(): Promise<string> {
+        const result = this.plugin.login();
+        logger.debug(() => `Result of login: ${JSON.stringify(result)}`);
+        const token = await result;
+        logger.debug(() => `Token of login: ${JSON.stringify(token)}`);
+        return token;
     }
 
     logout(): Promise<void> {
