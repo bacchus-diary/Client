@@ -52,22 +52,27 @@ export class Cognito {
     }
 
     private async initialize(): Promise<void> {
-        logger.debug(() => `Initializing Cognito...`);
-        (AWS.config as ClientConfig).region = await this.settings.awsRegion;
-        const cred = setupCredentials(await this.settings.cognitoPoolId);
-        logger.debug(() => `Refreshing credential: ${cred}`);
+        try {
+            logger.debug(() => `Initializing Cognito...`);
+            (AWS.config as ClientConfig).region = await this.settings.awsRegion;
+            const cred = setupCredentials(await this.settings.cognitoPoolId);
+            logger.debug(() => `Refreshing credential: ${cred}`);
 
-        if (await this.pref.getSocial(PROVIDER_KEY_FACEBOOK)) {
-            await this.joinFacebook();
-        } else {
-            try {
-                await this.refresh();
-            } catch (ex) {
-                logger.warn(() => `Retry to initialize cognito by clearing identityId...`);
-                getCredentials().params.IdentityId = null;
-                await this.refresh();
+            if (await this.pref.getSocial(PROVIDER_KEY_FACEBOOK)) {
+                await this.joinFacebook();
+            } else {
+                try {
+                    await this.refresh();
+                } catch (ex) {
+                    logger.warn(() => `Retry to initialize cognito by clearing identityId...`);
+                    getCredentials().params.IdentityId = null;
+                    await this.refresh();
+                }
+                withFabric((fabric) => fabric.Answers.eventLogin({ method: 'Cognito' }));
             }
-            withFabric((fabric) => fabric.Answers.eventLogin({ method: 'Cognito' }));
+        } catch (ex) {
+            logger.fatal(() => `Failed to initialize: ${JSON.stringify(ex, null, 4)}`);
+            withFabric((fabric) => fabric.Crashlytics.crash(JSON.stringify(ex)));
         }
     }
 
