@@ -9,16 +9,16 @@ const logger = new Logger('FBConnect');
 
 @Injectable()
 export class FBConnect {
-    constructor(private fbjs: FBJSSDK) { }
-
-    get plugin(): FBConnectPlugin {
+    constructor(private fbjs: FBJSSDK) {
         logger.debug(() => `Cordova: ${Device.device.cordova}`);
         if (Device.device.cordova) {
-            return (window as any).plugin.FBConnect;
+            this.plugin = (window as any).plugin.FBConnect;
         } else {
-            return this.fbjs;
+            this.plugin = this.fbjs;
         }
     }
+
+    private plugin: FBConnectPlugin;
 
     login(): Promise<string> {
         return this.plugin.login();
