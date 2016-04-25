@@ -1,9 +1,10 @@
 import {App, IonicApp, Platform, NavController} from 'ionic-angular';
-import {Splashscreen} from 'ionic-native';
+import {AppVersion, Splashscreen} from 'ionic-native';
 
 import {AcceptancePage} from './pages/acceptance/acceptance';
 import {ReportsListPage} from './pages/reports_list/reports_list';
 import {PreferencesPage} from './pages/preferences/preferences';
+import {withFabric} from './util/fabric';
 import {Logger} from './util/logging';
 
 @App({
@@ -37,7 +38,19 @@ class MyApp {
             await Logger.setLebelByVersionNumber();
             this.rootPage = AcceptancePage.isAccepted() ? ReportsListPage : AcceptancePage;
             Splashscreen.hide();
+
+            try {
+                const version: string = await AppVersion.getVersionNumber();
+                const v = parseInt(_.last(version.match(/[0-9]/g)));
+                this.isDevel = v % 2 != 0;
+            } catch (ex) { }
         });
+    }
+
+    isDevel: boolean = false;
+
+    crash() {
+        withFabric((fabric) => fabric.Crashlytics.crash('Manually crashed.'));
     }
 
     openPage(page) {

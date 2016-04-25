@@ -9,6 +9,7 @@
       <button menuClose ion-item *ngFor="#p of pages" (click)="openPage(p)">
         {{p.title}}
       </button>
+      <button danger ion-item *ngIf="isDevel" (click)="crash()">Crash</button>
     </ion-list>
   </ion-content>
 
