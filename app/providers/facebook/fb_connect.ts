@@ -13,6 +13,7 @@ export class FBConnect {
         logger.debug(() => `Cordova: ${Device.device.cordova}`);
         if (Device.device.cordova) {
             this.plugin = (window as any).plugin.FBConnect;
+            this.plugin['logger'] = new Logger('FBConnectPlugin');
         } else {
             this.plugin = this.fbjs;
         }
