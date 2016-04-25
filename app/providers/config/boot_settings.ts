@@ -9,7 +9,7 @@ const logger = new Logger('BootSettings');
 
 @Injectable()
 export class BootSettings {
-    private static src: Map<string, string> = null;
+    private static src: { [key: string]: string; } = null;
 
     constructor(private http: Http) { }
 

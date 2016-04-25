@@ -338,7 +338,7 @@ export type AttributeUpdates = any;
  */
 export type BatchGetRequestItems = any;
 
-export type BatchGetResponses = Map<string, Array<Item>>;
+export type BatchGetResponses = { [key: string]: Item[] };
 
 /**
  * {
