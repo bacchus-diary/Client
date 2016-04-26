@@ -156,7 +156,7 @@ declare type ChangedCognitoIdHook = (oldId: string, newId: string) => Promise<vo
 class CognitoIdentity {
     constructor() {
         this.id = getCredentials().identityId;
-        _.merge(this.map, getCredentials().params.Logins);
+        this.map = _.merge({}, getCredentials().params.Logins);
     }
 
     toString(): string {
