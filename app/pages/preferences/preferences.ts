@@ -1,8 +1,9 @@
-import {Page, Storage, SqlStorage} from 'ionic-angular';
+import {Page, Storage, SqlStorage, NavController} from 'ionic-angular';
 
 import {FATHENS_PROVIDERS} from '../../providers/all';
 import {Cognito, PROVIDER_KEY_FACEBOOK} from '../../providers/aws/cognito';
 import {Preferences} from '../../providers/config/preferences';
+import {Spinner} from '../../util/backdrop';
 import {Logger} from '../../util/logging';
 
 const logger = new Logger('PreferencesPage');
@@ -12,7 +13,7 @@ const logger = new Logger('PreferencesPage');
     providers: [FATHENS_PROVIDERS]
 })
 export class PreferencesPage {
-    constructor(private cognito: Cognito, private pref: Preferences) { }
+    constructor(private nav: NavController, private cognito: Cognito, private pref: Preferences) { }
 
     async onPageWillEnter() {
         this._alwaysTake = await this.pref.getAlwaysTake();
@@ -25,10 +26,10 @@ export class PreferencesPage {
         return this._facebook;
     }
     set facebook(v: boolean) {
-        logger.debug(() => `Setting 'facebook': ${v}`);
-        this.pref.setSocial(PROVIDER_KEY_FACEBOOK, this._facebook = v);
+        logger.debug(() => `Setting '${PROVIDER_KEY_FACEBOOK}': ${v}`);
+        this._facebook = v;
 
-        const update = async () => {
+        Spinner.within(this.nav, 'Updaging...', async () => {
             if (v) {
                 await this.cognito.joinFacebook();
             } else {
@@ -36,11 +37,10 @@ export class PreferencesPage {
             }
             const joined = (await this.cognito.identity).isJoinFacebook;
             if (joined != this._facebook) {
-                this.pref.setSocial(PROVIDER_KEY_FACEBOOK, this._facebook = joined);
-                logger.debug(() => `Updated 'facebook': ${this.facebook}`);
+                this._facebook = joined;
+                logger.debug(() => `Updated '${PROVIDER_KEY_FACEBOOK}': ${joined}`);
             }
-        }
-        update();
+        });
     }
 
     private _alwaysTake: boolean = false;
