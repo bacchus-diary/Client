@@ -21,17 +21,8 @@ export class FBConnect {
 
     private plugin: FBConnectPlugin;
 
-    async login(): Promise<string> {
-        try {
-            const result = this.plugin.login();
-            logger.debug(() => `Result of login: ${JSON.stringify(result)}`);
-            const token = await result;
-            logger.debug(() => `Token of login: ${JSON.stringify(token)}`);
-            return token;
-        } catch (ex) {
-            logger.warn(() => `Error on login: ${JSON.stringify(ex)}`);
-            throw ex;
-        }
+    login(): Promise<string> {
+        return this.plugin.login();
     }
 
     logout(): Promise<void> {
