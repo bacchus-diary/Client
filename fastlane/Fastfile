@@ -49,7 +49,7 @@ before_all do
     'cordova-plugin-app-version@~0.1.8',
     'cordova-plugin-x-toast@~2.5.0',
     'phonegap-plugin-push@~1.4.0',
-    "https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/d_ts --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
+    "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
     "https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}"
   ])
 end
