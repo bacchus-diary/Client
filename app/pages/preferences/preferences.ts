@@ -15,9 +15,9 @@ const logger = new Logger('PreferencesPage');
 export class PreferencesPage {
     constructor(private nav: NavController, private cognito: Cognito, private pref: Preferences) { }
 
-    async onPageWillEnter() {
-        this._alwaysTake = await this.pref.getAlwaysTake();
-        this._facebook = await this.pref.getSocial(PROVIDER_KEY_FACEBOOK);
+    onPageWillEnter() {
+        this.pref.getAlwaysTake().then((v) => this._alwaysTake = v);
+        this.pref.getSocial(PROVIDER_KEY_FACEBOOK).then((v) => this._facebook = v);
     }
 
     private _facebook: boolean = false;
