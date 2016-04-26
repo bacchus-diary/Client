@@ -15,7 +15,7 @@ export class Configuration {
 
     constructor(private s3: S3File) { }
 
-    private async loadS3(path: string): Promise<Map<string, any>> {
+    private async loadS3(path: string): Promise<{ [key: string]: any }> {
         return yaml.load(await this.s3.read(path));
     }
 
@@ -37,7 +37,7 @@ export class Configuration {
 }
 
 class Unauthorized {
-    constructor(private src: Map<string, any>) { }
+    constructor(private src: { [key: string]: any }) { }
 
     get appName(): string {
         return this.src['appName'];
@@ -70,7 +70,7 @@ class Unauthorized {
 }
 
 class Photo {
-    constructor(private src: Map<string, any>) { }
+    constructor(private src: { [key: string]: any }) { }
 
     /**
     in Milliseconds
@@ -81,9 +81,9 @@ class Photo {
 }
 
 class Advertisement {
-    constructor(private src: Map<string, any>) { }
+    constructor(private src: { [key: string]: any }) { }
 
-    get admob(): Map<string, any> {
+    get admob(): { [key: string]: any } {
         let result = this.src['AdMob'];
         if (!result) result = this.src['AdMod']
         return result;
@@ -91,7 +91,7 @@ class Advertisement {
 }
 
 class ServerApiMap {
-    constructor(private src: Map<string, any>) { }
+    constructor(private src: { [key: string]: any }) { }
 
     private makeInfo(name: string): ApiInfo {
         return {
@@ -115,7 +115,7 @@ export type ApiInfo = {
 }
 
 class Authorized {
-    constructor(private src: Map<string, any>) { }
+    constructor(private src: { [key: string]: any }) { }
 
     get facebook(): FBConfig {
         return new FBConfig(this.src['facebook']);
@@ -123,7 +123,7 @@ class Authorized {
 }
 
 class FBConfig {
-    constructor(private src: Map<string, string>) { }
+    constructor(private src: { [key: string]: string }) { }
 
     get hostname(): string {
         return this.src['host'];

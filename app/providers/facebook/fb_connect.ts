@@ -3,67 +3,41 @@ import {Device} from 'ionic-native';
 
 import {Logger} from '../../util/logging';
 
-import {FBConnectPlugin, PluginCallback} from './plugin';
 import {FBJSSDK} from './fb_jssdk';
 
 const logger = new Logger('FBConnect');
 
 @Injectable()
 export class FBConnect {
-    constructor(private fbjs: FBJSSDK) { }
-
-    get plugin(): FBConnectPlugin {
+    constructor(private fbjs: FBJSSDK) {
         logger.debug(() => `Cordova: ${Device.device.cordova}`);
         if (Device.device.cordova) {
-            return (window as any).plugin.FBConnect;
+            this.plugin = (window as any).plugin.FBConnect;
+            this.plugin['logger'] = new Logger('FBConnectPlugin');
         } else {
-            return this.fbjs;
+            this.plugin = this.fbjs;
         }
     }
 
-    private invoke<T>(proc: (plugin: FBConnectPlugin, callback: PluginCallback<T>) => void): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
-            proc(this.plugin, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    try {
-                        resolve(result);
-                    } catch (ex) {
-                        reject(ex);
-                    }
-                }
-            })
-        })
-    }
+    private plugin: FBConnectPlugin;
 
     login(): Promise<string> {
-        return this.invoke<string>((plugin, callback) => {
-            plugin.login(callback);
-        });
+        return this.plugin.login();
     }
 
     logout(): Promise<void> {
-        return this.invoke<void>((plugin, callback) => {
-            plugin.logout(callback);
-        });
+        return this.plugin.logout();
     }
 
     grantPublish(): Promise<string> {
-        return this.invoke<string>((plugin, callback) => {
-            plugin.login(callback, 'publish_actions');
-        });
+        return this.plugin.login('publish_actions');
     }
 
     getName(): Promise<string> {
-        return this.invoke<string>((plugin, callback) => {
-            plugin.getName(callback);
-        });
+        return this.plugin.getName();
     }
 
-    getToken(): Promise<{ token: string, permissions: string[] }> {
-        return this.invoke<{ token: string, permissions: string[] }>((plugin, callback) => {
-            plugin.getToken(callback);
-        });
+    getToken(): Promise<FBConnectToken> {
+        return this.plugin.getToken();
     }
 }

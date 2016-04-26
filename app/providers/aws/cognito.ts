@@ -27,7 +27,7 @@ interface CognitoIdentityCredentials {
     get(callback: (err) => void): void;
     params: {
         IdentityId: string,
-        Logins: Map<string, string>
+        Logins: { [key: string]: string; }
     };
 }
 
@@ -52,22 +52,27 @@ export class Cognito {
     }
 
     private async initialize(): Promise<void> {
-        logger.debug(() => `Initializing Cognito...`);
-        (AWS.config as ClientConfig).region = await this.settings.awsRegion;
-        const cred = setupCredentials(await this.settings.cognitoPoolId);
-        logger.debug(() => `Refreshing credential: ${cred}`);
+        try {
+            logger.debug(() => `Initializing Cognito...`);
+            (AWS.config as ClientConfig).region = await this.settings.awsRegion;
+            const cred = setupCredentials(await this.settings.cognitoPoolId);
+            logger.debug(() => `Refreshing credential: ${cred}`);
 
-        if (await this.pref.getSocial(PROVIDER_KEY_FACEBOOK)) {
-            await this.joinFacebook();
-        } else {
-            try {
-                await this.refresh();
-            } catch (ex) {
-                logger.warn(() => `Retry to initialize cognito by clearing identityId...`);
-                getCredentials().params.IdentityId = null;
-                await this.refresh();
+            if (await this.pref.getSocial(PROVIDER_KEY_FACEBOOK)) {
+                await this.joinFacebook();
+            } else {
+                try {
+                    await this.refresh();
+                } catch (ex) {
+                    logger.warn(() => `Retry to initialize cognito by clearing identityId...`);
+                    getCredentials().params.IdentityId = null;
+                    await this.refresh();
+                }
+                withFabric((fabric) => fabric.Answers.eventLogin({ method: 'Cognito' }));
             }
-            withFabric((fabric) => fabric.Answers.eventLogin({ method: 'Cognito' }));
+        } catch (ex) {
+            logger.fatal(() => `Failed to initialize: ${JSON.stringify(ex, null, 4)}`);
+            withFabric((fabric) => fabric.Crashlytics.crash(JSON.stringify(ex)));
         }
     }
 
@@ -118,16 +123,11 @@ export class Cognito {
     private async setToken(service: string, token: string): Promise<void> {
         logger.info(() => `SignIn: ${service}`);
         const p = getCredentials().params;
-        if (hasKey(p.Logins, service)) {
+        if (_.has(p.Logins, service)) {
             logger.info(() => `Nothing to do, since already signed in: ${service}`);
         } else {
-            if (p.Logins) {
-                p.Logins[service] = token;
-            } else {
-                const m = new Map<string, string>();
-                m[service] = token;
-                p.Logins = m;
-            }
+            if (_.isEmpty(p.Logins)) p.Logins = {};
+            p.Logins[service] = token;
             p.IdentityId = null;
             const id = await this.refresh();
             await this.pref.setSocial(service, id.isJoin(service));
@@ -140,7 +140,7 @@ export class Cognito {
     private async removeToken(service: string): Promise<void> {
         logger.info(() => `SignOut: ${service}`);
         const p = getCredentials().params;
-        if (hasKey(p.Logins, service)) {
+        if (_.has(p.Logins, service)) {
             delete p.Logins[service];
             p.IdentityId = null;
             const id = await this.refresh();
@@ -151,36 +151,27 @@ export class Cognito {
     }
 }
 
-function hasKey<V>(map: Map<string, V>, key: string): boolean {
-    return map && Object.keys(map).indexOf(key) >= 0;
-}
-
 declare type ChangedCognitoIdHook = (oldId: string, newId: string) => Promise<void>;
 
 class CognitoIdentity {
     constructor() {
         this.id = getCredentials().identityId;
-        const dst = new Map<string, string>();
-        const src = getCredentials().params.Logins;
-        if (src) {
-            for (var key in src) { dst[key] = src[key]; }
-        }
-        this.map = dst;
+        this.map = _.merge({}, getCredentials().params.Logins);
     }
 
     toString(): string {
-        return `Cognito(identityId: ${this.id}, services: [${Object.keys(this.map).join(', ')}])`;
+        return `Cognito(identityId: ${this.id}, services: [${_.keys(this.map).join(', ')}])`;
     }
 
     private id: string;
-    private map: Map<string, string>
+    private map: { [key: string]: string; } = {}
 
     get identityId(): string {
         return this.id;
     }
 
     isJoin(name: string): boolean {
-        return hasKey(this.map, name);
+        return _.has(this.map, name);
     }
 
     get isJoinFacebook(): boolean {
