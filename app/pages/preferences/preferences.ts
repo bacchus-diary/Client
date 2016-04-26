@@ -29,7 +29,7 @@ export class PreferencesPage {
         logger.debug(() => `Setting '${PROVIDER_KEY_FACEBOOK}': ${v}`);
         this._facebook = v;
 
-        Spinner.within(this.nav, 'Updaging...', async () => {
+        Spinner.within(this.nav, 'Updating...', async () => {
             if (v) {
                 await this.cognito.joinFacebook();
             } else {
