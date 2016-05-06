@@ -33,7 +33,7 @@ function getEndpoint(): Promise<string> {
             (navigator as any).globalization.getLocaleName((code) => {
                 const locale: string = code.value;
                 logger.debug(() => `Getting locale code: ${locale}`);
-                const key = _.find(locale.split("-"), (s) => s.match(/^[A-Z]{2}$/) !== null);
+                const key = _.find(locale.split("-"), (s) => /^[A-Z]{2}$/.test(s));
                 resolve(ENDPOINT[key]);
             }, reject);
         }).catch((err) => {
