@@ -71,7 +71,7 @@ export class Photo {
 
 export class Images {
     static destractStoragePath(filePath: string): { relativePath: string, cognitoId: string, reportId: string, leafId: string } {
-        const m = filePath.match('^photo/\((?:[^/]+\|[^/]+/[^/]+))/\([^/]+\)/\([^/]+\)/\([^/]+\)\.jpg$");
+        const m = filePath.match("^photo/\((?:[^/]+\|[^/]+/[^/]+))/\([^/]+\)/\([^/]+\)/\([^/]+\)\.jpg$");
         if (!m) return null;
         return {
             relativePath: m[1],
@@ -175,7 +175,7 @@ export class Image {
 
     private async setClearTimer() {
         const dur = !this._url ? 0 :
-            (this._url.startsWith("http') ?
+            (this._url.startsWith("http") ?
                 (await this.parent.expiresInSeconds) * 900 :
                 localRefresh);
         setTimeout(() => {

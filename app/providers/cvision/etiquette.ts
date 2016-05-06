@@ -70,7 +70,7 @@ export class Etiquette {
         const topGroup = _.filter(sorted, (t) => {
             if (t.area < limit) return false;
             if ([/^[^\w]+$/, /^\d{1,4}$/, /^\w{1,2}$/].some((regex) => regex.test(t.text.description))) return false;
-            if (t.text.description.replace(/[^\w]/, '').length < 2) return false;
+            if (t.text.description.replace(/[^\w]/, "").length < 2) return false;
             return true;
         });
         logger.debug(() => `Reduced keywords: ${JSON.stringify(topGroup, null, 4)}\nfrom: ${JSON.stringify(sorted, null, 4)}`);

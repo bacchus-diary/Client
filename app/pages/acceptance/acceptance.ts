@@ -53,11 +53,11 @@ export class AcceptancePage {
         if (_.isNil(hrefString)) return null;
 
         if (hrefString.startsWith("<link")) {
-            const plain = hrefString.replace(/\\/, '');
+            const plain = hrefString.replace(/\\/, "");
             return /href="([^\s]*)"/.exec(plain)[1];
         }
         if (!hrefString.startsWith("http")) {
-            const sep = hrefString.startsWith("/") ? '" : "/";
+            const sep = hrefString.startsWith("/") ? "" : "/";
             return this.host + sep + hrefString;
         }
         return hrefString;
@@ -72,7 +72,7 @@ export class AcceptancePage {
 
         const css = await this.getStyle(styleHref);
         if (!_.isNil(css)) {
-            const style = document.createElement("style');
+            const style = document.createElement("style");
             style.textContent = css;
             base.appendChild(style);
         }

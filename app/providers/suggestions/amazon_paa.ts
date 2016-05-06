@@ -139,7 +139,7 @@ export class AmazonPAA {
             title: text("ItemAttributes Title"),
             price: text("OfferSummary LowestNewPrice FormattedPrice"),
             priceValue: int("OfferSummary LowestNewPrice Amount"),
-            url: text("DetailPageURL')
+            url: text("DetailPageURL")
         };
     }
 }

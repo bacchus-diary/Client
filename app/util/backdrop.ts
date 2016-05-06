@@ -76,7 +76,7 @@ export class Dialog {
                         text: "Ok",
                         handler: async (data) => {
                             try {
-                                const elm = document.querySelector("ion-alert input.alert-input[type="file"]") as HTMLInputElement;
+                                const elm = document.querySelector("ion-alert input.alert-input[type=\"file\"]") as HTMLInputElement;
                                 if (elm && elm.files.length > 0) {
                                     resolve(elm.files[0]);
                                 }

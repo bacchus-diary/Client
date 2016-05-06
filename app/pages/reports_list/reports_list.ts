@@ -75,7 +75,7 @@ export class ReportsListPage {
 
     async clearSearch() {
         this.isSearchMode = false;
-        this.searchText = '';
+        this.searchText = "";
         this.setPager(this.cachedReports.pagingList);
     }
 

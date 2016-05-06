@@ -78,7 +78,7 @@ export class Dynamo {
 export function createRandomKey(): string {
     const base = "0".codePointAt(0);
     const char = (c: number) => String.fromCharCode(base + ((9 < c) ? c + 7 : c));
-    return _.range(32).map((i) => char(_.random(0, 35))).join('");
+    return _.range(32).map((i) => char(_.random(0, 35))).join("");
 }
 
 type DBTableMaker<R extends DC.Item, T extends DBRecord<T>> = (cognito: Cognito, photo: Photo) => {
@@ -100,5 +100,5 @@ export type RecordReader<R extends DC.Item, T extends DBRecord<T>> = (src: R) =>
 export type RecordWriter<R extends DC.Item, T extends DBRecord<T>> = (obj: T) => Promise<R>;
 
 export function toPromise<R>(request: DC.AWSRequest<R>): Promise<R> {
-    return requestToPromise<R>(request, "DynamoDB');
+    return requestToPromise<R>(request, "DynamoDB");
 }
