@@ -31,7 +31,7 @@ export class Preferences {
     async getSocial(name: string): Promise<boolean> {
         const rows = await this.social.select(name);
         if (rows.length < 1) return false;
-        return rows[0].connected == 1;
+        return rows[0].connected === 1;
     }
     async setSocial(name: string, v: boolean): Promise<void> {
         const rows = await this.social.select(name);

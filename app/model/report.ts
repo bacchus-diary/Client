@@ -48,7 +48,7 @@ export class Report implements DBRecord<Report> {
                             (await this._table).remove(src.REPORT_ID);
                             return null;
                         }
-                        const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() == leafId));
+                        const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() === leafId));
                         const leaves = _.union(_.compact(indexed), rels);
                         return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);
                     },

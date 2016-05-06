@@ -36,13 +36,13 @@ export class ReportDetailPage {
     private _isPublishable: boolean;
     get isPublishable(): boolean {
         const id = this.report.publishedFacebook;
-        if (id == null) {
-            if (this._isPublishable == null) this._isPublishable = true;
-        } else if (this._updatingPublished == null) {
+        if (id === null) {
+            if (this._isPublishable === null) this._isPublishable = true;
+        } else if (this._updatingPublished === null) {
             logger.debug(() => `Getting published action...`);
             this._updatingPublished = this.fbPublish.getAction(id).then(async (action) => {
-                this._isPublishable = action == null;
-                if (action == null) {
+                this._isPublishable = action === null;
+                if (action === null) {
                     this.report.publishedFacebook = null;
                     await this.report.put();
                 }

@@ -69,7 +69,7 @@ export class FBJSSDK implements FBConnectPlugin {
     getToken(): Promise<FBConnectToken> {
         return this.invoke<FBConnectToken>((fb, callback) => {
             fb.getLoginStatus((res) => {
-                if (res.status == "connected") {
+                if (res.status === "connected") {
                     callback({
                         token: res.authResponse.accessToken,
                         permissions: null

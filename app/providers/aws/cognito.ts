@@ -42,7 +42,7 @@ export class Cognito {
     }
 
     constructor(private settings: BootSettings, private pref: Preferences, private facebook: FBConnect) {
-        if (Cognito.initialized == null) {
+        if (Cognito.initialized === null) {
             Cognito.initialized = this.initialize();
         }
     }
@@ -77,7 +77,7 @@ export class Cognito {
     }
 
     private async refresh(): Promise<CognitoIdentity> {
-        const oldId = (Cognito.refreshing == null) ? null : await Cognito.refreshing.catch((_) => null);
+        const oldId = (Cognito.refreshing === null) ? null : await Cognito.refreshing.catch((_) => null);
 
         return Cognito.refreshing = new Promise<CognitoIdentity>((resolve, reject) => {
             logger.info(() => `Refreshing cognito identity... (old = ${oldId})`);

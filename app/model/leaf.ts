@@ -80,7 +80,7 @@ export class Leaf implements DBRecord<Leaf> {
         if (!this.cleanuped) {
             this.cleanuped = photo.cleanup(async (images) => {
                 const leaf = await (await Leaf._table).get(images.leafId);
-                return (leaf != null && leaf.reportId == images.reportId)
+                return (leaf != null && leaf.reportId === images.reportId)
             });
         }
     }
@@ -142,7 +142,7 @@ export class Leaf implements DBRecord<Leaf> {
             logger.debug(() => `Changed description: ${original} => ${v}`);
             const srcList = original.split("\n");
             const dstList = v.split("\n");
-            if (srcList.length == dstList.length) {
+            if (srcList.length === dstList.length) {
                 _.zip(srcList, dstList).map(([src, dst]) => {
                     if (src != dst && _.includes(this.keywords, src)) {
                         logger.debug(() => `Change keyword: ${src} => ${dst}`);

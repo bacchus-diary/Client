@@ -50,7 +50,7 @@ export class AcceptancePage {
     }
 
     toHref(hrefString: string): string {
-        if (hrefString == null) return null;
+        if (hrefString === null) return null;
 
         if (hrefString.startsWith("<link")) {
             const plain = hrefString.replace(/\\/, '');
@@ -80,7 +80,7 @@ export class AcceptancePage {
     }
 
     async getStyle(href): Promise<string> {
-        if (href == null) {
+        if (href === null) {
             return null;
         }
         const res = await toPromise(this.http.get(href));

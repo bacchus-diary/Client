@@ -20,7 +20,7 @@ export class Configuration {
     }
 
     get server(): Promise<Unauthorized> {
-        if (Configuration.unauthorized == null) {
+        if (Configuration.unauthorized === null) {
             const p = this.loadS3("unauthorized/client.yaml");
             Configuration.unauthorized = p.then((m) => new Unauthorized(m));
         }
@@ -28,7 +28,7 @@ export class Configuration {
     }
 
     get authorized(): Promise<Authorized> {
-        if (Configuration.authorized == null) {
+        if (Configuration.authorized === null) {
             const p = this.loadS3("authorized/settings.yaml");
             Configuration.authorized = p.then((m) => new Authorized(m));
         }
@@ -52,7 +52,7 @@ class Unauthorized {
     }
 
     get snsPlatformArn(): string {
-        const s = Device.device.platform == "Android" ? "google" : "apple";
+        const s = Device.device.platform === "Android" ? "google" : "apple";
         return this.src["snsPlatformArn"][s];
     }
 

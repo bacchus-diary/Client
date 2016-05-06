@@ -48,7 +48,7 @@ export class CachedReports {
         logger.debug(() => `Removing report: ${report}`);
 
         await report.remove();
-        _.remove(await this.currentList, (x) => x.id() == report.id());
+        _.remove(await this.currentList, (x) => x.id() === report.id());
     }
 }
 
@@ -56,7 +56,7 @@ function differ(src: Array<string>, dst: Array<string>) {
     const notIncluded = (list: Array<string>) => (x: string) => _.every(list, (y) => y != x);
     const parted = _.partition(dst, notIncluded(src));
     return {
-        common: parted[1].map((d) => _.find(src, (x) => x == d)),
+        common: parted[1].map((d) => _.find(src, (x) => x === d)),
         onlyDst: parted[0],
         onlySrc: _.filter(src, notIncluded(dst))
     };

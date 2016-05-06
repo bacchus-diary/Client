@@ -41,11 +41,11 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
     }
 
     read(raw: R): Promise<T> {
-        return raw == null ? null : this._reader(raw);
+        return raw === null ? null : this._reader(raw);
     }
 
     write(rec: T): Promise<R> {
-        return rec == null ? null : this._writer(rec);
+        return rec === null ? null : this._writer(rec);
     }
 
     private async makeKey(id?: string): Promise<TableKey> {
@@ -59,7 +59,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
     private async getCache(id: string): Promise<R> {
         const rec = await this.cache.get(id);
-        return rec == null ? null : Base64.decodeJson(rec);
+        return rec === null ? null : Base64.decodeJson(rec);
     }
 
     private async putCache(raw: R): Promise<void> {
@@ -129,7 +129,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         const attrs: DC.AttributeUpdates = {};
         Object.keys(item).filter((name) => {
             if (_.includes([COGNITO_ID_COLUMN, this.ID_COLUMN, LAST_MODIFIED_COLUMN], name)) return false;
-            if (cached == null) return true;
+            if (cached === null) return true;
             return JSON.stringify(cached[name]) != JSON.stringify(item[name]);
         }).forEach((name) => {
             attrs[name] = { Action: "PUT", Value: item[name] };

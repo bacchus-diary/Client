@@ -14,7 +14,7 @@ export class BootSettings {
     constructor(private http: Http) { }
 
     private async get(key: string): Promise<string> {
-        if (BootSettings.src == null) {
+        if (BootSettings.src === null) {
             logger.debug(() => `Loading settings.yaml ...`);
             const res = await toPromise(this.http.get("settings.yaml"));
             BootSettings.src = yaml.load(res.text());

@@ -17,7 +17,7 @@ export class ElasticTextareaDirective {
         this.textarea = await new Promise<HTMLTextAreaElement>((resolve, reject) => {
             const e: HTMLElement = this.ref.nativeElement;
             logger.debug(() => `Creating ElasticTextarea in : ${e.nodeName}`);
-            if (e.nodeName == "TEXTAREA") {
+            if (e.nodeName === "TEXTAREA") {
                 resolve(e as HTMLTextAreaElement);
             } else {
                 const t = e.querySelector("textarea") as HTMLTextAreaElement;

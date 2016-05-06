@@ -73,12 +73,12 @@ export class Logger {
 
     private _limit: number;
     private get limit() {
-        if (!this._limit) this._limit = _.findIndex(lebels, (x) => x == this.lebel);
+        if (!this._limit) this._limit = _.findIndex(lebels, (x) => x === this.lebel);
         return this._limit;
     }
 
     private checkLebel(l: Lebel): boolean {
-        const n = _.findIndex(lebels, (x) => x == l);
+        const n = _.findIndex(lebels, (x) => x === l);
         return this.limit <= n;
     }
 
