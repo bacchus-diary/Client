@@ -18,7 +18,7 @@ export class RatingComponent {
         if (this._stars.length > this.maxValue) {
             this._stars.splice(this.maxValue);
         }
-        for (var i = this._stars.length; i < this.maxValue; i++) {
+        for (let i = this._stars.length; i < this.maxValue; i++) {
             this._stars.push(i);
         }
         return this._stars;
