@@ -56,7 +56,7 @@ export class Photo {
             const files = await this.s3file.list(prefix);
             await Promise.all(files.map(async (file) => {
                 const st = Images.destractStoragePath(file);
-                const ok = st != null && await proc(await this.images(st.reportId, st.leafId))
+                const ok = st !== null && await proc(await this.images(st.reportId, st.leafId))
                 if (!ok) {
                     await this.s3file.remove(file);
                 }

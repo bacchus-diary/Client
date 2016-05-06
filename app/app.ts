@@ -42,7 +42,7 @@ class MyApp {
             try {
                 const version: string = await AppVersion.getVersionNumber();
                 const v = parseInt(_.last(version.match(/[0-9]/g)));
-                this.isDevel = v % 2 != 0;
+                this.isDevel = v % 2 !== 0;
             } catch (ex) { }
         });
     }

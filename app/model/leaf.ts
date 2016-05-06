@@ -80,7 +80,7 @@ export class Leaf implements DBRecord<Leaf> {
         if (!this.cleanuped) {
             this.cleanuped = photo.cleanup(async (images) => {
                 const leaf = await (await Leaf._table).get(images.leafId);
-                return (leaf != null && leaf.reportId === images.reportId)
+                return (leaf !== null && leaf.reportId === images.reportId)
             });
         }
     }
@@ -144,13 +144,13 @@ export class Leaf implements DBRecord<Leaf> {
             const dstList = v.split("\n");
             if (srcList.length === dstList.length) {
                 _.zip(srcList, dstList).map(([src, dst]) => {
-                    if (src != dst && _.includes(this.keywords, src)) {
+                    if (src !== dst && _.includes(this.keywords, src)) {
                         logger.debug(() => `Change keyword: ${src} => ${dst}`);
                         this.keywords.splice(this.keywords.indexOf(src), 1, dst);
                     }
                 })
             } else if (srcList.length > dstList.length) {
-                srcList.filter((line) => _.every(dstList, (dst) => dst != line)).forEach((word) => {
+                srcList.filter((line) => _.every(dstList, (dst) => dst !== line)).forEach((word) => {
                     logger.debug(() => `Remove keyword: ${word}`);
                     _.pull(this.keywords, word);
                 });

@@ -42,7 +42,7 @@ export class AcceptancePage {
 
     gistCallback(res) {
         const divString = res["div"];
-        if (divString != null) {
+        if (divString !== null) {
             const div = document.createElement("div");
             div.innerHTML = divString;
             this.showGist(div, this.toHref(res["stylesheet"]))
@@ -68,10 +68,10 @@ export class AcceptancePage {
         logger.info(() => `Append gist to ${base}`);
 
         const meta = div.querySelector(".gist-meta")
-        if (meta != null) meta.remove();
+        if (meta !== null) meta.remove();
 
         const css = await this.getStyle(styleHref);
-        if (css != null) {
+        if (css !== null) {
             const style = document.createElement("style');
             style.textContent = css;
             base.appendChild(style);

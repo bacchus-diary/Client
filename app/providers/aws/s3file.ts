@@ -83,7 +83,7 @@ export class S3File {
                 Bucket: bucketName,
                 Key: path
             }));
-            return res != null;
+            return res !== null;
         } catch (ex) {
             logger.warn(() => `Error on checking exists: ${bucketName}:${path}`);
             return false;

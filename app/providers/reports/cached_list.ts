@@ -53,7 +53,7 @@ export class CachedReports {
 }
 
 function differ(src: Array<string>, dst: Array<string>) {
-    const notIncluded = (list: Array<string>) => (x: string) => _.every(list, (y) => y != x);
+    const notIncluded = (list: Array<string>) => (x: string) => _.every(list, (y) => y !== x);
     const parted = _.partition(dst, notIncluded(src));
     return {
         common: parted[1].map((d) => _.find(src, (x) => x === d)),
@@ -114,7 +114,7 @@ export class PagingReports implements PagingList<Report> {
     private add(adding: Array<Report>) {
         _.sortBy(adding, "dateAt").reverse().forEach((x) => {
             try {
-                if (_.every(this._list, (o) => o.id() != x.id())) {
+                if (_.every(this._list, (o) => o.id() !== x.id())) {
                     this._list.push(x);
                 }
             } catch (ex) {

@@ -34,7 +34,7 @@ async function versionDevel() {
         output(`Checking version number: ${version}`);
         const last = _.last(version.match(/[0-9]/g));
         const v = parseInt(last);
-        isDEVEL = v % 2 != 0;
+        isDEVEL = v % 2 !== 0;
     } catch (ex) {
         isDEVEL = true;
     }

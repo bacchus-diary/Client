@@ -79,7 +79,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
     private async doGet(id: string, getLastModified: () => Promise<number>): Promise<T> {
         const cached = await this.getCache(id);
-        if (cached != null) {
+        if (cached !== null) {
             const slm = await getLastModified() || 0;
             const clm = cached[LAST_MODIFIED_COLUMN] || 0;
             if (slm <= clm) {
@@ -130,7 +130,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         Object.keys(item).filter((name) => {
             if (_.includes([COGNITO_ID_COLUMN, this.ID_COLUMN, LAST_MODIFIED_COLUMN], name)) return false;
             if (cached === null) return true;
-            return JSON.stringify(cached[name]) != JSON.stringify(item[name]);
+            return JSON.stringify(cached[name]) !== JSON.stringify(item[name]);
         }).forEach((name) => {
             attrs[name] = { Action: "PUT", Value: item[name] };
         });
@@ -185,7 +185,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             KeyConditionExpression: exp.express,
             ExpressionAttributeNames: exp.keys.names,
             ExpressionAttributeValues: exp.keys.values,
-            ScanIndexForward: isForward != null ? isForward : true
+            ScanIndexForward: isForward !== null ? isForward : true
         };
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;

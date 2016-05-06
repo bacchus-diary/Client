@@ -43,7 +43,7 @@ export class ElasticTextareaDirective {
     private onChange() {
         this.mirror.value = this.textarea.value;
         const s = this.mirror.scrollHeight;
-        if (this.textarea.offsetHeight != s) {
+        if (this.textarea.offsetHeight !== s) {
             this.textarea.style.height = `${s}px`;
         }
     }

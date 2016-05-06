@@ -91,7 +91,7 @@ export class Cognito {
                     try {
                         const newId = new CognitoIdentity();
                         logger.debug(() => `Created CognitoIdentity: ${newId}`);
-                        if (oldId != null) {
+                        if (oldId !== null) {
                             await Promise.all(Cognito.changedHooks.map(async (hook) => {
                                 try {
                                     await hook(oldId.identityId, newId.identityId);

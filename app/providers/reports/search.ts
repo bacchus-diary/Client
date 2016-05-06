@@ -69,7 +69,7 @@ class MargedPager implements Pager<Report> {
         logger.debug(() => `Marging items: reports=${reports.length}, leaves=${leaves.length}`);
 
         const addings = _.filter(_.uniq(leaves.map((leaf) => leaf.reportId)),
-            (id) => _.every(reports, (x) => x.id() != id)
+            (id) => _.every(reports, (x) => x.id() !== id)
         ).map(async (id) => await this.reportTable.get(id));
 
         _.compact(await Promise.all(addings)).forEach((x) => reports.push(x));

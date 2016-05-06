@@ -33,7 +33,7 @@ function getEndpoint(): Promise<string> {
             (navigator as any).globalization.getLocaleName((code) => {
                 const locale: string = code.value;
                 logger.debug(() => `Getting locale code: ${locale}`);
-                const key = _.find(locale.split("-"), (s) => s.match(/^[A-Z]{2}$/) != null);
+                const key = _.find(locale.split("-"), (s) => s.match(/^[A-Z]{2}$/) !== null);
                 resolve(ENDPOINT[key]);
             }, reject);
         }).catch((err) => {
@@ -73,7 +73,7 @@ export class AmazonPAA {
 
     async invoke(params: { [key: string]: string; }): Promise<Document> {
         let waiting = null;
-        while (invoking != waiting) {
+        while (invoking !== waiting) {
             waiting = invoking;
             await waiting;
             await new Promise((resolve, reject) => {
@@ -109,7 +109,7 @@ export class AmazonPAA {
     async itemSearch(keywords: string, pageIndex: number): Promise<Array<Product>> {
         const id = Base64.encodeJson({ keywords: keywords, pageIndex: pageIndex });
         const cache = await this.storage.getJson(id) as CachedRecord;
-        if (cache != null) {
+        if (cache !== null) {
             const timeLimit = new Date().getTime() + CACHE_MAXAGE;
             if (cache.lastUpdate < timeLimit) {
                 return Base64.decodeJson(cache.base64json);

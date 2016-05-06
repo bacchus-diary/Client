@@ -72,7 +72,7 @@ class PagingSuggestions implements PagingList<Product> {
     }
 
     isLoading(): boolean {
-        return this.loading != null;
+        return this.loading !== null;
     }
 
     reset() {
@@ -98,7 +98,7 @@ class PagingSuggestions implements PagingList<Product> {
                 logger.debug(() => `Searching suggestions by keywords: ${word}`);
                 const products = await this.paa.itemSearch(word, this.pageIndex);
                 products.forEach((x) => {
-                    if (_.every(this._list, (o) => x.title != o.title)) {
+                    if (_.every(this._list, (o) => x.title !== o.title)) {
                         const index = _.findIndex(this._list, (o, index) =>
                             startIndex <= index && o.priceValue <= x.priceValue);
                         if (index < 0) {

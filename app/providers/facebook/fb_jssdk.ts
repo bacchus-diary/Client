@@ -12,7 +12,7 @@ export class FBJSSDK implements FBConnectPlugin {
 
     private async initialize(): Promise<void> {
         const scriptId = "facebook-jssdk";
-        if (document.getElementById(scriptId) != null) return;
+        if (document.getElementById(scriptId) !== null) return;
 
         const appId = (await toPromise(this.http.get("facebook_app_id"))).text().trim();
         logger.debug(() => `Setting browser facebook app id: ${appId}`);

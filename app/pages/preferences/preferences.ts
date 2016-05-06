@@ -36,7 +36,7 @@ export class PreferencesPage {
                 await this.cognito.dropFacebook();
             }
             const joined = (await this.cognito.identity).isJoinFacebook;
-            if (joined != this._facebook) {
+            if (joined !== this._facebook) {
                 this._facebook = joined;
                 logger.debug(() => `Updated "${PROVIDER_KEY_FACEBOOK}": ${joined}`);
             }
