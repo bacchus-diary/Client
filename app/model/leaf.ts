@@ -80,7 +80,7 @@ export class Leaf implements DBRecord<Leaf> {
         if (!this.cleanuped) {
             this.cleanuped = photo.cleanup(async (images) => {
                 const leaf = await (await Leaf._table).get(images.leafId);
-                return (leaf !== null && leaf.reportId === images.reportId)
+                return (!_.isNil(leaf) && leaf.reportId === images.reportId)
             });
         }
     }

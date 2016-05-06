@@ -23,7 +23,7 @@ export class SuggestionsComponent {
     private pager: PagingList<Product>;
 
     get products(): Array<Product> {
-        return this.pager === null ? [] : this.pager.currentList();
+        return _.isNil(this.pager) ? [] : this.pager.currentList();
     }
 
     private _report: Report;

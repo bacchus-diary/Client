@@ -109,7 +109,7 @@ export class AmazonPAA {
     async itemSearch(keywords: string, pageIndex: number): Promise<Array<Product>> {
         const id = Base64.encodeJson({ keywords: keywords, pageIndex: pageIndex });
         const cache = await this.storage.getJson(id) as CachedRecord;
-        if (cache !== null) {
+        if (!_.isNil(cache)) {
             const timeLimit = new Date().getTime() + CACHE_MAXAGE;
             if (cache.lastUpdate < timeLimit) {
                 return Base64.decodeJson(cache.base64json);
@@ -127,7 +127,7 @@ export class AmazonPAA {
     private toProduct(item: Element): Product {
         const text = (query: string) => {
             const e = item.querySelector(query);
-            if (e === null || e.textContent.length < 1) return null;
+            if (_.isNil(e) || e.textContent.length < 1) return null;
             return e.textContent;
         }
         const int = (query: string) => parseFloat(text(query) || "0");

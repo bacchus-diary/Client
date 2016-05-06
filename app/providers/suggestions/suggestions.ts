@@ -72,7 +72,7 @@ class PagingSuggestions implements PagingList<Product> {
     }
 
     isLoading(): boolean {
-        return this.loading !== null;
+        return !_.isNil(this.loading);
     }
 
     reset() {

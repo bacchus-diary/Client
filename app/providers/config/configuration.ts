@@ -20,7 +20,7 @@ export class Configuration {
     }
 
     get server(): Promise<Unauthorized> {
-        if (Configuration.unauthorized === null) {
+        if (_.isNil(Configuration.unauthorized)) {
             const p = this.loadS3("unauthorized/client.yaml");
             Configuration.unauthorized = p.then((m) => new Unauthorized(m));
         }
@@ -28,7 +28,7 @@ export class Configuration {
     }
 
     get authorized(): Promise<Authorized> {
-        if (Configuration.authorized === null) {
+        if (_.isNil(Configuration.authorized)) {
             const p = this.loadS3("authorized/settings.yaml");
             Configuration.authorized = p.then((m) => new Authorized(m));
         }

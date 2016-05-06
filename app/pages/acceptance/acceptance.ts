@@ -42,7 +42,7 @@ export class AcceptancePage {
 
     gistCallback(res) {
         const divString = res["div"];
-        if (divString !== null) {
+        if (!_.isNil(divString)) {
             const div = document.createElement("div");
             div.innerHTML = divString;
             this.showGist(div, this.toHref(res["stylesheet"]))
@@ -50,7 +50,7 @@ export class AcceptancePage {
     }
 
     toHref(hrefString: string): string {
-        if (hrefString === null) return null;
+        if (_.isNil(hrefString)) return null;
 
         if (hrefString.startsWith("<link")) {
             const plain = hrefString.replace(/\\/, '');
@@ -68,10 +68,10 @@ export class AcceptancePage {
         logger.info(() => `Append gist to ${base}`);
 
         const meta = div.querySelector(".gist-meta")
-        if (meta !== null) meta.remove();
+        if (!_.isNil(meta)) meta.remove();
 
         const css = await this.getStyle(styleHref);
-        if (css !== null) {
+        if (!_.isNil(css)) {
             const style = document.createElement("style');
             style.textContent = css;
             base.appendChild(style);
@@ -80,7 +80,7 @@ export class AcceptancePage {
     }
 
     async getStyle(href): Promise<string> {
-        if (href === null) {
+        if (_.isNil(href)) {
             return null;
         }
         const res = await toPromise(this.http.get(href));

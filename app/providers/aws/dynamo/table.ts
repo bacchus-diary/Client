@@ -41,11 +41,11 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
     }
 
     read(raw: R): Promise<T> {
-        return raw === null ? null : this._reader(raw);
+        return _.isNil(raw) ? null : this._reader(raw);
     }
 
     write(rec: T): Promise<R> {
-        return rec === null ? null : this._writer(rec);
+        return _.isNil(rec) ? null : this._writer(rec);
     }
 
     private async makeKey(id?: string): Promise<TableKey> {
@@ -59,7 +59,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
     private async getCache(id: string): Promise<R> {
         const rec = await this.cache.get(id);
-        return rec === null ? null : Base64.decodeJson(rec);
+        return _.isNil(rec) ? null : Base64.decodeJson(rec);
     }
 
     private async putCache(raw: R): Promise<void> {
@@ -79,7 +79,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
 
     private async doGet(id: string, getLastModified: () => Promise<number>): Promise<T> {
         const cached = await this.getCache(id);
-        if (cached !== null) {
+        if (!_.isNil(cached)) {
             const slm = await getLastModified() || 0;
             const clm = cached[LAST_MODIFIED_COLUMN] || 0;
             if (slm <= clm) {
@@ -129,7 +129,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
         const attrs: DC.AttributeUpdates = {};
         Object.keys(item).filter((name) => {
             if (_.includes([COGNITO_ID_COLUMN, this.ID_COLUMN, LAST_MODIFIED_COLUMN], name)) return false;
-            if (cached === null) return true;
+            if (_.isNil(cached)) return true;
             return JSON.stringify(cached[name]) !== JSON.stringify(item[name]);
         }).forEach((name) => {
             attrs[name] = { Action: "PUT", Value: item[name] };
@@ -185,7 +185,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             KeyConditionExpression: exp.express,
             ExpressionAttributeNames: exp.keys.names,
             ExpressionAttributeValues: exp.keys.values,
-            ScanIndexForward: isForward !== null ? isForward : true
+            ScanIndexForward: !_.isNil(isForward) ? isForward : true
         };
         if (indexName) params.IndexName = indexName;
         if (0 < pageSize) params.Limit = pageSize;
