@@ -58,7 +58,7 @@ export class Dialog {
     static async file(nav: NavController, title: string): Promise<File> {
         return new Promise<File>((resolve, reject) => {
             nav.present(Alert.create({
-                title: "Choose image file",
+                title: title,
                 inputs: [
                     {
                         type: "file",
