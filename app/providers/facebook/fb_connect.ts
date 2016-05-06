@@ -1,11 +1,11 @@
-import {Injectable} from 'angular2/core';
-import {Device} from 'ionic-native';
+import {Injectable} from "angular2/core";
+import {Device} from "ionic-native";
 
-import {Logger} from '../../util/logging';
+import {Logger} from "../../util/logging";
 
-import {FBJSSDK} from './fb_jssdk';
+import {FBJSSDK} from "./fb_jssdk";
 
-const logger = new Logger('FBConnect');
+const logger = new Logger("FBConnect");
 
 @Injectable()
 export class FBConnect {
@@ -13,7 +13,7 @@ export class FBConnect {
         logger.debug(() => `Cordova: ${Device.device.cordova}`);
         if (Device.device.cordova) {
             this.plugin = (window as any).plugin.FBConnect;
-            this.plugin['logger'] = new Logger('FBConnectPlugin');
+            this.plugin["logger"] = new Logger("FBConnectPlugin");
         } else {
             this.plugin = this.fbjs;
         }
@@ -30,7 +30,7 @@ export class FBConnect {
     }
 
     grantPublish(): Promise<string> {
-        return this.plugin.login('publish_actions');
+        return this.plugin.login("publish_actions");
     }
 
     getName(): Promise<string> {

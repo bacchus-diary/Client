@@ -1,20 +1,20 @@
-import {Page, NavController} from 'ionic-angular';
-import * as Rx from 'rxjs';
+import {Page, NavController} from "ionic-angular";
+import * as Rx from "rxjs";
 
-import {FATHENS_DIRECTIVES} from '../../components/all';
-import {AddReportPage} from '../add_report/add_report';
-import {ReportDetailPage} from '../report_detail/report_detail';
-import {Report} from '../../model/report';
-import {FATHENS_PROVIDERS} from '../../providers/all';
-import {CachedReports} from '../../providers/reports/cached_list';
-import {SearchReports} from '../../providers/reports/search';
-import {PagingList} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {FATHENS_DIRECTIVES} from "../../components/all";
+import {AddReportPage} from "../add_report/add_report";
+import {ReportDetailPage} from "../report_detail/report_detail";
+import {Report} from "../../model/report";
+import {FATHENS_PROVIDERS} from "../../providers/all";
+import {CachedReports} from "../../providers/reports/cached_list";
+import {SearchReports} from "../../providers/reports/search";
+import {PagingList} from "../../util/pager";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('ReportsListPage');
+const logger = new Logger("ReportsListPage");
 
 @Page({
-    templateUrl: 'build/pages/reports_list/reports_list.html',
+    templateUrl: "build/pages/reports_list/reports_list.html",
     directives: [FATHENS_DIRECTIVES],
     providers: [FATHENS_PROVIDERS]
 })
@@ -75,7 +75,7 @@ export class ReportsListPage {
 
     async clearSearch() {
         this.isSearchMode = false;
-        this.searchText = '';
+        this.searchText = "";
         this.setPager(this.cachedReports.pagingList);
     }
 
@@ -91,7 +91,7 @@ export class ReportsListPage {
 
     async onPageWillEnter() {
         await this.clearSearch();
-        logger.debug(() => `Loaded initial reports: ${this.reports.length}`)
+        logger.debug(() => `Loaded initial reports: ${this.reports.length}`);
     }
 
     async doRefresh(event) {
@@ -99,7 +99,7 @@ export class ReportsListPage {
         try {
             this.pager.reset();
             await this.more();
-            logger.debug(() => `Refreshed reports: ${this.reports.length}`)
+            logger.debug(() => `Refreshed reports: ${this.reports.length}`);
         } finally {
             event.complete();
             this.isRefreshing = false;
@@ -110,7 +110,7 @@ export class ReportsListPage {
         if (this.pager.hasMore()) {
             logger.debug(() => `Getting more reports: ${event}`);
             await this.more();
-            logger.debug(() => `Generated reports: ${this.reports.length}`)
+            logger.debug(() => `Generated reports: ${this.reports.length}`);
         }
         event.complete();
     }

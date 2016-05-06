@@ -1,12 +1,12 @@
-import {Pager} from '../../../util/pager';
-import {Logger} from '../../../util/logging';
+import {Pager} from "../../../util/pager";
+import {Logger} from "../../../util/logging";
 
-import * as DC from './document_client.d';
-import {DBRecord} from './dynamo';
-import {DynamoTable, TableKey} from './table';
-import {Expression} from './expression';
+import * as DC from "./document_client.d";
+import {DBRecord} from "./dynamo";
+import {DynamoTable, TableKey} from "./table";
+import {Expression} from "./expression";
 
-const logger = new Logger('DBPager');
+const logger = new Logger("DBPager");
 
 export class LastEvaluatedKey {
     private _value: DC.Item;
@@ -16,7 +16,7 @@ export class LastEvaluatedKey {
     }
 
     set value(v: DC.Item) {
-        logger.debug(() => `Loaded LastEvaluatedKey: ${JSON.stringify(v)}`)
+        logger.debug(() => `Loaded LastEvaluatedKey: ${JSON.stringify(v)}`);
         this._value = v ? v : {};
     }
 

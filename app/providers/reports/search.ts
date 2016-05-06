@@ -1,17 +1,17 @@
-import {Injectable} from 'angular2/core';
+import {Injectable} from "angular2/core";
 
-import {ReportRecord, Report} from '../../model/report';
-import {Leaf} from '../../model/leaf';
-import {Cognito} from '../aws/cognito';
-import * as DC from '../aws/dynamo/document_client.d';
-import {COGNITO_ID_COLUMN, Dynamo, DBRecord} from '../aws/dynamo/dynamo';
-import {DynamoTable} from '../aws/dynamo/table';
-import {ExpressionMap} from '../aws/dynamo/expression';
-import {PagingReports} from './cached_list';
-import {Pager, PagingList} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {ReportRecord, Report} from "../../model/report";
+import {Leaf} from "../../model/leaf";
+import {Cognito} from "../aws/cognito";
+import * as DC from "../aws/dynamo/document_client.d";
+import {COGNITO_ID_COLUMN, Dynamo, DBRecord} from "../aws/dynamo/dynamo";
+import {DynamoTable} from "../aws/dynamo/table";
+import {ExpressionMap} from "../aws/dynamo/expression";
+import {PagingReports} from "./cached_list";
+import {Pager, PagingList} from "../../util/pager";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('SearchReports');
+const logger = new Logger("SearchReports");
 
 const PAGE_SIZE = 10;
 
@@ -21,9 +21,9 @@ export class SearchReports {
 
     async byWord(word: string): Promise<PagingList<Report>> {
         const upper = word.toUpperCase();
-        const table = await Report.table(this.dynamo)
-        const pagerReports = await this.pagerByWord(upper, 'comment_upper', table);
-        const pagerLeaves = await this.pagerByWord(upper, 'description_upper', await Leaf.table(this.dynamo));
+        const table = await Report.table(this.dynamo);
+        const pagerReports = await this.pagerByWord(upper, "comment_upper", table);
+        const pagerLeaves = await this.pagerByWord(upper, "description_upper", await Leaf.table(this.dynamo));
         return new PagingReports(new MargedPager(table, pagerReports, pagerLeaves));
     }
 
@@ -33,7 +33,7 @@ export class SearchReports {
         const nameCognitoId = mapping.addName(COGNITO_ID_COLUMN);
         const valueCognitoId = mapping.addValue((await this.cognito.identity).identityId);
 
-        const content = mapping.addName('CONTENT');
+        const content = mapping.addName("CONTENT");
         const upper = mapping.addName(attName);
         const value = mapping.addValue(word);
 
@@ -64,12 +64,12 @@ class MargedPager implements Pager<Report> {
 
     async more(pageSize: number): Promise<Array<Report>> {
         const reportsAwait = this.reportPager.more(pageSize / 2);
-        const leaves = await this.leafPager.more(pageSize / 2)
+        const leaves = await this.leafPager.more(pageSize / 2);
         const reports = await reportsAwait;
         logger.debug(() => `Marging items: reports=${reports.length}, leaves=${leaves.length}`);
 
         const addings = _.filter(_.uniq(leaves.map((leaf) => leaf.reportId)),
-            (id) => _.every(reports, (x) => x.id() != id)
+            (id) => _.every(reports, (x) => x.id() !== id)
         ).map(async (id) => await this.reportTable.get(id));
 
         _.compact(await Promise.all(addings)).forEach((x) => reports.push(x));

@@ -1,15 +1,15 @@
-import {Injectable} from 'angular2/core';
+import {Injectable} from "angular2/core";
 
-import {Report} from '../../model/report';
-import {Leaf} from '../../model/leaf';
-import {Cognito} from '../aws/cognito';
-import {Dynamo, DBRecord} from '../aws/dynamo/dynamo';
-import {DynamoTable} from '../aws/dynamo/table';
-import {assert} from '../../util/assertion';
-import {Pager, PagingList} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {Report} from "../../model/report";
+import {Leaf} from "../../model/leaf";
+import {Cognito} from "../aws/cognito";
+import {Dynamo, DBRecord} from "../aws/dynamo/dynamo";
+import {DynamoTable} from "../aws/dynamo/table";
+import {assert} from "../../util/assertion";
+import {Pager, PagingList} from "../../util/pager";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('CachedReports');
+const logger = new Logger("CachedReports");
 
 const PAGE_SIZE = 10;
 
@@ -48,15 +48,15 @@ export class CachedReports {
         logger.debug(() => `Removing report: ${report}`);
 
         await report.remove();
-        _.remove(await this.currentList, (x) => x.id() == report.id());
+        _.remove(await this.currentList, (x) => x.id() === report.id());
     }
 }
 
 function differ(src: Array<string>, dst: Array<string>) {
-    const notIncluded = (list: Array<string>) => (x: string) => _.every(list, (y) => y != x);
+    const notIncluded = (list: Array<string>) => (x: string) => _.every(list, (y) => y !== x);
     const parted = _.partition(dst, notIncluded(src));
     return {
-        common: parted[1].map((d) => _.find(src, (x) => x == d)),
+        common: parted[1].map((d) => _.find(src, (x) => x === d)),
         onlyDst: parted[0],
         onlySrc: _.filter(src, notIncluded(dst))
     };
@@ -96,7 +96,7 @@ export class PagingReports implements PagingList<Report> {
             const start = this._list.length;
             const goal = start + PAGE_SIZE;
             await this.doMore(start + 1);
-            this.doMore(goal);// これ以降はバックグラウンドで追加
+            this.doMore(goal); // これ以降はバックグラウンドで追加
         }
     }
 
@@ -112,9 +112,9 @@ export class PagingReports implements PagingList<Report> {
     }
 
     private add(adding: Array<Report>) {
-        _.sortBy(adding, 'dateAt').reverse().forEach((x) => {
+        _.sortBy(adding, "dateAt").reverse().forEach((x) => {
             try {
-                if (_.every(this._list, (o) => o.id() != x.id())) {
+                if (_.every(this._list, (o) => o.id() !== x.id())) {
                     this._list.push(x);
                 }
             } catch (ex) {

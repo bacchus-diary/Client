@@ -1,7 +1,7 @@
 
 export function decodeBase64(text: string, opt?: { sliceSize?: number, contentType?: string }): Blob {
     let sliceSize = 512;
-    let contentType = 'image/jpeg';
+    let contentType = "image/jpeg";
     if (opt) {
         if (opt.sliceSize) sliceSize = opt.sliceSize;
         if (opt.contentType) contentType = opt.contentType;

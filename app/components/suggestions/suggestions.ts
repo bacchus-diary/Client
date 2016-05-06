@@ -1,20 +1,20 @@
-import {NavController} from 'ionic-angular';
-import {Component, Input} from 'angular2/core';
-import {EventEmitter} from 'angular2/core';
+import {NavController} from "ionic-angular";
+import {Component, Input} from "angular2/core";
+import {EventEmitter} from "angular2/core";
 
-import {Report} from '../../model/report';
-import {Suggestions, Product} from '../../providers/suggestions/suggestions';
-import {FATHENS_PROVIDERS} from '../../providers/all';
-import {PagingList} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {Report} from "../../model/report";
+import {Suggestions, Product} from "../../providers/suggestions/suggestions";
+import {FATHENS_PROVIDERS} from "../../providers/all";
+import {PagingList} from "../../util/pager";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('SuggestionsComponent');
+const logger = new Logger("SuggestionsComponent");
 
 const scrollLastMergin = 100; // px
 
 @Component({
-    selector: 'fathens-suggestions',
-    templateUrl: 'build/components/suggestions/suggestions.html',
+    selector: "fathens-suggestions",
+    templateUrl: "build/components/suggestions/suggestions.html",
     providers: [FATHENS_PROVIDERS]
 })
 export class SuggestionsComponent {
@@ -23,7 +23,7 @@ export class SuggestionsComponent {
     private pager: PagingList<Product>;
 
     get products(): Array<Product> {
-        return this.pager == null ? [] : this.pager.currentList();
+        return _.isNil(this.pager) ? [] : this.pager.currentList();
     }
 
     private _report: Report;

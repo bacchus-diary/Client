@@ -1,11 +1,11 @@
-import {Injectable} from 'angular2/core';
-import {Http, Response} from 'angular2/http';
-import * as yaml from 'js-yaml';
+import {Injectable} from "angular2/core";
+import {Http, Response} from "angular2/http";
+import * as yaml from "js-yaml";
 
-import {toPromise} from '../../util/promising';
-import {Logger} from '../../util/logging';
+import {toPromise} from "../../util/promising";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('BootSettings');
+const logger = new Logger("BootSettings");
 
 @Injectable()
 export class BootSettings {
@@ -14,23 +14,23 @@ export class BootSettings {
     constructor(private http: Http) { }
 
     private async get(key: string): Promise<string> {
-        if (BootSettings.src == null) {
+        if (_.isNil(BootSettings.src)) {
             logger.debug(() => `Loading settings.yaml ...`);
-            const res = await toPromise(this.http.get('settings.yaml'));
+            const res = await toPromise(this.http.get("settings.yaml"));
             BootSettings.src = yaml.load(res.text());
         }
         return BootSettings.src[key];
     }
 
     get awsRegion(): Promise<string> {
-        return this.get('awsRegion');
+        return this.get("awsRegion");
     }
 
     get cognitoPoolId(): Promise<string> {
-        return this.get('cognitoPoolId');
+        return this.get("cognitoPoolId");
     }
 
     get s3Bucket(): Promise<string> {
-        return this.get('s3Bucket');
+        return this.get("s3Bucket");
     }
 }

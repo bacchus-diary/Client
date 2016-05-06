@@ -1,12 +1,12 @@
-import {Injectable} from 'angular2/core';
-import {Http} from 'angular2/http';
+import {Injectable} from "angular2/core";
+import {Http} from "angular2/http";
 
-import * as GCV from './gcv.d';
-import {Configuration} from '../config/configuration';
-import {toPromise} from '../../util/promising';
-import {Logger} from '../../util/logging';
+import * as GCV from "./gcv.d";
+import {Configuration} from "../config/configuration";
+import {toPromise} from "../../util/promising";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('CVision');
+const logger = new Logger("CVision");
 
 const urlGCV = "https://vision.googleapis.com/v1/images:annotate";
 
@@ -55,7 +55,7 @@ export class CVision {
                     return {
                         type: name as GCV.FeatureType,
                         maxResults: features[name] as number
-                    }
+                    };
                 })
             }]
         };

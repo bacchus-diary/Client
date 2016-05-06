@@ -1,18 +1,18 @@
-import {Page, Modal, NavController, NavParams, ViewController} from 'ionic-angular';
+import {Page, Modal, NavController, NavParams, ViewController} from "ionic-angular";
 
-import {FATHENS_DIRECTIVES} from '../../components/all';
-import {FATHENS_PROVIDERS} from '../../providers/all';
-import {Cognito} from '../../providers/aws/cognito';
-import {FBPublish} from '../../providers/facebook/fb_publish';
-import {Report} from '../../model/report';
-import {Dialog, Spinner, Overlay} from '../../util/backdrop';
-import {Toast} from '../../util/toast';
-import {Logger} from '../../util/logging';
+import {FATHENS_DIRECTIVES} from "../../components/all";
+import {FATHENS_PROVIDERS} from "../../providers/all";
+import {Cognito} from "../../providers/aws/cognito";
+import {FBPublish} from "../../providers/facebook/fb_publish";
+import {Report} from "../../model/report";
+import {Dialog, Spinner, Overlay} from "../../util/backdrop";
+import {Toast} from "../../util/toast";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('PublishPage');
+const logger = new Logger("PublishPage");
 
 @Page({
-    templateUrl: 'build/pages/publish/publish.html',
+    templateUrl: "build/pages/publish/publish.html",
     directives: [FATHENS_DIRECTIVES],
     providers: [FATHENS_PROVIDERS]
 })
@@ -32,7 +32,7 @@ export class PublishPage {
         private fbPublish: FBPublish,
         public viewCtrl: ViewController
     ) {
-        this.report = params.get('report');
+        this.report = params.get("report");
         logger.debug(() => `Editing message of report: ${this.report}`);
         this.message = this.report.comment || "";
         this.photos = this.report.leaves.map((leaf) => leaf.photo.reduced.mainview.url);
@@ -59,7 +59,7 @@ export class PublishPage {
     async submit() {
         if (!(await this.isJoined)) {
             try {
-                await Spinner.within(this.nav, 'SignIn...', async () => {
+                await Spinner.within(this.nav, "SignIn...", async () => {
                     await this.cognito.joinFacebook();
                 });
             } catch (ex) {
@@ -70,10 +70,10 @@ export class PublishPage {
         if (await this.isJoined) {
             try {
                 await this.fbPublish.publish(this.message, this.report);
-                Toast.showLongCenter('Share is completed');
+                Toast.showLongCenter("Share is completed");
             } catch (ex) {
                 logger.warn(() => `Failed to share on Facebook: ${JSON.stringify(ex, null, 4)}`);
-                await Dialog.alert(this.nav, 'Error on sharing', 'Failed to share on Facebook. Please try again later.');
+                await Dialog.alert(this.nav, "Error on sharing", "Failed to share on Facebook. Please try again later.");
             }
         }
     }

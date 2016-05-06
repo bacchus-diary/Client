@@ -1,14 +1,14 @@
-import {Page, NavController, MenuController} from 'ionic-angular';
-import {Http, Response, Jsonp, JSONP_PROVIDERS} from 'angular2/http';
+import {Page, NavController, MenuController} from "ionic-angular";
+import {Http, Response, Jsonp, JSONP_PROVIDERS} from "angular2/http";
 
-import {ReportsListPage} from '../reports_list/reports_list';
-import {toPromise} from '../../util/promising';
-import {Logger} from '../../util/logging';
+import {ReportsListPage} from "../reports_list/reports_list";
+import {toPromise} from "../../util/promising";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('AcceptancePage');
+const logger = new Logger("AcceptancePage");
 
 @Page({
-    templateUrl: 'build/pages/acceptance/acceptance.html',
+    templateUrl: "build/pages/acceptance/acceptance.html",
     providers: [JSONP_PROVIDERS]
 })
 export class AcceptancePage {
@@ -19,11 +19,11 @@ export class AcceptancePage {
         private jsonp: Jsonp
     ) { }
 
-    public static isAccepted(): boolean { return window.localStorage['acceptance']; }
-    private static accepted() { window.localStorage['acceptance'] = 'true'; }
+    public static isAccepted(): boolean { return window.localStorage["acceptance"]; }
+    private static accepted() { window.localStorage["acceptance"] = "true"; }
 
-    private gistId = '23ac8b82bab0b512f8a4';
-    private host = 'https://gist.github.com';
+    private gistId = "23ac8b82bab0b512f8a4";
+    private host = "https://gist.github.com";
 
     isReady = false;
 
@@ -41,38 +41,38 @@ export class AcceptancePage {
     }
 
     gistCallback(res) {
-        const divString = res['div'];
-        if (divString != null) {
-            const div = document.createElement('div');
+        const divString = res["div"];
+        if (!_.isNil(divString)) {
+            const div = document.createElement("div");
             div.innerHTML = divString;
-            this.showGist(div, this.toHref(res['stylesheet']))
+            this.showGist(div, this.toHref(res["stylesheet"]));
         }
     }
 
     toHref(hrefString: string): string {
-        if (hrefString == null) return null;
+        if (_.isNil(hrefString)) return null;
 
-        if (hrefString.startsWith('<link')) {
-            const plain = hrefString.replace(/\\/, '');
+        if (hrefString.startsWith("<link")) {
+            const plain = hrefString.replace(/\\/, "");
             return /href="([^\s]*)"/.exec(plain)[1];
         }
-        if (!hrefString.startsWith('http')) {
-            const sep = hrefString.startsWith('/') ? '' : '/';
+        if (!hrefString.startsWith("http")) {
+            const sep = hrefString.startsWith("/") ? "" : "/";
             return this.host + sep + hrefString;
         }
         return hrefString;
     }
 
     async showGist(div: HTMLDivElement, styleHref: string) {
-        const base = document.getElementById('gist');
+        const base = document.getElementById("gist");
         logger.info(() => `Append gist to ${base}`);
 
-        const meta = div.querySelector('.gist-meta')
-        if (meta != null) meta.remove();
+        const meta = div.querySelector(".gist-meta");
+        if (!_.isNil(meta)) meta.remove();
 
         const css = await this.getStyle(styleHref);
-        if (css != null) {
-            const style = document.createElement('style');
+        if (!_.isNil(css)) {
+            const style = document.createElement("style");
             style.textContent = css;
             base.appendChild(style);
         }
@@ -80,7 +80,7 @@ export class AcceptancePage {
     }
 
     async getStyle(href): Promise<string> {
-        if (href == null) {
+        if (_.isNil(href)) {
             return null;
         }
         const res = await toPromise(this.http.get(href));

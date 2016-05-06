@@ -1,29 +1,29 @@
-import {NavController} from 'ionic-angular';
-import {Camera, Device} from 'ionic-native';
-import {AnimationBuilder} from 'angular2/animate';
-import {Component, Input, Output, EventEmitter} from 'angular2/core';
+import {NavController} from "ionic-angular";
+import {Camera, Device} from "ionic-native";
+import {AnimationBuilder} from "angular2/animate";
+import {Component, Input, Output, EventEmitter} from "angular2/core";
 
-import {ElasticTextareaDirective} from '../elastic_textarea/elastic_textarea';
-import {S3File} from '../../providers/aws/s3file';
-import {Photo} from '../../providers/reports/photo';
-import {EtiquetteVision} from '../../providers/cvision/etiquette';
-import {Preferences} from '../../providers/config/preferences';
-import {FATHENS_PROVIDERS} from '../../providers/all';
-import {Leaf} from '../../model/leaf';
-import {assert} from '../../util/assertion';
-import {Dialog, Spinner} from '../../util/backdrop';
-import * as BASE64 from '../../util/base64';
-import {Swiper} from '../../util/swiper.d';
-import {Logger} from '../../util/logging';
+import {ElasticTextareaDirective} from "../elastic_textarea/elastic_textarea";
+import {S3File} from "../../providers/aws/s3file";
+import {Photo} from "../../providers/reports/photo";
+import {EtiquetteVision} from "../../providers/cvision/etiquette";
+import {Preferences} from "../../providers/config/preferences";
+import {FATHENS_PROVIDERS} from "../../providers/all";
+import {Leaf} from "../../model/leaf";
+import {assert} from "../../util/assertion";
+import {Dialog, Spinner} from "../../util/backdrop";
+import * as BASE64 from "../../util/base64";
+import {Swiper} from "../../util/swiper.d";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('ShowcaseComponent');
+const logger = new Logger("ShowcaseComponent");
 
 const WIDTH_MIN = 480;
 const HEIGHT_MIN = 480;
 
 @Component({
-    selector: 'fathens-showcase',
-    templateUrl: 'build/components/showcase/showcase.html',
+    selector: "fathens-showcase",
+    templateUrl: "build/components/showcase/showcase.html",
     directives: [ElasticTextareaDirective],
     providers: [FATHENS_PROVIDERS]
 })
@@ -48,7 +48,7 @@ export class ShowcaseComponent {
         onInit: (s) => {
             this.swiper = s;
         }
-    }
+    };
 
     slidePrev() {
         this.swiper.slidePrev();
@@ -61,7 +61,7 @@ export class ShowcaseComponent {
     private async isTakePhoto(): Promise<boolean> {
         let take = await this.pref.getAlwaysTake();
         if (!take) {
-            take = await Dialog.confirm(this.nav, 'Camera', '"TAKE" photo or "CHOOSE" from library', { ok: 'TAKE', cancel: 'CHOOSE' });
+            take = await Dialog.confirm(this.nav, "Camera", "\"TAKE\" photo or \"CHOOSE\" from library", { ok: "TAKE", cancel: "CHOOSE" });
             if (take) {
                 this.pref.incrementCountTake();
             } else {
@@ -78,10 +78,10 @@ export class ShowcaseComponent {
             const take = await this.isTakePhoto();
             let base64image;
             if (!Device.device.cordova) {
-                const file = await Dialog.file(this.nav, 'Choose image file');
+                const file = await Dialog.file(this.nav, "Choose image file");
                 base64image = await BASE64.encodeBase64(file);
             }
-            const {blob, index, leaf, etiquette} = await Spinner.within(this.nav, 'Loading...', async () => {
+            const {blob, index, leaf, etiquette} = await Spinner.within(this.nav, "Loading...", async () => {
                 if (Device.device.cordova) {
                     base64image = await Camera.getPicture({
                         correctOrientation: true,
@@ -103,7 +103,7 @@ export class ShowcaseComponent {
             });
             const slide = this.swiper.slides[index];
 
-            const img = slide.querySelector('.deletable img') as HTMLImageElement;
+            const img = slide.querySelector(".deletable img") as HTMLImageElement;
             logger.debug(() => `img=${img}`);
             const size = await new Promise<{ w: number, h: number }>(async (resolve, reject) => {
                 while (!img.naturalWidth) {
@@ -117,17 +117,17 @@ export class ShowcaseComponent {
             logger.debug(() => `Img size: ${JSON.stringify(size)}`);
 
             if (size.w < WIDTH_MIN || size.h < HEIGHT_MIN) {
-                await Dialog.alert(this.nav, 'Delete Photo', 'This photo is too small', 'Delete');
+                await Dialog.alert(this.nav, "Delete Photo", "This photo is too small", "Delete");
                 await this.doDeletePhoto(index);
             } else if (etiquette && !etiquette.isSafe()) {
-                await Dialog.alert(this.nav, 'Delete Photo', 'This photo is seems to be inappropriate', 'Delete');
+                await Dialog.alert(this.nav, "Delete Photo", "This photo is seems to be inappropriate", "Delete");
                 await this.doDeletePhoto(index);
             } else {
                 if (etiquette) {
                     etiquette.writeContent(leaf);
-                    const textarea = slide.querySelector('ion-item.description ion-textarea textarea') as HTMLTextAreaElement;
+                    const textarea = slide.querySelector("ion-item.description ion-textarea textarea") as HTMLTextAreaElement;
                     if (textarea) setTimeout(() => {
-                        logger.debug(() => `Kick event 'onInput' on ${textarea}(value=${textarea.value})`);
+                        logger.debug(() => `Kick event "onInput" on ${textarea}(value=${textarea.value})`);
                         textarea.oninput(null);
                     }, 100);
                 }
@@ -152,7 +152,7 @@ export class ShowcaseComponent {
 
     private async confirmDeletion(): Promise<boolean> {
         if (this.confirmDelete) {
-            return await Dialog.confirm(this.nav, 'Remove Photo', 'Are you sure to remove this photo ?', { ok: 'Delete' });
+            return await Dialog.confirm(this.nav, "Remove Photo", "Are you sure to remove this photo ?", { ok: "Delete" });
         } else {
             return true;
         }
@@ -170,23 +170,23 @@ export class ShowcaseComponent {
                 }
             }
             return null;
-        }
-        const floating = getChild('floating');
-        const target = getChild('deletable');
+        };
+        const floating = getChild("floating");
+        const target = getChild("deletable");
         logger.debug(() => `Animate target: ${target}`);
 
-        assert('floating', floating);
-        assert('deletable', target);
+        assert("floating", floating);
+        assert("deletable", target);
 
         return new Promise<Leaf>((resolve, reject) => {
-            floating.style.display = 'none';
+            floating.style.display = "none";
 
             const height = target.offsetHeight;
             const dur = this.slideSpeed * 2;
             const animation = this.ab.css();
 
-            animation.setFromStyles({ opacity: '1' });
-            animation.setToStyles({ opacity: '0', transform: `translateY(${height}px)` });
+            animation.setFromStyles({ opacity: "1" });
+            animation.setToStyles({ opacity: "0", transform: `translateY(${height}px)` });
             animation.setDuration(dur);
             animation.start(target);
             logger.debug(() => `Animation started: ${height}px in ${dur}ms`);

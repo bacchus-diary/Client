@@ -1,13 +1,13 @@
-import {Photo, Images} from '../providers/reports/photo';
+import {Photo, Images} from "../providers/reports/photo";
 
-import {Leaf} from './leaf';
-import {Cognito} from '../providers/aws/cognito';
-import {Dynamo, DBRecord, createRandomKey} from '../providers/aws/dynamo/dynamo';
-import {DynamoTable} from '../providers/aws/dynamo/table';
-import {assert} from '../util/assertion';
-import {Logger} from '../util/logging';
+import {Leaf} from "./leaf";
+import {Cognito} from "../providers/aws/cognito";
+import {Dynamo, DBRecord, createRandomKey} from "../providers/aws/dynamo/dynamo";
+import {DynamoTable} from "../providers/aws/dynamo/table";
+import {assert} from "../util/assertion";
+import {Logger} from "../util/logging";
 
-const logger = new Logger('Report');
+const logger = new Logger("Report");
 
 export type ReportRecord = {
     COGNITO_ID: string,
@@ -34,21 +34,21 @@ export class Report implements DBRecord<Report> {
             const leafTable = await Leaf.table(dynamo);
             this._table = dynamo.createTable<ReportRecord, Report>((cognito: Cognito, photo: Photo) => {
                 return {
-                    tableName: 'REPORT',
-                    idColumnName: 'REPORT_ID',
+                    tableName: "REPORT",
+                    idColumnName: "REPORT_ID",
                     reader: async (src: ReportRecord) => {
                         logger.debug(() => `Reading Report from DB: ${JSON.stringify(src)}`);
                         if (!src) return null;
                         const rels = await leafTable.query({
                             COGNITO_ID: (await cognito.identity).identityId,
                             REPORT_ID: src.REPORT_ID
-                        }, 'COGNITO_ID-REPORT_ID-index');
+                        }, "COGNITO_ID-REPORT_ID-index");
                         if (_.isEmpty(rels)) {
                             logger.debug(() => `This report has no leaves: ${JSON.stringify(src)}`);
                             (await this._table).remove(src.REPORT_ID);
                             return null;
                         }
-                        const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() == leafId));
+                        const indexed = src.CONTENT.LEAF_INDEXES.map((leafId) => rels.find((leaf) => leaf.id() === leafId));
                         const leaves = _.union(_.compact(indexed), rels);
                         return new Report(src.REPORT_ID, new Date(src.DATE_AT), leaves, src.CONTENT);
                     },
@@ -82,14 +82,14 @@ export class Report implements DBRecord<Report> {
         private _leaves: Array<Leaf>,
         private content: ReportContent
     ) {
-        assert('id', _id);
-        assert('dateAt', _dateAt);
-        assert('leaves', _leaves);
-        assert('content', content);
+        assert("id", _id);
+        assert("dateAt", _dateAt);
+        assert("leaves", _leaves);
+        assert("content", content);
     }
 
     get table(): Promise<DynamoTable<ReportRecord, Report>> {
-        assert('Report$Table', Report._table);
+        assert("Report$Table", Report._table);
         return Report._table;
     }
 
@@ -97,7 +97,7 @@ export class Report implements DBRecord<Report> {
         return this._dateAt;
     }
     set dateAt(v: Date) {
-        assert('dateAt', v);
+        assert("dateAt", v);
         this._dateAt = v;
     }
 
@@ -105,7 +105,7 @@ export class Report implements DBRecord<Report> {
         return this._leaves;
     }
     set leaves(v: Array<Leaf>) {
-        assert('leaves', v);
+        assert("leaves", v);
         this._leaves = v;
     }
 
@@ -113,7 +113,7 @@ export class Report implements DBRecord<Report> {
         return this.content.comment ? this.content.comment : "";
     }
     set comment(v: string) {
-        assert('comment', v);
+        assert("comment", v);
         this.content.comment = v;
     }
 
@@ -121,7 +121,7 @@ export class Report implements DBRecord<Report> {
         return this.content.rating ? this.content.rating : 1;
     }
     set rating(v: number) {
-        assert('rating', v);
+        assert("rating", v);
         this.content.rating = v;
     }
 

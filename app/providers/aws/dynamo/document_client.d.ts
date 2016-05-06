@@ -8,15 +8,15 @@ export interface AWSRequest<T> {
 export type Operation<P, R> = (params: P, callback?: ClientCallback<R>) => AWSRequest<R>;
 
 export interface DocumentClient {
-    batchGet: Operation<BatchGetParams, BatchGetResult>
-    batchWrite: Operation<BatchWriteParams, BatchWriteResult>
+    batchGet: Operation<BatchGetParams, BatchGetResult>;
+    batchWrite: Operation<BatchWriteParams, BatchWriteResult>;
     createSet(list: Array<any>, params?: { validate: boolean }): any;
-    delete: Operation<DeleteParams, DeleteResult>
-    get: Operation<GetParams, GetResult>
-    put: Operation<PutParams, PutResult>
-    query: Operation<QueryParams, QueryResult>
-    scan: Operation<ScanParams, ScanResult>
-    update: Operation<UpdateParams, UpdateResult>
+    delete: Operation<DeleteParams, DeleteResult>;
+    get: Operation<GetParams, GetResult>;
+    put: Operation<PutParams, PutResult>;
+    query: Operation<QueryParams, QueryResult>;
+    scan: Operation<ScanParams, ScanResult>;
+    update: Operation<UpdateParams, UpdateResult>;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -210,7 +210,7 @@ export type UpdateResult = {
 ////////////////////////////////////////////////////////////////
 
 
-export type ReturnConsumedCapacity = 'INDEXES' | 'TOTAL' | 'NONE';
+export type ReturnConsumedCapacity = "INDEXES" | "TOTAL" | "NONE";
 
 /**
  * (map)
@@ -251,7 +251,7 @@ export type Key = { [key: string]: ColumnValue };
 
 /**
  * map {
- *    someKey: 'STRING_VALUE',
+ *    someKey: "STRING_VALUE",
  *    anotherKey: ...
  * }
  */
@@ -265,7 +265,7 @@ export type ExpressionAttributeNames = { [key: string]: string };
  */
 export type ExpressionAttributeValues = { [key: string]: ColumnValue };
 
-export type ConditionalOperator = 'AND' | 'OR';
+export type ConditionalOperator = "AND" | "OR";
 
 /*{
     someKey: {
@@ -273,7 +273,7 @@ export type ConditionalOperator = 'AND' | 'OR';
             someValue "str" | 10 | true | false | null | [1, "a"] | {a: "b"},
             more items
         ],
-        ComparisonOperator: 'EQ | NE | IN | LE | LT | GE | GT | BETWEEN | NOT_NULL | NULL | CONTAINS | NOT_CONTAINS | BEGINS_WITH',
+        ComparisonOperator: "EQ | NE | IN | LE | LT | GE | GT | BETWEEN | NOT_NULL | NULL | CONTAINS | NOT_CONTAINS | BEGINS_WITH",
         Exists: true || false,
             Value: someValue "str" | 10 | true | false | null | [1, "a"] | {a: "b"}
     },
@@ -281,16 +281,16 @@ export type ConditionalOperator = 'AND' | 'OR';
 }*/
 export type Expected = any;
 
-export type ReturnItemCollectionMetrics = 'SIZE' | 'NONE';
+export type ReturnItemCollectionMetrics = "SIZE" | "NONE";
 
-export type ReturnValues = 'NONE' | 'ALL_OLD' | 'UPDATED_OLD' | 'ALL_NEW' | 'UPDATED_NEW';
+export type ReturnValues = "NONE" | "ALL_OLD" | "UPDATED_OLD" | "ALL_NEW" | "UPDATED_NEW";
 
-export type Select = 'ALL_ATTRIBUTES' | 'ALL_PROJECTED_ATTRIBUTES' | 'SPECIFIC_ATTRIBUTES' | 'COUNT';
+export type Select = "ALL_ATTRIBUTES" | "ALL_PROJECTED_ATTRIBUTES" | "SPECIFIC_ATTRIBUTES" | "COUNT";
 
 /**
  * {
  *   someKey: {
- *     ComparisonOperator: 'EQ | NE | IN | LE | LT | GE | GT | BETWEEN | NOT_NULL | NULL | CONTAINS | NOT_CONTAINS | BEGINS_WITH', // required
+ *     ComparisonOperator: "EQ | NE | IN | LE | LT | GE | GT | BETWEEN | NOT_NULL | NULL | CONTAINS | NOT_CONTAINS | BEGINS_WITH", // required
  *     AttributeValueList: [
  *       someValue, // "str" | 10 | true | false | null | [1, "a"] | {a: "b"}
  *       more items ...
@@ -304,7 +304,7 @@ export type Filter = any;
 /**
  * {
  *   someKey: {
- *     Action: 'ADD | PUT | DELETE',
+ *     Action: "ADD | PUT | DELETE",
  *     Value: someValue, // "str" | 10 | true | false | null | [1, "a"] | {a: "b"}
  *   },
  *   // anotherKey: ...
@@ -323,15 +323,15 @@ export type AttributeUpdates = any;
  *         more items ...
  *       ],
  *       AttributesToGet: [
- *         'STRING_VALUE',
+ *         "STRING_VALUE",
  *         more items ...
  *       ],
  *       ConsistentRead: true || false,
  *       ExpressionAttributeNames: {
- *         someKey: 'STRING_VALUE',
+ *         someKey: "STRING_VALUE",
  *         anotherKey: ...
  *       },
- *       ProjectionExpression: 'STRING_VALUE'
+ *       ProjectionExpression: "STRING_VALUE"
  *     },
  *     anotherKey: ...
  * }

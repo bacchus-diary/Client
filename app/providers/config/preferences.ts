@@ -1,9 +1,9 @@
-import {Storage, SqlStorage} from 'ionic-angular';
-import {Injectable} from 'angular2/core';
+import {Storage, SqlStorage} from "ionic-angular";
+import {Injectable} from "angular2/core";
 
-import {Logger} from '../../util/logging';
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('Preferences');
+const logger = new Logger("Preferences");
 
 type SocialRecord = {
     name: string,
@@ -20,9 +20,9 @@ const COUNT_TAKE_THRESHOLD = 5;
 @Injectable()
 export class Preferences {
     constructor() {
-        const storage = new Storage(SqlStorage, { name: 'preferences' });
-        this.photoTake = new KeyValueJson<PhotoTake>(storage, 'photo_take', { always: false });
-        this.social = new SocialConnections(storage, 'social_connections');
+        const storage = new Storage(SqlStorage, { name: "preferences" });
+        this.photoTake = new KeyValueJson<PhotoTake>(storage, "photo_take", { always: false });
+        this.social = new SocialConnections(storage, "social_connections");
     }
 
     private photoTake: KeyValueJson<PhotoTake>;
@@ -31,7 +31,7 @@ export class Preferences {
     async getSocial(name: string): Promise<boolean> {
         const rows = await this.social.select(name);
         if (rows.length < 1) return false;
-        return rows[0].connected == 1;
+        return rows[0].connected === 1;
     }
     async setSocial(name: string, v: boolean): Promise<void> {
         const rows = await this.social.select(name);

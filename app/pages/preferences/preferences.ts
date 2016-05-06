@@ -1,15 +1,15 @@
-import {Page, Storage, SqlStorage, NavController} from 'ionic-angular';
+import {Page, Storage, SqlStorage, NavController} from "ionic-angular";
 
-import {FATHENS_PROVIDERS} from '../../providers/all';
-import {Cognito, PROVIDER_KEY_FACEBOOK} from '../../providers/aws/cognito';
-import {Preferences} from '../../providers/config/preferences';
-import {Spinner} from '../../util/backdrop';
-import {Logger} from '../../util/logging';
+import {FATHENS_PROVIDERS} from "../../providers/all";
+import {Cognito, PROVIDER_KEY_FACEBOOK} from "../../providers/aws/cognito";
+import {Preferences} from "../../providers/config/preferences";
+import {Spinner} from "../../util/backdrop";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('PreferencesPage');
+const logger = new Logger("PreferencesPage");
 
 @Page({
-    templateUrl: 'build/pages/preferences/preferences.html',
+    templateUrl: "build/pages/preferences/preferences.html",
     providers: [FATHENS_PROVIDERS]
 })
 export class PreferencesPage {
@@ -26,19 +26,19 @@ export class PreferencesPage {
         return this._facebook;
     }
     set facebook(v: boolean) {
-        logger.debug(() => `Setting '${PROVIDER_KEY_FACEBOOK}': ${v}`);
+        logger.debug(() => `Setting "${PROVIDER_KEY_FACEBOOK}": ${v}`);
         this._facebook = v;
 
-        Spinner.within(this.nav, 'Updating...', async () => {
+        Spinner.within(this.nav, "Updating...", async () => {
             if (v) {
                 await this.cognito.joinFacebook();
             } else {
                 await this.cognito.dropFacebook();
             }
             const joined = (await this.cognito.identity).isJoinFacebook;
-            if (joined != this._facebook) {
+            if (joined !== this._facebook) {
                 this._facebook = joined;
-                logger.debug(() => `Updated '${PROVIDER_KEY_FACEBOOK}': ${joined}`);
+                logger.debug(() => `Updated "${PROVIDER_KEY_FACEBOOK}": ${joined}`);
             }
         });
     }
@@ -49,7 +49,7 @@ export class PreferencesPage {
         return this._alwaysTake;
     }
     set alwaysTake(v: boolean) {
-        logger.debug(() => `Setting 'alwaysTake': ${v}`);
+        logger.debug(() => `Setting "alwaysTake": ${v}`);
         this._alwaysTake = v;
         this.pref.setAlwaysTake(v);
     }

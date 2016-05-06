@@ -1,4 +1,4 @@
-import {Alert, Loading, NavController} from 'ionic-angular';
+import {Alert, Loading, NavController} from "ionic-angular";
 
 export class Overlay {
     static async  wait(nav: NavController, interval?: number): Promise<void> {
@@ -14,7 +14,7 @@ export class Overlay {
 
 export class Dialog {
     static async alert(nav: NavController, title: string, msg: string, buttonText?: string): Promise<void> {
-        buttonText = buttonText || 'Ok';
+        buttonText = buttonText || "Ok";
         await new Promise((resolve, reject) => {
             nav.present(Alert.create({
                 title: title,
@@ -30,8 +30,8 @@ export class Dialog {
     }
 
     static async confirm(nav: NavController, title: string, msg: string, buttonText?: { ok?: string, cancel?: string }): Promise<boolean> {
-        let okButton = 'Ok';
-        let cancelButton = 'Cancel';
+        let okButton = "Ok";
+        let cancelButton = "Cancel";
         if (buttonText) {
             if (buttonText.ok) okButton = buttonText.ok;
             if (buttonText.cancel) cancelButton = buttonText.cancel;
@@ -43,7 +43,7 @@ export class Dialog {
                 buttons: [
                     {
                         text: cancelButton,
-                        role: 'cancel',
+                        role: "cancel",
                         handler: () => resolve(false)
                     },
                     {
@@ -58,25 +58,25 @@ export class Dialog {
     static async file(nav: NavController, title: string): Promise<File> {
         return new Promise<File>((resolve, reject) => {
             nav.present(Alert.create({
-                title: 'Choose image file',
+                title: "Choose image file",
                 inputs: [
                     {
-                        type: 'file',
-                        name: 'file'
+                        type: "file",
+                        name: "file"
                     }
                 ],
                 buttons: [
                     {
-                        text: 'Cancel',
+                        text: "Cancel",
                         handler: (data) => {
-                            reject('Cancel');
+                            reject("Cancel");
                         }
                     },
                     {
-                        text: 'Ok',
+                        text: "Ok",
                         handler: async (data) => {
                             try {
-                                const elm = document.querySelector("ion-alert input.alert-input[type='file']") as HTMLInputElement;
+                                const elm = document.querySelector("ion-alert input.alert-input[type=\"file\"]") as HTMLInputElement;
                                 if (elm && elm.files.length > 0) {
                                     resolve(elm.files[0]);
                                 }

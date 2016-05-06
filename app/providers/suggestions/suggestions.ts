@@ -1,11 +1,11 @@
-import {Injectable} from 'angular2/core';
+import {Injectable} from "angular2/core";
 
-import {Report} from '../../model/report';
-import {AmazonPAA} from './amazon_paa';
-import {PagingList} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {Report} from "../../model/report";
+import {AmazonPAA} from "./amazon_paa";
+import {PagingList} from "../../util/pager";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('Suggestions');
+const logger = new Logger("Suggestions");
 
 export type Product = {
     id: string,
@@ -49,9 +49,9 @@ export class Suggestions {
         logger.info(() => `Opening amazon: ${product.url}`);
         const cordova = (window as any).cordova;
         if (cordova && cordova.InAppBrowser) {
-            cordova.InAppBrowser.open(product.url, '_system');
+            cordova.InAppBrowser.open(product.url, "_system");
         } else {
-            window.open(product.url, '_blank');
+            window.open(product.url, "_blank");
         }
     }
 }
@@ -72,7 +72,7 @@ class PagingSuggestions implements PagingList<Product> {
     }
 
     isLoading(): boolean {
-        return this.loading != null;
+        return !_.isNil(this.loading);
     }
 
     reset() {
@@ -98,7 +98,7 @@ class PagingSuggestions implements PagingList<Product> {
                 logger.debug(() => `Searching suggestions by keywords: ${word}`);
                 const products = await this.paa.itemSearch(word, this.pageIndex);
                 products.forEach((x) => {
-                    if (_.every(this._list, (o) => x.title != o.title)) {
+                    if (_.every(this._list, (o) => x.title !== o.title)) {
                         const index = _.findIndex(this._list, (o, index) =>
                             startIndex <= index && o.priceValue <= x.priceValue);
                         if (index < 0) {

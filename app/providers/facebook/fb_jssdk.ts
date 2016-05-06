@@ -1,25 +1,25 @@
-import {Injectable} from 'angular2/core';
-import {Http} from 'angular2/http';
+import {Injectable} from "angular2/core";
+import {Http} from "angular2/http";
 
-import {toPromise} from '../../util/promising';
-import {Logger} from '../../util/logging';
+import {toPromise} from "../../util/promising";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('FBJSSDK');
+const logger = new Logger("FBJSSDK");
 
 @Injectable()
 export class FBJSSDK implements FBConnectPlugin {
     constructor(private http: Http) { }
 
     private async initialize(): Promise<void> {
-        const scriptId = 'facebook-jssdk';
-        if (document.getElementById(scriptId) != null) return;
+        const scriptId = "facebook-jssdk";
+        if (document.getElementById(scriptId) !== null) return;
 
-        const appId = (await toPromise(this.http.get('facebook_app_id'))).text().trim();
+        const appId = (await toPromise(this.http.get("facebook_app_id"))).text().trim();
         logger.debug(() => `Setting browser facebook app id: ${appId}`);
 
-        const script = document.createElement('script') as HTMLScriptElement;
+        const script = document.createElement("script") as HTMLScriptElement;
         script.id = scriptId;
-        script.src = 'https://connect.facebook.net/en_US/sdk.js';
+        script.src = "https://connect.facebook.net/en_US/sdk.js";
 
         return new Promise<void>((resolve, reject) => {
             (window as any).fbAsyncInit = () => {
@@ -27,14 +27,14 @@ export class FBJSSDK implements FBConnectPlugin {
                     (window as any).FB.init({
                         appId: appId,
                         xfbml: false,
-                        version: 'v2.5'
+                        version: "v2.5"
                     });
                     resolve();
                 } catch (ex) {
                     reject(ex);
                 }
             };
-            const first = document.getElementsByTagName('script')[0];
+            const first = document.getElementsByTagName("script")[0];
             first.parentNode.insertBefore(script, first);
         });
     }
@@ -48,11 +48,11 @@ export class FBJSSDK implements FBConnectPlugin {
 
     login(arg?: string): Promise<string> {
         return this.invoke<string>((fb, callback) => {
-            const args = ['public_profile'];
+            const args = ["public_profile"];
             if (arg) args.push(arg);
             fb.login((res) => {
                 callback(res.authResponse.accessToken);
-            }, { scope: args.join(',') });
+            }, { scope: args.join(",") });
         });
     }
 
@@ -63,13 +63,13 @@ export class FBJSSDK implements FBConnectPlugin {
     }
 
     getName(): Promise<string> {
-        throw 'Unsupported oparation: getName';
+        throw "Unsupported oparation: getName";
     }
 
     getToken(): Promise<FBConnectToken> {
         return this.invoke<FBConnectToken>((fb, callback) => {
             fb.getLoginStatus((res) => {
-                if (res.status == 'connected') {
+                if (res.status === "connected") {
                     callback({
                         token: res.authResponse.accessToken,
                         permissions: null

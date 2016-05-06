@@ -1,11 +1,11 @@
-import {Injectable} from 'angular2/core';
+import {Injectable} from "angular2/core";
 
-import {Leaf} from '../../model/leaf';
-import * as GCV from './gcv.d';
-import {CVision} from './cvision';
-import {Logger} from '../../util/logging';
+import {Leaf} from "../../model/leaf";
+import * as GCV from "./gcv.d";
+import {CVision} from "./cvision";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('Etiquette');
+const logger = new Logger("Etiquette");
 
 @Injectable()
 export class EtiquetteVision {
@@ -35,10 +35,10 @@ export class Etiquette {
 
     isSafe(maximum?: GCV.SafeSearchAnnotation): boolean {
         maximum = maximum || {
-            adult: 'POSSIBLE',
-            spoof: 'POSSIBLE',
-            violence: 'POSSIBLE',
-            medical: 'POSSIBLE'
+            adult: "POSSIBLE",
+            spoof: "POSSIBLE",
+            violence: "POSSIBLE",
+            medical: "POSSIBLE"
         };
         const safe = this.src.safeSearchAnnotation;
         logger.info(() => `Checking safety: ${JSON.stringify(safe)} with ${JSON.stringify(maximum)}`);
@@ -70,7 +70,7 @@ export class Etiquette {
         const topGroup = _.filter(sorted, (t) => {
             if (t.area < limit) return false;
             if ([/^[^\w]+$/, /^\d{1,4}$/, /^\w{1,2}$/].some((regex) => regex.test(t.text.description))) return false;
-            if (t.text.description.replace(/[^\w]/, '').length < 2) return false;
+            if (t.text.description.replace(/[^\w]/, "").length < 2) return false;
             return true;
         });
         logger.debug(() => `Reduced keywords: ${JSON.stringify(topGroup, null, 4)}\nfrom: ${JSON.stringify(sorted, null, 4)}`);
