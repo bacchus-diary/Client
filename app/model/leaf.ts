@@ -148,7 +148,7 @@ export class Leaf implements DBRecord<Leaf> {
                         logger.debug(() => `Change keyword: ${src} => ${dst}`);
                         this.keywords.splice(this.keywords.indexOf(src), 1, dst);
                     }
-                })
+                });
             } else if (srcList.length > dstList.length) {
                 srcList.filter((line) => _.every(dstList, (dst) => dst !== line)).forEach((word) => {
                     logger.debug(() => `Remove keyword: ${word}`);

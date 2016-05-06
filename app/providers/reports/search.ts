@@ -21,7 +21,7 @@ export class SearchReports {
 
     async byWord(word: string): Promise<PagingList<Report>> {
         const upper = word.toUpperCase();
-        const table = await Report.table(this.dynamo)
+        const table = await Report.table(this.dynamo);
         const pagerReports = await this.pagerByWord(upper, "comment_upper", table);
         const pagerLeaves = await this.pagerByWord(upper, "description_upper", await Leaf.table(this.dynamo));
         return new PagingReports(new MargedPager(table, pagerReports, pagerLeaves));
