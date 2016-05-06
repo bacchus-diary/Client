@@ -1,18 +1,18 @@
-import {Injectable} from 'angular2/core';
-import {Http, Headers} from 'angular2/http';
+import {Injectable} from "angular2/core";
+import {Http, Headers} from "angular2/http";
 
-import {Report} from '../../model/report';
-import {Leaf} from '../../model/leaf';
-import {Cognito} from '../aws/cognito';
-import {BootSettings} from '../config/boot_settings';
-import {Configuration} from '../config/configuration';
-import {FBConnect} from './fb_connect';
-import * as BASE64 from '../../util/base64';
-import {withFabric} from '../../util/fabric';
-import {toPromise} from '../../util/promising';
-import {Logger} from '../../util/logging';
+import {Report} from "../../model/report";
+import {Leaf} from "../../model/leaf";
+import {Cognito} from "../aws/cognito";
+import {BootSettings} from "../config/boot_settings";
+import {Configuration} from "../config/configuration";
+import {FBConnect} from "./fb_connect";
+import * as BASE64 from "../../util/base64";
+import {withFabric} from "../../util/fabric";
+import {toPromise} from "../../util/promising";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('FBPublish');
+const logger = new Logger("FBPublish");
 
 @Injectable()
 export class FBPublish {
@@ -51,7 +51,7 @@ export class FBPublish {
                 return `${data.url}/${encodeURIComponent(btoa(json))}`;
             }
             const params: { [key: string]: string } = {
-                'fb:explicitly_shared': 'true',
+                "fb:explicitly_shared": "true",
                 message: message
             };
             params[fb.objectName] = await openGraph();
@@ -61,7 +61,7 @@ export class FBPublish {
 
                     const pre = `image[${index}]`;
                     params[`${pre}[url]`] = await leaf.photo.original.makeUrl();
-                    params[`${pre}[user_generated]`] = 'true';
+                    params[`${pre}[user_generated]`] = "true";
                 })
             );
             return params;
@@ -70,27 +70,27 @@ export class FBPublish {
         try {
             const params = await makeParams();
             const content = Object.keys(params).map((name) =>
-                [name, params[name]].map(encodeURIComponent).join('=')
-            ).join('&').replace(/%20/g, '+')
+                [name, params[name]].map(encodeURIComponent).join("=")
+            ).join("&").replace(/%20/g, "+")
             const url = `${fb.hostname}/me/${fb.appName}:${fb.actionName}`;
             logger.debug(() => `Posting to ${url}: ${content}`);
 
             const result = await toPromise(this.http.post(
                 `${url}?access_token=${token}`, content, {
                     headers: new Headers({
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
                     })
                 }));
             const obj = result.json();
             logger.debug(() => `Result of Facebook posting: ${JSON.stringify(obj)}`);
-            withFabric((fabric) => fabric.Answers.eventShare({ method: 'Facebook' }));
+            withFabric((fabric) => fabric.Answers.eventShare({ method: "Facebook" }));
 
             report.publishedFacebook = obj.id;
             logger.debug(() => `Updating facebook published id: ${report.publishedFacebook}`);
             await report.put();
         } catch (ex) {
-            if (ex['_body']) {
-                logger.warn(() => `Error on posting to Facebook: ${ex['_body']}`);
+            if (ex["_body"]) {
+                logger.warn(() => `Error on posting to Facebook: ${ex["_body"]}`);
             }
             throw ex;
         }
@@ -100,7 +100,7 @@ export class FBPublish {
         const ac = await this.con.getToken();
         logger.debug(() => `Curent AccessToken for Facebook: ${JSON.stringify(ac)}`);
         if (!ac) return null;
-        const token = ac['token'];
+        const token = ac["token"];
 
         const fb = (await this.config.authorized).facebook;
         try {

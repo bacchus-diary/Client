@@ -1,15 +1,15 @@
-import {Injectable} from 'angular2/core';
-import {Http} from 'angular2/http';
-import {Storage, LocalStorage} from 'ionic-angular';
+import {Injectable} from "angular2/core";
+import {Http} from "angular2/http";
+import {Storage, LocalStorage} from "ionic-angular";
 
-import {BootSettings} from '../config/boot_settings';
-import {Configuration} from '../config/configuration';
-import {ApiGateway} from '../aws/api_gateway';
-import {Product} from './suggestions';
-import * as Base64 from '../../util/base64';
-import {Logger} from '../../util/logging';
+import {BootSettings} from "../config/boot_settings";
+import {Configuration} from "../config/configuration";
+import {ApiGateway} from "../aws/api_gateway";
+import {Product} from "./suggestions";
+import * as Base64 from "../../util/base64";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('AmazonPAA');
+const logger = new Logger("AmazonPAA");
 
 const ENDPOINT = {
     BR: "https://webservices.amazon.br/onca/xml",
@@ -33,7 +33,7 @@ function getEndpoint(): Promise<string> {
             (navigator as any).globalization.getLocaleName((code) => {
                 const locale: string = code.value;
                 logger.debug(() => `Getting locale code: ${locale}`);
-                const key = _.find(locale.split('-'), (s) => s.match(/^[A-Z]{2}$/) != null);
+                const key = _.find(locale.split("-"), (s) => s.match(/^[A-Z]{2}$/) != null);
                 resolve(ENDPOINT[key]);
             }, reject);
         }).catch((err) => {
@@ -58,8 +58,8 @@ export class AmazonPAA {
             gateway = config.server.then((c) => new ApiGateway(http, c.api.paa,
                 async (plain: string) => {
                     const text = JSON.parse(plain);
-                    const xml = parser.parseFromString(text, 'text/xml');
-                    const error = xml.getElementsByTagName('parsererror');
+                    const xml = parser.parseFromString(text, "text/xml");
+                    const error = xml.getElementsByTagName("parsererror");
                     if (error.length > 0) {
                         throw error.item(0).textContent;
                     }
@@ -92,16 +92,16 @@ export class AmazonPAA {
 
     async doItemSearch(keywords: string, pageIndex: number): Promise<Array<Product>> {
         const xml = await this.invoke({
-            Operation: 'ItemSearch',
-            SearchIndex: 'All',
-            ResponseGroup: 'Images,ItemAttributes,OfferSummary',
-            Keywords: keywords.replace(/'/, ''),
-            Availability: 'Available',
+            Operation: "ItemSearch",
+            SearchIndex: "All",
+            ResponseGroup: "Images,ItemAttributes,OfferSummary",
+            Keywords: keywords.replace(/"/, ""),
+            Availability: "Available",
             ItemPage: `${pageIndex}`
         });
 
-        const elms = xml.querySelectorAll('ItemSearchResponse Items Item');
-        logger.debug(() => `PAA Items by '${keywords}': ${elms.length}`);
+        const elms = xml.querySelectorAll("ItemSearchResponse Items Item");
+        logger.debug(() => `PAA Items by "${keywords}": ${elms.length}`);
 
         return _.range(elms.length).map((index) => this.toProduct(elms.item(index)));
     }
@@ -130,16 +130,16 @@ export class AmazonPAA {
             if (e == null || e.textContent.length < 1) return null;
             return e.textContent;
         }
-        const int = (query: string) => parseFloat(text(query) || '0');
+        const int = (query: string) => parseFloat(text(query) || "0");
         return {
-            id: text('ASIN'),
-            imageUrl: text('SmallImage URL'),
-            imageWidth: int('SmallImage Width'),
-            imageHeight: int('SmallImage Height'),
-            title: text('ItemAttributes Title'),
-            price: text('OfferSummary LowestNewPrice FormattedPrice'),
-            priceValue: int('OfferSummary LowestNewPrice Amount'),
-            url: text('DetailPageURL')
+            id: text("ASIN"),
+            imageUrl: text("SmallImage URL"),
+            imageWidth: int("SmallImage Width"),
+            imageHeight: int("SmallImage Height"),
+            title: text("ItemAttributes Title"),
+            price: text("OfferSummary LowestNewPrice FormattedPrice"),
+            priceValue: int("OfferSummary LowestNewPrice Amount"),
+            url: text("DetailPageURL')
         };
     }
 }

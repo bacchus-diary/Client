@@ -1,13 +1,13 @@
-import {Injectable} from 'angular2/core';
-import {Http} from 'angular2/http';
+import {Injectable} from "angular2/core";
+import {Http} from "angular2/http";
 
-import {BootSettings} from '../config/boot_settings';
-import {Logger} from '../../util/logging';
-import {Cognito} from './cognito';
+import {BootSettings} from "../config/boot_settings";
+import {Logger} from "../../util/logging";
+import {Cognito} from "./cognito";
 
-import {AWS, S3, AWSRequest, requestToPromise} from './aws';
+import {AWS, S3, AWSRequest, requestToPromise} from "./aws";
 
-const logger = new Logger('S3File');
+const logger = new Logger("S3File");
 
 @Injectable()
 export class S3File {
@@ -95,7 +95,7 @@ export class S3File {
         const bucketName = await this.settings.s3Bucket;
         logger.debug(() => `Getting url of file: ${bucketName}:${path}`);
         try {
-            return s3.getSignedUrl('getObject', {
+            return s3.getSignedUrl("getObject", {
                 Bucket: bucketName,
                 Key: path,
                 Expires: expiresInSeconds

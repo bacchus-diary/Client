@@ -1,12 +1,12 @@
-import {Device} from 'ionic-native';
-import {Injectable} from 'angular2/core';
-import * as yaml from 'js-yaml';
+import {Device} from "ionic-native";
+import {Injectable} from "angular2/core";
+import * as yaml from "js-yaml";
 
-import {BootSettings} from './boot_settings';
-import {S3File} from '../aws/s3file';
-import {Logger} from '../../util/logging';
+import {BootSettings} from "./boot_settings";
+import {S3File} from "../aws/s3file";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('Configuration');
+const logger = new Logger("Configuration");
 
 @Injectable()
 export class Configuration {
@@ -21,7 +21,7 @@ export class Configuration {
 
     get server(): Promise<Unauthorized> {
         if (Configuration.unauthorized == null) {
-            const p = this.loadS3('unauthorized/client.yaml');
+            const p = this.loadS3("unauthorized/client.yaml");
             Configuration.unauthorized = p.then((m) => new Unauthorized(m));
         }
         return Configuration.unauthorized;
@@ -29,7 +29,7 @@ export class Configuration {
 
     get authorized(): Promise<Authorized> {
         if (Configuration.authorized == null) {
-            const p = this.loadS3('authorized/settings.yaml');
+            const p = this.loadS3("authorized/settings.yaml");
             Configuration.authorized = p.then((m) => new Authorized(m));
         }
         return Configuration.authorized;
@@ -40,32 +40,32 @@ class Unauthorized {
     constructor(private src: { [key: string]: any }) { }
 
     get appName(): string {
-        return this.src['appName'];
+        return this.src["appName"];
     }
 
     get googleProjectNumber(): string {
-        return this.src['googleProjectNumber'];
+        return this.src["googleProjectNumber"];
     }
 
     get googleBrowserKey(): string {
-        return this.src['googleBrowserKey'];
+        return this.src["googleBrowserKey"];
     }
 
     get snsPlatformArn(): string {
-        const s = Device.device.platform == "Android" ? 'google' : 'apple';
-        return this.src['snsPlatformArn'][s];
+        const s = Device.device.platform == "Android" ? "google" : "apple";
+        return this.src["snsPlatformArn"][s];
     }
 
     get photo(): Photo {
-        return new Photo(this.src['photo']);
+        return new Photo(this.src["photo"]);
     }
 
     get advertisement(): Advertisement {
-        return new Advertisement(this.src['advertisement']);
+        return new Advertisement(this.src["advertisement"]);
     }
 
     get api(): ServerApiMap {
-        return new ServerApiMap(this.src['api']);
+        return new ServerApiMap(this.src["api"]);
     }
 }
 
@@ -76,7 +76,7 @@ class Photo {
     in Milliseconds
     */
     get urlTimeout(): number {
-        return this.src['urlTimeout'] * 1000;
+        return this.src["urlTimeout"] * 1000;
     }
 }
 
@@ -84,8 +84,8 @@ class Advertisement {
     constructor(private src: { [key: string]: any }) { }
 
     get admob(): { [key: string]: any } {
-        let result = this.src['AdMob'];
-        if (!result) result = this.src['AdMod']
+        let result = this.src["AdMob"];
+        if (!result) result = this.src["AdMod"]
         return result;
     }
 }
@@ -95,15 +95,15 @@ class ServerApiMap {
 
     private makeInfo(name: string): ApiInfo {
         return {
-            url: `${this.src['base_url']}/${this.src['gateways'][name]}`,
-            key: this.src['key'],
-            retryLimit: this.src['retry_limit'],
-            retryDuration: this.src['retry_duration']
+            url: `${this.src["base_url"]}/${this.src["gateways"][name]}`,
+            key: this.src["key"],
+            retryLimit: this.src["retry_limit"],
+            retryDuration: this.src["retry_duration"]
         }
     }
 
     get paa(): ApiInfo {
-        return this.makeInfo('paa');
+        return this.makeInfo("paa");
     }
 }
 
@@ -118,7 +118,7 @@ class Authorized {
     constructor(private src: { [key: string]: any }) { }
 
     get facebook(): FBConfig {
-        return new FBConfig(this.src['facebook']);
+        return new FBConfig(this.src["facebook"]);
     }
 }
 
@@ -126,26 +126,26 @@ class FBConfig {
     constructor(private src: { [key: string]: string }) { }
 
     get hostname(): string {
-        return this.src['host'];
+        return this.src["host"];
     }
 
     get appName(): string {
-        return this.src['appName'];
+        return this.src["appName"];
     }
 
     get appId(): string {
-        return this.src['appId'];
+        return this.src["appId"];
     }
 
     get imageTimeout(): string {
-        return this.src['imageTimeout'];
+        return this.src["imageTimeout"];
     }
 
     get actionName(): string {
-        return this.src['actionName'];
+        return this.src["actionName"];
     }
 
     get objectName(): string {
-        return this.src['objectName'];
+        return this.src["objectName"];
     }
 }

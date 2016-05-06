@@ -1,13 +1,13 @@
-import {Photo, Images} from '../providers/reports/photo';
-import {Camera, Device} from 'ionic-native';
+import {Photo, Images} from "../providers/reports/photo";
+import {Camera, Device} from "ionic-native";
 
-import {Cognito} from '../providers/aws/cognito';
-import {Dynamo, DBRecord, createRandomKey} from '../providers/aws/dynamo/dynamo';
-import {DynamoTable} from '../providers/aws/dynamo/table';
-import {assert} from '../util/assertion';
-import {Logger} from '../util/logging';
+import {Cognito} from "../providers/aws/cognito";
+import {Dynamo, DBRecord, createRandomKey} from "../providers/aws/dynamo/dynamo";
+import {DynamoTable} from "../providers/aws/dynamo/table";
+import {assert} from "../util/assertion";
+import {Logger} from "../util/logging";
 
-const logger = new Logger('Leaf');
+const logger = new Logger("Leaf");
 
 export type LeafRecord = {
     COGNITO_ID: string,
@@ -31,8 +31,8 @@ export class Leaf implements DBRecord<Leaf> {
             this._table = dynamo.createTable<LeafRecord, Leaf>((cognito, photo) => {
                 if (!Device.device.cordova) this.cleanup(photo);
                 return {
-                    tableName: 'LEAF',
-                    idColumnName: 'LEAF_ID',
+                    tableName: "LEAF",
+                    idColumnName: "LEAF_ID",
                     reader: async (src: LeafRecord) => {
                         logger.debug(() => `Reading Leaf from DB: ${JSON.stringify(src)}`);
                         if (!src) return null;
@@ -91,14 +91,14 @@ export class Leaf implements DBRecord<Leaf> {
         private content: LeafContent,
         public photo: Images
     ) {
-        assert('reportId', _reportId);
-        assert('id', _id);
-        assert('content', content);
-        assert('images', photo);
+        assert("reportId", _reportId);
+        assert("id", _id);
+        assert("content", content);
+        assert("images", photo);
     }
 
     get table(): Promise<DynamoTable<LeafRecord, Leaf>> {
-        assert('Leaf$Table', Leaf._table);
+        assert("Leaf$Table", Leaf._table);
         return Leaf._table;
     }
 
@@ -110,7 +110,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this.content.logos || [];
     }
     set logos(v: Array<string>) {
-        assert('logos', v);
+        assert("logos", v);
         this.content.logos = v;
     }
 
@@ -118,7 +118,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this.content.labels || [];
     }
     set labels(v: Array<string>) {
-        assert('labels', v);
+        assert("labels", v);
         this.content.labels = v;
     }
 
@@ -126,7 +126,7 @@ export class Leaf implements DBRecord<Leaf> {
         return this.content.keywords || [];
     }
     set keywords(v: Array<string>) {
-        assert('keywords', v);
+        assert("keywords", v);
         this.content.keywords = v;
     }
 
@@ -134,14 +134,14 @@ export class Leaf implements DBRecord<Leaf> {
         return this.content.description || "";
     }
     set description(v: string) {
-        assert('description', v);
+        assert("description", v);
         const original = this.description;
         this.content.description = v;
 
         if (original.length > 0 && this.keywords.length > 0) {
             logger.debug(() => `Changed description: ${original} => ${v}`);
-            const srcList = original.split('\n');
-            const dstList = v.split('\n');
+            const srcList = original.split("\n");
+            const dstList = v.split("\n");
             if (srcList.length == dstList.length) {
                 _.zip(srcList, dstList).map(([src, dst]) => {
                     if (src != dst && _.includes(this.keywords, src)) {

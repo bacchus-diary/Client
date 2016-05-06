@@ -1,11 +1,11 @@
-import {Directive} from 'angular2/core';
-import {ElementRef} from 'angular2/core';
-import {Logger} from '../../util/logging';
+import {Directive} from "angular2/core";
+import {ElementRef} from "angular2/core";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('ElasticTextareaDirective');
+const logger = new Logger("ElasticTextareaDirective");
 
 @Directive({
-    selector: '[elastic]'
+    selector: "[elastic]"
 })
 export class ElasticTextareaDirective {
     constructor(private ref: ElementRef) { }
@@ -17,14 +17,14 @@ export class ElasticTextareaDirective {
         this.textarea = await new Promise<HTMLTextAreaElement>((resolve, reject) => {
             const e: HTMLElement = this.ref.nativeElement;
             logger.debug(() => `Creating ElasticTextarea in : ${e.nodeName}`);
-            if (e.nodeName == 'TEXTAREA') {
+            if (e.nodeName == "TEXTAREA") {
                 resolve(e as HTMLTextAreaElement);
             } else {
-                const t = e.querySelector('textarea') as HTMLTextAreaElement;
+                const t = e.querySelector("textarea") as HTMLTextAreaElement;
                 if (t) {
                     resolve(t);
                 } else {
-                    reject(`No 'textarea' in ${e}(${e.nodeName})`);
+                    reject(`No "textarea" in ${e}(${e.nodeName})`);
                 }
             }
         });
@@ -50,12 +50,12 @@ export class ElasticTextareaDirective {
 }
 
 function makeMirror(origin: HTMLTextAreaElement): HTMLTextAreaElement {
-    const m = document.createElement('textarea') as HTMLTextAreaElement;
+    const m = document.createElement("textarea") as HTMLTextAreaElement;
 
     m.style.cssText = getComputedStyle(origin).cssText;
-    m.style.visibility = 'hidden';
+    m.style.visibility = "hidden";
     m.value = origin.value;
-    m.setAttribute('aria-hidden', 'true');
+    m.setAttribute("aria-hidden", "true");
 
     document.body.appendChild(m);
     return m;

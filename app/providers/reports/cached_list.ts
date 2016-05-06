@@ -1,15 +1,15 @@
-import {Injectable} from 'angular2/core';
+import {Injectable} from "angular2/core";
 
-import {Report} from '../../model/report';
-import {Leaf} from '../../model/leaf';
-import {Cognito} from '../aws/cognito';
-import {Dynamo, DBRecord} from '../aws/dynamo/dynamo';
-import {DynamoTable} from '../aws/dynamo/table';
-import {assert} from '../../util/assertion';
-import {Pager, PagingList} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {Report} from "../../model/report";
+import {Leaf} from "../../model/leaf";
+import {Cognito} from "../aws/cognito";
+import {Dynamo, DBRecord} from "../aws/dynamo/dynamo";
+import {DynamoTable} from "../aws/dynamo/table";
+import {assert} from "../../util/assertion";
+import {Pager, PagingList} from "../../util/pager";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('CachedReports');
+const logger = new Logger("CachedReports");
 
 const PAGE_SIZE = 10;
 
@@ -112,7 +112,7 @@ export class PagingReports implements PagingList<Report> {
     }
 
     private add(adding: Array<Report>) {
-        _.sortBy(adding, 'dateAt').reverse().forEach((x) => {
+        _.sortBy(adding, "dateAt").reverse().forEach((x) => {
             try {
                 if (_.every(this._list, (o) => o.id() != x.id())) {
                     this._list.push(x);

@@ -1,17 +1,17 @@
-import {Storage, LocalStorage} from 'ionic-angular';
+import {Storage, LocalStorage} from "ionic-angular";
 
-import * as Base64 from '../../../util/base64';
-import {Pager} from '../../../util/pager';
-import {Logger} from '../../../util/logging';
+import * as Base64 from "../../../util/base64";
+import {Pager} from "../../../util/pager";
+import {Logger} from "../../../util/logging";
 
-import {Cognito} from '../cognito';
+import {Cognito} from "../cognito";
 
-import * as DC from './document_client.d';
-import {DBRecord, RecordReader, RecordWriter, COGNITO_ID_COLUMN, LAST_MODIFIED_COLUMN, toPromise} from './dynamo';
-import {Expression, ExpressionMap} from './expression';
-import {PagingScan, PagingQuery, LastEvaluatedKey} from './pagination';
+import * as DC from "./document_client.d";
+import {DBRecord, RecordReader, RecordWriter, COGNITO_ID_COLUMN, LAST_MODIFIED_COLUMN, toPromise} from "./dynamo";
+import {Expression, ExpressionMap} from "./expression";
+import {PagingScan, PagingQuery, LastEvaluatedKey} from "./pagination";
 
-const logger = new Logger('DynamoTable');
+const logger = new Logger("DynamoTable");
 
 export type TableKey = { [key: string]: string };
 
@@ -98,7 +98,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             const params = {
                 TableName: this.tableName,
                 Key: await this.makeKey(id),
-                ProjectionExpression: [LAST_MODIFIED_COLUMN].join(',')
+                ProjectionExpression: [LAST_MODIFIED_COLUMN].join(",")
             }
             logger.debug(() => `Getting lastModified: ${JSON.stringify(params)}`);
             const res = await toPromise(this.client.get(params));
@@ -132,11 +132,11 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
             if (cached == null) return true;
             return JSON.stringify(cached[name]) != JSON.stringify(item[name]);
         }).forEach((name) => {
-            attrs[name] = { Action: 'PUT', Value: item[name] };
+            attrs[name] = { Action: "PUT", Value: item[name] };
         });
 
         if (!_.isEmpty(attrs)) {
-            attrs[LAST_MODIFIED_COLUMN] = { Action: 'PUT', Value: item[LAST_MODIFIED_COLUMN] };
+            attrs[LAST_MODIFIED_COLUMN] = { Action: "PUT", Value: item[LAST_MODIFIED_COLUMN] };
             const params = {
                 TableName: this.tableName,
                 Key: await this.makeKey(item[this.ID_COLUMN]),
@@ -165,7 +165,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
     }
 
     private async select<P extends DC.QueryParams | DC.ScanParams, R extends DC.QueryResult | DC.ScanResult>(func: DC.Operation<P, R>, params: P, last?: LastEvaluatedKey): Promise<Array<T>> {
-        params.ProjectionExpression = [LAST_MODIFIED_COLUMN, this.ID_COLUMN].join(',');
+        params.ProjectionExpression = [LAST_MODIFIED_COLUMN, this.ID_COLUMN].join(",");
         if (last) params.ExclusiveStartKey = last.value;
 
         logger.debug(() => `Selecting: ${JSON.stringify(params)}`);

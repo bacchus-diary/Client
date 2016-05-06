@@ -1,20 +1,20 @@
-import {Page, NavController} from 'ionic-angular';
-import * as Rx from 'rxjs';
+import {Page, NavController} from "ionic-angular";
+import * as Rx from "rxjs";
 
-import {FATHENS_DIRECTIVES} from '../../components/all';
-import {AddReportPage} from '../add_report/add_report';
-import {ReportDetailPage} from '../report_detail/report_detail';
-import {Report} from '../../model/report';
-import {FATHENS_PROVIDERS} from '../../providers/all';
-import {CachedReports} from '../../providers/reports/cached_list';
-import {SearchReports} from '../../providers/reports/search';
-import {PagingList} from '../../util/pager';
-import {Logger} from '../../util/logging';
+import {FATHENS_DIRECTIVES} from "../../components/all";
+import {AddReportPage} from "../add_report/add_report";
+import {ReportDetailPage} from "../report_detail/report_detail";
+import {Report} from "../../model/report";
+import {FATHENS_PROVIDERS} from "../../providers/all";
+import {CachedReports} from "../../providers/reports/cached_list";
+import {SearchReports} from "../../providers/reports/search";
+import {PagingList} from "../../util/pager";
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('ReportsListPage');
+const logger = new Logger("ReportsListPage");
 
 @Page({
-    templateUrl: 'build/pages/reports_list/reports_list.html',
+    templateUrl: "build/pages/reports_list/reports_list.html",
     directives: [FATHENS_DIRECTIVES],
     providers: [FATHENS_PROVIDERS]
 })

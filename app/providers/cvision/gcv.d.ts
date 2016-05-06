@@ -1,12 +1,12 @@
 // https://cloud.google.com/vision/reference/rest/v1/images/annotate
 
-export type FeatureType = 'FACE_DETECTION' |
-    'LANDMARK_DETECTION' |
-    'LOGO_DETECTION' |
-    'LABEL_DETECTION' |
-    'TEXT_DETECTION' |
-    'SAFE_SEARCH_DETECTION' |
-    'IMAGE_PROPERTIES';
+export type FeatureType = "FACE_DETECTION" |
+    "LANDMARK_DETECTION" |
+    "LOGO_DETECTION" |
+    "LABEL_DETECTION" |
+    "TEXT_DETECTION" |
+    "SAFE_SEARCH_DETECTION" |
+    "IMAGE_PROPERTIES";
 
 export type Feature = {
     type: FeatureType,
@@ -177,4 +177,4 @@ export type SafeSearchAnnotation = {
     violence: Likelihood
 }
 
-export type Likelihood = 'UNKNOWN' | 'VERY_UNLIKELY' | 'UNLIKELY' | 'POSSIBLE' | 'LIKELY' | 'VERY_LIKELY';
+export type Likelihood = "UNKNOWN" | "VERY_UNLIKELY" | "UNLIKELY" | "POSSIBLE" | "LIKELY" | "VERY_LIKELY";

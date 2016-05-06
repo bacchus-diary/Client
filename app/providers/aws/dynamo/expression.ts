@@ -1,4 +1,4 @@
-import * as DC from './document_client.d';
+import * as DC from "./document_client.d";
 
 export type Expression = {
     express: string,
@@ -10,14 +10,14 @@ export type Expression = {
 
 export class ExpressionMap {
     static joinAll(pairs: { [key: string]: DC.ColumnValueElement }, join?: string, sign?: string): Expression {
-        if (!join) join = 'AND'
-        if (!sign) sign = '=';
+        if (!join) join = "AND"
+        if (!sign) sign = "=";
         const rels = new Array<string>();
         const result = new ExpressionMap();
         Object.keys(pairs).forEach((n) => {
             const name = result.addName(n);
             const value = result.addValue(pairs[n]);
-            rels.push([name, sign, value].join(' '));
+            rels.push([name, sign, value].join(" "));
         });
         return { express: rels.join(` ${join} `), keys: result };
     }

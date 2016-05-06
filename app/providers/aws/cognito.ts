@@ -1,17 +1,17 @@
-import {Storage, SqlStorage} from 'ionic-angular';
-import {Injectable} from 'angular2/core';
+import {Storage, SqlStorage} from "ionic-angular";
+import {Injectable} from "angular2/core";
 
-import {BootSettings} from '../config/boot_settings';
-import {FBConnect} from '../facebook/fb_connect';
-import {Preferences} from '../config/preferences';
-import {withFabric} from '../../util/fabric';
-import {Logger} from '../../util/logging';
+import {BootSettings} from "../config/boot_settings";
+import {FBConnect} from "../facebook/fb_connect";
+import {Preferences} from "../config/preferences";
+import {withFabric} from "../../util/fabric";
+import {Logger} from "../../util/logging";
 
-import {AWS, ClientConfig} from './aws';
+import {AWS, ClientConfig} from "./aws";
 
-const logger = new Logger('Cognito');
+const logger = new Logger("Cognito");
 
-export const PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
+export const PROVIDER_KEY_FACEBOOK = "graph.facebook.com";
 
 function setupCredentials(poolId: string): CognitoIdentityCredentials {
     return AWS.config.credentials = new AWS.CognitoIdentityCredentials({
@@ -68,7 +68,7 @@ export class Cognito {
                     getCredentials().params.IdentityId = null;
                     await this.refresh();
                 }
-                withFabric((fabric) => fabric.Answers.eventLogin({ method: 'Cognito' }));
+                withFabric((fabric) => fabric.Answers.eventLogin({ method: "Cognito" }));
             }
         } catch (ex) {
             logger.fatal(() => `Failed to initialize: ${JSON.stringify(ex, null, 4)}`);
@@ -160,7 +160,7 @@ class CognitoIdentity {
     }
 
     toString(): string {
-        return `Cognito(identityId: ${this.id}, services: [${_.keys(this.map).join(', ')}])`;
+        return `Cognito(identityId: ${this.id}, services: [${_.keys(this.map).join(", ")}])`;
     }
 
     private id: string;

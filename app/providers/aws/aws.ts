@@ -1,12 +1,12 @@
-import SDK = require('aws-sdk');
-import {Logger} from '../../util/logging';
+import SDK = require("aws-sdk");
+import {Logger} from "../../util/logging";
 
 console.log(`aws-sdk = ${SDK}`);
 
-export * from 'aws-sdk';
+export * from "aws-sdk";
 export const AWS = (window as any).AWS;
 
-const logger = new Logger('AWS');
+const logger = new Logger("AWS");
 
 export interface AWSRequest {
     send(callback: (err, data) => void): void;

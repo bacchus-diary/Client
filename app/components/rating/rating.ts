@@ -1,12 +1,12 @@
-import {Component, Input, Output, EventEmitter} from 'angular2/core';
+import {Component, Input, Output, EventEmitter} from "angular2/core";
 
-import {Logger} from '../../util/logging';
+import {Logger} from "../../util/logging";
 
-const logger = new Logger('RatingComponent');
+const logger = new Logger("RatingComponent");
 
 @Component({
-    selector: 'fathens-rating',
-    templateUrl: 'build/components/rating/rating.html'
+    selector: "fathens-rating",
+    templateUrl: "build/components/rating/rating.html"
 })
 export class RatingComponent {
     @Input() maxValue: number = 5;
