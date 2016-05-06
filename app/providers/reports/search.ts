@@ -64,7 +64,7 @@ class MargedPager implements Pager<Report> {
 
     async more(pageSize: number): Promise<Array<Report>> {
         const reportsAwait = this.reportPager.more(pageSize / 2);
-        const leaves = await this.leafPager.more(pageSize / 2)
+        const leaves = await this.leafPager.more(pageSize / 2);
         const reports = await reportsAwait;
         logger.debug(() => `Marging items: reports=${reports.length}, leaves=${leaves.length}`);
 

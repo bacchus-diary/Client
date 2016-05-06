@@ -96,7 +96,7 @@ export class PagingReports implements PagingList<Report> {
             const start = this._list.length;
             const goal = start + PAGE_SIZE;
             await this.doMore(start + 1);
-            this.doMore(goal);// これ以降はバックグラウンドで追加
+            this.doMore(goal); // これ以降はバックグラウンドで追加
         }
     }
 

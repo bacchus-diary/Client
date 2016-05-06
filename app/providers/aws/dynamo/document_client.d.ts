@@ -8,15 +8,15 @@ export interface AWSRequest<T> {
 export type Operation<P, R> = (params: P, callback?: ClientCallback<R>) => AWSRequest<R>;
 
 export interface DocumentClient {
-    batchGet: Operation<BatchGetParams, BatchGetResult>
-    batchWrite: Operation<BatchWriteParams, BatchWriteResult>
+    batchGet: Operation<BatchGetParams, BatchGetResult>;
+    batchWrite: Operation<BatchWriteParams, BatchWriteResult>;
     createSet(list: Array<any>, params?: { validate: boolean }): any;
-    delete: Operation<DeleteParams, DeleteResult>
-    get: Operation<GetParams, GetResult>
-    put: Operation<PutParams, PutResult>
-    query: Operation<QueryParams, QueryResult>
-    scan: Operation<ScanParams, ScanResult>
-    update: Operation<UpdateParams, UpdateResult>
+    delete: Operation<DeleteParams, DeleteResult>;
+    get: Operation<GetParams, GetResult>;
+    put: Operation<PutParams, PutResult>;
+    query: Operation<QueryParams, QueryResult>;
+    scan: Operation<ScanParams, ScanResult>;
+    update: Operation<UpdateParams, UpdateResult>;
 }
 
 ////////////////////////////////////////////////////////////////

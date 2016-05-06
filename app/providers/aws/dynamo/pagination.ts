@@ -16,7 +16,7 @@ export class LastEvaluatedKey {
     }
 
     set value(v: DC.Item) {
-        logger.debug(() => `Loaded LastEvaluatedKey: ${JSON.stringify(v)}`)
+        logger.debug(() => `Loaded LastEvaluatedKey: ${JSON.stringify(v)}`);
         this._value = v ? v : {};
     }
 

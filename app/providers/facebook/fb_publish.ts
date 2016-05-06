@@ -49,7 +49,7 @@ export class FBPublish {
                 const json = JSON.stringify(data);
                 logger.debug(() => `Passing to OpenGraph API: ${json}`);
                 return `${data.url}/${encodeURIComponent(btoa(json))}`;
-            }
+            };
             const params: { [key: string]: string } = {
                 "fb:explicitly_shared": "true",
                 message: message
@@ -65,13 +65,13 @@ export class FBPublish {
                 })
             );
             return params;
-        }
+        };
 
         try {
             const params = await makeParams();
             const content = Object.keys(params).map((name) =>
                 [name, params[name]].map(encodeURIComponent).join("=")
-            ).join("&").replace(/%20/g, "+")
+            ).join("&").replace(/%20/g, "+");
             const url = `${fb.hostname}/me/${fb.appName}:${fb.actionName}`;
             logger.debug(() => `Posting to ${url}: ${content}`);
 

@@ -45,7 +45,7 @@ export class AcceptancePage {
         if (!_.isNil(divString)) {
             const div = document.createElement("div");
             div.innerHTML = divString;
-            this.showGist(div, this.toHref(res["stylesheet"]))
+            this.showGist(div, this.toHref(res["stylesheet"]));
         }
     }
 
@@ -67,7 +67,7 @@ export class AcceptancePage {
         const base = document.getElementById("gist");
         logger.info(() => `Append gist to ${base}`);
 
-        const meta = div.querySelector(".gist-meta")
+        const meta = div.querySelector(".gist-meta");
         if (!_.isNil(meta)) meta.remove();
 
         const css = await this.getStyle(styleHref);

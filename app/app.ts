@@ -13,7 +13,7 @@ import {Logger} from "./util/logging";
 })
 class MyApp {
     rootPage: any;
-    pages: Array<{ title: string, component: any }>
+    pages: Array<{ title: string, component: any }>;
 
     constructor(private app: IonicApp, private platform: Platform) {
         this.initializeApp();
@@ -32,7 +32,7 @@ class MyApp {
             if (!nav.hasOverlay() && nav.canGoBack()) {
                 nav.pop();
             }
-        })
+        });
         this.platform.ready().then(async () => {
             Splashscreen.show();
             await Logger.setLebelByVersionNumber();

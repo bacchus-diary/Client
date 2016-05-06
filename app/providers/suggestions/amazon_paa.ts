@@ -119,7 +119,7 @@ export class AmazonPAA {
         const rec: CachedRecord = {
             lastUpdate: new Date().getTime(),
             base64json: Base64.encodeJson(result)
-        }
+        };
         await this.storage.setJson(id, rec);
         return result;
     }
@@ -129,7 +129,7 @@ export class AmazonPAA {
             const e = item.querySelector(query);
             if (_.isNil(e) || e.textContent.length < 1) return null;
             return e.textContent;
-        }
+        };
         const int = (query: string) => parseFloat(text(query) || "0");
         return {
             id: text("ASIN"),

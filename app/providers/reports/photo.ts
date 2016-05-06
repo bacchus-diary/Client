@@ -56,7 +56,7 @@ export class Photo {
             const files = await this.s3file.list(prefix);
             await Promise.all(files.map(async (file) => {
                 const st = Images.destractStoragePath(file);
-                const ok = !_.isNil(st) && await proc(await this.images(st.reportId, st.leafId))
+                const ok = !_.isNil(st) && await proc(await this.images(st.reportId, st.leafId));
                 if (!ok) {
                     await this.s3file.remove(file);
                 }
@@ -78,7 +78,7 @@ export class Images {
             cognitoId: m[2],
             reportId: m[3],
             leafId: m[4]
-        }
+        };
     }
 
     constructor(

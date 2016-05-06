@@ -48,7 +48,7 @@ export class ShowcaseComponent {
         onInit: (s) => {
             this.swiper = s;
         }
-    }
+    };
 
     slidePrev() {
         this.swiper.slidePrev();
@@ -170,7 +170,7 @@ export class ShowcaseComponent {
                 }
             }
             return null;
-        }
+        };
         const floating = getChild("floating");
         const target = getChild("deletable");
         logger.debug(() => `Animate target: ${target}`);

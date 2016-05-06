@@ -85,7 +85,7 @@ class Advertisement {
 
     get admob(): { [key: string]: any } {
         let result = this.src["AdMob"];
-        if (!result) result = this.src["AdMod"]
+        if (!result) result = this.src["AdMod"];
         return result;
     }
 }
@@ -99,7 +99,7 @@ class ServerApiMap {
             key: this.src["key"],
             retryLimit: this.src["retry_limit"],
             retryDuration: this.src["retry_duration"]
-        }
+        };
     }
 
     get paa(): ApiInfo {

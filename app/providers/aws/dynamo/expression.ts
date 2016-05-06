@@ -10,7 +10,7 @@ export type Expression = {
 
 export class ExpressionMap {
     static joinAll(pairs: { [key: string]: DC.ColumnValueElement }, join?: string, sign?: string): Expression {
-        if (!join) join = "AND"
+        if (!join) join = "AND";
         if (!sign) sign = "=";
         const rels = new Array<string>();
         const result = new ExpressionMap();

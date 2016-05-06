@@ -55,7 +55,7 @@ export class CVision {
                     return {
                         type: name as GCV.FeatureType,
                         maxResults: features[name] as number
-                    }
+                    };
                 })
             }]
         };

@@ -164,7 +164,7 @@ class CognitoIdentity {
     }
 
     private id: string;
-    private map: { [key: string]: string; } = {}
+    private map: { [key: string]: string; } = {};
 
     get identityId(): string {
         return this.id;

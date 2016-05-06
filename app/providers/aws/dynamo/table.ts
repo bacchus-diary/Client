@@ -99,7 +99,7 @@ export class DynamoTable<R extends DC.Item, T extends DBRecord<T>> {
                 TableName: this.tableName,
                 Key: await this.makeKey(id),
                 ProjectionExpression: [LAST_MODIFIED_COLUMN].join(",")
-            }
+            };
             logger.debug(() => `Getting lastModified: ${JSON.stringify(params)}`);
             const res = await toPromise(this.client.get(params));
             return res.Item && res.Item[LAST_MODIFIED_COLUMN];

@@ -91,7 +91,7 @@ export class ReportsListPage {
 
     async onPageWillEnter() {
         await this.clearSearch();
-        logger.debug(() => `Loaded initial reports: ${this.reports.length}`)
+        logger.debug(() => `Loaded initial reports: ${this.reports.length}`);
     }
 
     async doRefresh(event) {
@@ -99,7 +99,7 @@ export class ReportsListPage {
         try {
             this.pager.reset();
             await this.more();
-            logger.debug(() => `Refreshed reports: ${this.reports.length}`)
+            logger.debug(() => `Refreshed reports: ${this.reports.length}`);
         } finally {
             event.complete();
             this.isRefreshing = false;
@@ -110,7 +110,7 @@ export class ReportsListPage {
         if (this.pager.hasMore()) {
             logger.debug(() => `Getting more reports: ${event}`);
             await this.more();
-            logger.debug(() => `Generated reports: ${this.reports.length}`)
+            logger.debug(() => `Generated reports: ${this.reports.length}`);
         }
         event.complete();
     }

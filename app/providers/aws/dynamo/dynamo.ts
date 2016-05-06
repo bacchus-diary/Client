@@ -29,7 +29,7 @@ export class Dynamo {
     async createTable<R extends DC.Item, T extends DBRecord<T>>(maker: DBTableMaker<R, T>): Promise<DynamoTable<R, T>> {
         const m = maker(this.cognito, this.photo);
         const client = await this.client;
-        const tableName = `${(await this.config.server).appName}.${m.tableName}`
+        const tableName = `${(await this.config.server).appName}.${m.tableName}`;
 
         Cognito.addChangingHook(async (oldId, newId) => {
             const exp = new ExpressionMap();
@@ -57,7 +57,7 @@ export class Dynamo {
                     await toPromise(client.delete({
                         TableName: tableName,
                         Key: key
-                    }))
+                    }));
                 } catch (ex) {
                     logger.warn(() => `Error on moving ${tableName}: ${JSON.stringify(item)}`);
                 }
